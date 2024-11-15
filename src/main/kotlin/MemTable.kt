@@ -24,11 +24,16 @@ class MemTable(
     }
 
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
+        approximateSize += key.size() + value.size()
         map[key] = value
     }
 
     fun delete(key: ComparableByteArray) {
-        map.remove(key)
+        val value = map[key]
+        if (value != null) {
+            approximateSize -= key.size() + value.size()
+            map.remove(key)
+        }
     }
 
     fun forTestingGetSlice(key: ComparableByteArray): ComparableByteArray? {
@@ -40,6 +45,6 @@ class MemTable(
     }
 
     fun approximateSize(): Int {
-        TODO()
+        return approximateSize
     }
 }

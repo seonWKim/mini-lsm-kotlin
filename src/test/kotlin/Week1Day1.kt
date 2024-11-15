@@ -59,10 +59,10 @@ class Week1Day1 {
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.forceFreezeMemtable() // TODO
+        storage.forceFreezeMemtable()
         assertEquals(storage.state.immutableMemtables.size, 1)
         val previousApproximateSize = storage.state.immutableMemtables[0].approximateSize()
-        assertFalse("previousApproximate size should not be greater than or equal to 15") { previousApproximateSize >= 15 }
+        assertTrue ("previousApproximate size should be greater than or equal to 15") { previousApproximateSize >= 15 }
         storage.put("1".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "23333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "233333".toComparableByteArray())

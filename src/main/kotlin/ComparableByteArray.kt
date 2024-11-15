@@ -23,4 +23,8 @@ class ComparableByteArray(
     override fun hashCode(): Int {
         return array.contentHashCode()
     }
+
+    fun size(): Int {
+        return array.size
+    }
 }

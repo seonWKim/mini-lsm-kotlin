@@ -16,21 +16,25 @@ class LsmStorageInner(
             return LsmStorageInner(
                 path = path,
                 options = options,
-                state = LsmStorageState(
-                    memtable = MemTable.create(0),
-                    immutableMemtables = emptyList()
-                )
+                state = LsmStorageState(MemTable.create(0))
             )
         }
     }
 
     fun get(key: ComparableByteArray): ComparableByteArray? {
-        val lock = memtableStateLock.readLock()  // Get the read lock
-        lock.lock()  // Acquire the lock
-        return try {
-            state.memtable.get(key)  // Access the state within the locked scope
+        val lock = memtableStateLock.readLock()
+        lock.lock()
+        try {
+            val memtableResult = state.memtable.get(key)
+            if (memtableResult != null) {
+                return memtableResult
+            }
+
+            return null
+            TODO("retrieve from immutable memtables")
+            TODO("retrieve from sstables stored in disk")
         } finally {
-            lock.unlock()  // Ensure the lock is released
+            lock.unlock()
         }
     }
 
@@ -55,6 +59,12 @@ class LsmStorageInner(
     }
 
     fun forceFreezeMemtable() {
-        TODO()
+        val lock = memtableStateLock.writeLock()
+        lock.lock()
+        try {
+            state.freezeMemtable()
+        } finally {
+            lock.unlock()
+        }
     }
 }
