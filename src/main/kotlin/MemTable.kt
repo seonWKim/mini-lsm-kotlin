@@ -12,19 +12,31 @@ class MemTable(
             return MemTable(
                 map = ConcurrentSkipListMap(),
                 wal = Wal.default(),
-                id = 0
+                id = id
             )
         }
     }
 
     private var approximateSize: Int = 0
 
-    fun forTestingPutSlice(key: ComparableByteArray, value: ComparableByteArray) {
+    fun get(key: ComparableByteArray): ComparableByteArray? {
+        return map[key]
+    }
+
+    fun put(key: ComparableByteArray, value: ComparableByteArray) {
         map[key] = value
+    }
+
+    fun delete(key: ComparableByteArray) {
+        map.remove(key)
     }
 
     fun forTestingGetSlice(key: ComparableByteArray): ComparableByteArray? {
         return map[key]
+    }
+
+    fun forTestingPutSlice(key: ComparableByteArray, value: ComparableByteArray) {
+        map[key] = value
     }
 
     fun approximateSize(): Int {
