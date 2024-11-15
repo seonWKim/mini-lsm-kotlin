@@ -3,6 +3,12 @@ package org.example
 class ComparableByteArray(
     val array: ByteArray
 ) : Comparable<ComparableByteArray> {
+    companion object {
+        fun empty(): ComparableByteArray {
+            return ComparableByteArray("".toByteArray())
+        }
+    }
+
     override fun compareTo(other: ComparableByteArray): Int {
         if (this.array.size > other.array.size) {
             return other.compareTo(this)

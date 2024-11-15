@@ -25,9 +25,20 @@ class LsmStorageInner(
         val lock = memtableStateLock.readLock()
         lock.lock()
         try {
-            val memtableResult = state.memtable.get(key)
-            if (memtableResult != null) {
-                return memtableResult
+            val memtableResult = state.memTable.get(key)
+            if (memtableResult.isValid()) {
+                return memtableResult!!.value
+            }
+
+            for (immMemtable in state.immutableMemtables) {
+                val immMemtableResult = immMemtable.get(key)
+                if (immMemtableResult.isValid()) {
+                    return immMemtableResult!!.value
+                }
+
+                if (immMemtableResult.isDeleted()) {
+                    return null
+                }
             }
 
             return null
@@ -42,7 +53,10 @@ class LsmStorageInner(
         val lock = memtableStateLock.writeLock()
         lock.lock()
         return try {
-            state.memtable.put(key, value)
+            if (shouldFreezeMemtable()) {
+                forceFreezeMemtable()
+            }
+            state.memTable.put(key, MemtableValue(value, MemtableValueFlag.NORMAL))
         } finally {
             lock.unlock()
         }
@@ -52,7 +66,10 @@ class LsmStorageInner(
         val lock = memtableStateLock.writeLock()
         lock.lock()
         return try {
-            state.memtable.delete(key)
+            if (shouldFreezeMemtable()) {
+                forceFreezeMemtable()
+            }
+            state.memTable.put(key, MemtableValue(key, MemtableValueFlag.DELETED))
         } finally {
             lock.unlock()
         }
@@ -66,5 +83,23 @@ class LsmStorageInner(
         } finally {
             lock.unlock()
         }
+    }
+
+    private fun shouldFreezeMemtable(): Boolean {
+        val lock = memtableStateLock.readLock()
+        lock.lock()
+        try {
+            if (state.memTable.approximateSize() > options.targetSstSize) {
+                return true
+            }
+
+            if (state.memTable.countEntries() > options.numMemtableLimit) {
+                return true
+            }
+        } finally {
+            lock.unlock()
+        }
+
+        return false
     }
 }

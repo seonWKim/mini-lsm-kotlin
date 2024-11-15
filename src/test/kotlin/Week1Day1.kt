@@ -12,28 +12,28 @@ import kotlin.test.assertTrue
 class Week1Day1 {
 
     @Test
-    fun `test task1 memtable get`() {
-        val memtable = MemTable.create(0)
-        memtable.forTestingPutSlice("key1".toComparableByteArray(), "value1".toComparableByteArray())
-        memtable.forTestingPutSlice("key2".toComparableByteArray(), "value2".toComparableByteArray())
-        memtable.forTestingPutSlice("key3".toComparableByteArray(), "value3".toComparableByteArray())
-        assertEquals(memtable.forTestingGetSlice("key1".toComparableByteArray()), "value1".toComparableByteArray())
-        assertEquals(memtable.forTestingGetSlice("key2".toComparableByteArray()), "value2".toComparableByteArray())
-        assertEquals(memtable.forTestingGetSlice("key3".toComparableByteArray()), "value3".toComparableByteArray())
+    fun `test task1 memTable get`() {
+        val memTable = MemTable.create(0)
+        memTable.forTestingPutSlice("key1".toComparableByteArray(), "value1".toComparableByteArray())
+        memTable.forTestingPutSlice("key2".toComparableByteArray(), "value2".toComparableByteArray())
+        memTable.forTestingPutSlice("key3".toComparableByteArray(), "value3".toComparableByteArray())
+        assertEquals(memTable.forTestingGetSlice("key1".toComparableByteArray())?.value, "value1".toComparableByteArray())
+        assertEquals(memTable.forTestingGetSlice("key2".toComparableByteArray())?.value, "value2".toComparableByteArray())
+        assertEquals(memTable.forTestingGetSlice("key3".toComparableByteArray())?.value, "value3".toComparableByteArray())
     }
 
     @Test
-    fun `test task1 memtable overwrite`() {
-        val memtable = MemTable.create(0)
-        memtable.forTestingPutSlice("key1".toComparableByteArray(), "value1".toComparableByteArray())
-        memtable.forTestingPutSlice("key2".toComparableByteArray(), "value2".toComparableByteArray())
-        memtable.forTestingPutSlice("key3".toComparableByteArray(), "value3".toComparableByteArray())
-        memtable.forTestingPutSlice("key1".toComparableByteArray(), "value11".toComparableByteArray())
-        memtable.forTestingPutSlice("key2".toComparableByteArray(), "value22".toComparableByteArray())
-        memtable.forTestingPutSlice("key3".toComparableByteArray(), "value33".toComparableByteArray())
-        assertEquals(memtable.forTestingGetSlice("key1".toComparableByteArray()), "value11".toComparableByteArray())
-        assertEquals(memtable.forTestingGetSlice("key2".toComparableByteArray()), "value22".toComparableByteArray())
-        assertEquals(memtable.forTestingGetSlice("key3".toComparableByteArray()), "value33".toComparableByteArray())
+    fun `test task1 memTable overwrite`() {
+        val memTable = MemTable.create(0)
+        memTable.forTestingPutSlice("key1".toComparableByteArray(), "value1".toComparableByteArray())
+        memTable.forTestingPutSlice("key2".toComparableByteArray(), "value2".toComparableByteArray())
+        memTable.forTestingPutSlice("key3".toComparableByteArray(), "value3".toComparableByteArray())
+        memTable.forTestingPutSlice("key1".toComparableByteArray(), "value11".toComparableByteArray())
+        memTable.forTestingPutSlice("key2".toComparableByteArray(), "value22".toComparableByteArray())
+        memTable.forTestingPutSlice("key3".toComparableByteArray(), "value33".toComparableByteArray())
+        assertEquals(memTable.forTestingGetSlice("key1".toComparableByteArray())?.value, "value11".toComparableByteArray())
+        assertEquals(memTable.forTestingGetSlice("key2".toComparableByteArray())?.value, "value22".toComparableByteArray())
+        assertEquals(memTable.forTestingGetSlice("key3".toComparableByteArray())?.value, "value33".toComparableByteArray())
     }
 
     @Test
@@ -87,7 +87,7 @@ class Week1Day1 {
         for (_unused in 0..1000) {
             storage.delete("1".toComparableByteArray())
         }
-        assertTrue("No more memtable frozen?") { storage.state.immutableMemtables.size > numImmMemtables }
+        assertTrue("No more memTable frozen?") { storage.state.immutableMemtables.size > numImmMemtables }
     }
 
     @Test

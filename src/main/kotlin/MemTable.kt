@@ -2,8 +2,32 @@ package org.example
 
 import java.util.concurrent.ConcurrentSkipListMap
 
+typealias MemTableKey = ComparableByteArray
+
+data class MemtableValue(
+    val value: ComparableByteArray,
+    val flag: MemtableValueFlag
+) {
+    fun size(): Int {
+        return value.size()
+    }
+}
+
+fun MemtableValue?.isValid(): Boolean {
+    return this != null && this.flag != MemtableValueFlag.DELETED
+}
+
+fun MemtableValue?.isDeleted(): Boolean {
+    return this != null && this.flag == MemtableValueFlag.DELETED
+}
+
+enum class MemtableValueFlag {
+    NORMAL,
+    DELETED
+}
+
 class MemTable(
-    val map: ConcurrentSkipListMap<ComparableByteArray, ComparableByteArray>,
+    val map: ConcurrentSkipListMap<MemTableKey, MemtableValue>,
     val wal: Wal?,
     val id: Int,
 ) {
@@ -19,11 +43,14 @@ class MemTable(
 
     private var approximateSize: Int = 0
 
-    fun get(key: ComparableByteArray): ComparableByteArray? {
+    fun get(key: ComparableByteArray): MemtableValue? {
         return map[key]
     }
 
-    fun put(key: ComparableByteArray, value: ComparableByteArray) {
+    fun put(key: ComparableByteArray, value: MemtableValue) {
+        if (key.array.isEmpty()) {
+            throw IllegalArgumentException("key should not be empty")
+        }
         approximateSize += key.size() + value.size()
         map[key] = value
     }
@@ -32,19 +59,23 @@ class MemTable(
         val value = map[key]
         if (value != null) {
             approximateSize -= key.size() + value.size()
-            map.remove(key)
+            map[key] = MemtableValue(ComparableByteArray.empty(), MemtableValueFlag.DELETED)
         }
     }
 
-    fun forTestingGetSlice(key: ComparableByteArray): ComparableByteArray? {
+    fun forTestingGetSlice(key: ComparableByteArray): MemtableValue? {
         return map[key]
     }
 
     fun forTestingPutSlice(key: ComparableByteArray, value: ComparableByteArray) {
-        map[key] = value
+        map[key] = MemtableValue(value, MemtableValueFlag.NORMAL)
     }
 
     fun approximateSize(): Int {
         return approximateSize
+    }
+
+    fun countEntries(): Int {
+        return map.size
     }
 }

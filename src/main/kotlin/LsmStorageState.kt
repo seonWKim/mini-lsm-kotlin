@@ -3,22 +3,22 @@ package org.example
 import java.util.*
 
 class LsmStorageState {
-    // current memtable
-    var memtable: MemTable
+    // current memTable
+    var memTable: MemTable
         private set
 
     // immutable memtables from latest to earliest earliest
     var immutableMemtables: LinkedList<MemTable>
 
-    constructor(memtable: MemTable) {
-        this.memtable = memtable
+    constructor(memTable: MemTable) {
+        this.memTable = memTable
         this.immutableMemtables = LinkedList()
     }
 
     fun freezeMemtable() {
-        val prevId = memtable.id
+        val prevId = memTable.id
         val newMemtable = MemTable.create(prevId + 1)
-        immutableMemtables.addFirst(memtable)
-        this.memtable = newMemtable
+        immutableMemtables.addFirst(memTable)
+        this.memTable = newMemtable
     }
 }
