@@ -31,12 +31,12 @@ class MergeIterator(
 
     override fun key(): ComparableByteArray {
         return current()?.iterator?.key()
-            ?: throw IllegalCallerException("Use isValid() function before calling this function")
+            ?: throw Error("Use isValid() function before calling this function")
     }
 
     override fun value(): ComparableByteArray {
         return current()?.iterator?.value()
-            ?: throw IllegalCallerException("Use isValid() function before calling this function")
+            ?: throw Error("Use isValid() function before calling this function")
     }
 
     override fun isValid(): Boolean {

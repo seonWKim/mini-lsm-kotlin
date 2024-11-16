@@ -39,12 +39,12 @@ class MemTableIterator(
 
     override fun key(): ComparableByteArray {
         return current?.key
-            ?: throw IllegalCallerException("Use isValid() function before calling this function")
+            ?: throw Error("Use isValid() function before calling this function")
     }
 
     override fun value(): ComparableByteArray {
         return current?.value?.value
-            ?: throw IllegalCallerException("Use isValid() function before calling this function")
+            ?: throw Error("Use isValid() function before calling this function")
     }
 
     override fun isValid(): Boolean {

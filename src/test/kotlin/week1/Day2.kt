@@ -5,6 +5,7 @@ import org.example.common.BoundFlag
 import org.example.common.ComparableByteArray
 import org.example.common.toComparableByteArray
 import org.example.lsm.memtable.MemTable
+import org.example.lsm.memtable.iterator.FusedIterator
 import org.example.lsm.memtable.iterator.MergeIterator
 import org.example.lsm.memtable.iterator.MockIterator
 import org.example.lsm.memtable.iterator.StorageIterator
@@ -232,6 +233,31 @@ class Day2 {
         )
         val mergeIterator = MergeIterator(listOf(iter1.copy(), iter1, iter2))
         assertIteratorThrows<IllegalStateException>(mergeIterator)
+    }
+
+    @Test
+    fun `test task3 fused iterator`() {
+        val iter1 = MockIterator(emptyList())
+        val fusedIter1 = FusedIterator(iter1)
+        assertFalse { fusedIter1.isValid() }
+        fusedIter1.next()
+        fusedIter1.next()
+        fusedIter1.next()
+        assertFalse { fusedIter1.isValid() }
+
+        val iter2 = MockIterator(
+            listOf(
+                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+            ),
+            throwErrorOnIdx = 1
+        )
+        val fusedIter2 = FusedIterator(iter2)
+        assertTrue { fusedIter2.isValid() }
+        assertThrows<IllegalStateException> { fusedIter2.next() }
+        assertFalse { fusedIter2.isValid() }
+        assertThrows<Error> { fusedIter2.next() }
+        assertThrows<Error> { fusedIter2.next() }
     }
 
     private fun assertIterator(
