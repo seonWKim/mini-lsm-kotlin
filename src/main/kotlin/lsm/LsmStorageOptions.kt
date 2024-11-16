@@ -1,25 +1,19 @@
 package org.example.lsm
 
-class LsmStorageOptions {
-    var blockSize: Int
+class LsmStorageOptions(blockSize: Int, targetSstSize: Int, numMemTableLimit: Int) {
+    var blockSize: Int = blockSize
         private set
-    var targetSstSize: Int
+    var targetSstSize: Int = targetSstSize
         private set
-    var numMemtableLimit: Int
+    var numMemtableLimit: Int = numMemTableLimit
         private set
-
-    constructor(blockSize: Int, targetSstSize: Int, numMemtableLimit: Int) {
-        this.blockSize = blockSize
-        this.targetSstSize = targetSstSize
-        this.numMemtableLimit = numMemtableLimit
-    }
 
     companion object {
         fun defaultForWeek1Test(): LsmStorageOptions {
             return LsmStorageOptions(
                 blockSize = 4096,
                 targetSstSize = 2 shl 20,
-                numMemtableLimit = 10
+                numMemTableLimit = 10
             )
         }
     }

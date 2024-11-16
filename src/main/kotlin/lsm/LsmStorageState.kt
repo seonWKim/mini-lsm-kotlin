@@ -3,18 +3,13 @@ package org.example.lsm
 import org.example.lsm.memtable.MemTable
 import java.util.*
 
-class LsmStorageState {
+class LsmStorageState(memTable: MemTable) {
     // current memTable
-    var memTable: MemTable
+    var memTable: MemTable = memTable
         private set
 
     // immutable memtables from latest to earliest earliest
-    var immutableMemtables: LinkedList<MemTable>
-
-    constructor(memTable: MemTable) {
-        this.memTable = memTable
-        this.immutableMemtables = LinkedList()
-    }
+    var immutableMemtables: LinkedList<MemTable> = LinkedList()
 
     fun freezeMemtable() {
         val prevId = memTable.id
