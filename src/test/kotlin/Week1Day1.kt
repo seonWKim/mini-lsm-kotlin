@@ -1,5 +1,3 @@
-package lsm
-
 import org.example.lsm.LsmStorageInner
 import org.example.lsm.LsmStorageOptions
 import org.example.lsm.memtable.MemTable
