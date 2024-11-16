@@ -4,7 +4,7 @@ import org.example.common.Bound
 import org.example.common.BoundFlag
 import org.example.common.toComparableByteArray
 import org.example.lsm.memtable.MemTable
-import org.example.lsm.memtable.MemTableIterator
+import org.example.lsm.memtable.iterator.MemTableIterator
 import org.example.lsm.memtable.MemtableValue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

@@ -3,6 +3,7 @@ package org.example.lsm.memtable
 import org.example.common.Bound
 import org.example.common.ComparableByteArray
 import org.example.lsm.Wal
+import org.example.lsm.memtable.iterator.MemTableIterator
 import java.util.concurrent.ConcurrentSkipListMap
 
 typealias MemTableKey = ComparableByteArray
