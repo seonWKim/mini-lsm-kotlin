@@ -124,9 +124,9 @@ class Day2 {
             )
         )
 
-        val iter = MergeIterator(listOf(iter1, iter2, iter3))
+        val mergeIter = MergeIterator(listOf(iter1, iter2, iter3))
         assertIterator(
-            iter,
+            mergeIter,
             listOf(
                 Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
                 Pair("b".toComparableByteArray(), "2.1".toComparableByteArray()),
@@ -238,12 +238,10 @@ class Day2 {
         iter: StorageIterator,
         values: List<Pair<ComparableByteArray, ComparableByteArray>>
     ) {
-        var idx = 0
-        while (iter.isValid()) {
-            val (expectedKey, expectedValue) = values[idx]
+        for (value in values) {
+            val (expectedKey, expectedValue) = value
             assertEquals(expectedKey, iter.key(), "$expectedKey != iter_key(${iter.key()})")
             assertEquals(expectedValue, iter.value(), "$expectedValue != iter_value(${iter.value()})")
-            idx++
             iter.next()
         }
     }
