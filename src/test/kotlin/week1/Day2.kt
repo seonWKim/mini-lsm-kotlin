@@ -186,6 +186,27 @@ class Day2 {
         assertIterator(mergedIter3, result)
     }
 
+    @Test
+    fun `test task2 merge empty`() {
+        val iter = MergeIterator(listOf(MockIterator(emptyList())))
+        assertIterator(iter, emptyList())
+
+        val iter1 = MockIterator(
+            listOf(
+                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+                Pair("b".toComparableByteArray(), "2.1".toComparableByteArray()),
+                Pair("c".toComparableByteArray(), "3.1".toComparableByteArray()),
+            )
+        )
+        val iter2 = MockIterator(listOf())
+        val mergeIterator = MergeIterator(listOf(iter1, iter2))
+        assertIterator(mergeIterator, listOf(
+            Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+            Pair("b".toComparableByteArray(), "2.1".toComparableByteArray()),
+            Pair("c".toComparableByteArray(), "3.1".toComparableByteArray()),
+        ))
+    }
+
     private fun assertIterator(
         iter: StorageIterator,
         values: List<Pair<ComparableByteArray, ComparableByteArray>>
