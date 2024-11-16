@@ -1,3 +1,5 @@
+package week1
+
 import org.example.lsm.LsmStorageInner
 import org.example.lsm.LsmStorageOptions
 import org.example.lsm.memtable.MemTable
@@ -8,7 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class Week1Day1 {
+class Day1 {
 
     @Test
     fun `test task1 memTable get`() {

@@ -1,3 +1,5 @@
+package week1
+
 import org.example.common.Bound
 import org.example.common.BoundFlag
 import org.example.common.toComparableByteArray
@@ -7,7 +9,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class Week1Day2 {
+class Day2 {
 
     @Test
     fun `test task1 memTable iter`() {
