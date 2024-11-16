@@ -1,6 +1,7 @@
 package org.example.lsm.memtable
 
 import org.example.common.Bound
+import org.example.common.BoundFlag
 import org.example.common.ComparableByteArray
 
 interface StorageIterator {
@@ -36,7 +37,17 @@ class MemTableIterator(
     init {
         val iter = memTable.map.iterator()
         current = iter.asSequence()
-            .firstOrNull { lower == Bound.UNBOUNDED || it.value.value >= lower.value }
+            .firstOrNull {
+                if (lower.flag == BoundFlag.UNBOUNDED) {
+                    return@firstOrNull true
+                }
+
+                if (lower.flag == BoundFlag.INCLUDED) {
+                    return@firstOrNull it.value.value >= lower.value
+                }
+
+                it.value.value > lower.value
+            }
         this.iter = iter
         this.lower = lower
         this.upper = upper
@@ -57,10 +68,13 @@ class MemTableIterator(
     }
 
     override fun next() {
-        if (iter.hasNext()) {
-            current = iter.next()
-        } else {
-            current = null
+        current = if (iter.hasNext()) iter.next() else null
+
+        if (current != null && upper.flag != BoundFlag.UNBOUNDED) {
+            when {
+                current!!.key > upper.value -> current = null
+                current!!.key == upper.value && upper.flag == BoundFlag.NOT_INCLUDED -> current = null
+            }
         }
     }
 }

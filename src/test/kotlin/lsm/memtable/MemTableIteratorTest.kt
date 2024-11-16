@@ -1,6 +1,7 @@
 package lsm.memtable
 
 import org.example.common.Bound
+import org.example.common.BoundFlag
 import org.example.common.toComparableByteArray
 import org.example.lsm.memtable.MemTable
 import org.example.lsm.memtable.MemTableIterator
@@ -20,8 +21,8 @@ class MemTableIteratorTest {
 
         val memTableIterator = MemTableIterator(
             memTable = memTable,
-            lower = Bound.UNBOUNDED,
-            upper = Bound.UNBOUNDED
+            lower = Bound.unbounded(),
+            upper = Bound.unbounded()
         )
 
         assertEquals(memTableIterator.key(), "a".toComparableByteArray())
@@ -34,7 +35,7 @@ class MemTableIteratorTest {
     }
 
     @Test
-    fun `configure lower and test`() {
+    fun `configure lower and test 1`() {
         val memTable = MemTable.create(0)
         memTable.put("a".toComparableByteArray(), MemtableValue("a".toComparableByteArray()))
         memTable.put("b".toComparableByteArray(), MemtableValue("b".toComparableByteArray()))
@@ -42,8 +43,8 @@ class MemTableIteratorTest {
 
         val memTableIterator = MemTableIterator(
             memTable = memTable,
-            lower = Bound("b".toComparableByteArray()),
-            upper = Bound.UNBOUNDED
+            lower = Bound("b".toComparableByteArray(), BoundFlag.INCLUDED),
+            upper = Bound.unbounded()
         )
 
         assertEquals(memTableIterator.key(), "b".toComparableByteArray())
@@ -62,10 +63,66 @@ class MemTableIteratorTest {
 
         val memTableIterator = MemTableIterator(
             memTable = memTable,
-            lower = Bound("d".toComparableByteArray()),
-            upper = Bound.UNBOUNDED
+            lower = Bound("b".toComparableByteArray(), BoundFlag.NOT_INCLUDED),
+            upper = Bound.unbounded()
         )
 
+        assertEquals(memTableIterator.key(), "c".toComparableByteArray())
+        memTableIterator.next()
+        assertFalse { memTableIterator.isValid() }
+    }
+
+    @Test
+    fun `configure lower and test 3`() {
+        val memTable = MemTable.create(0)
+        memTable.put("a".toComparableByteArray(), MemtableValue("a".toComparableByteArray()))
+        memTable.put("b".toComparableByteArray(), MemtableValue("b".toComparableByteArray()))
+        memTable.put("c".toComparableByteArray(), MemtableValue("c".toComparableByteArray()))
+
+        val memTableIterator = MemTableIterator(
+            memTable = memTable,
+            lower = Bound("d".toComparableByteArray()),
+            upper = Bound.unbounded()
+        )
+
+        assertFalse { memTableIterator.isValid() }
+    }
+
+    @Test
+    fun `configure upper and test 1`() {
+        val memTable = MemTable.create(0)
+        memTable.put("a".toComparableByteArray(), MemtableValue("a".toComparableByteArray()))
+        memTable.put("b".toComparableByteArray(), MemtableValue("b".toComparableByteArray()))
+        memTable.put("c".toComparableByteArray(), MemtableValue("c".toComparableByteArray()))
+
+        val memTableIterator = MemTableIterator(
+            memTable = memTable,
+            lower = Bound.unbounded(),
+            upper = Bound("b".toComparableByteArray(), BoundFlag.INCLUDED)
+        )
+
+        assertEquals(memTableIterator.key(), "a".toComparableByteArray())
+        memTableIterator.next()
+        assertEquals(memTableIterator.key(), "b".toComparableByteArray())
+        memTableIterator.next()
+        assertFalse { memTableIterator.isValid() }
+    }
+
+    @Test
+    fun `configure upper and test 2`() {
+        val memTable = MemTable.create(0)
+        memTable.put("a".toComparableByteArray(), MemtableValue("a".toComparableByteArray()))
+        memTable.put("b".toComparableByteArray(), MemtableValue("b".toComparableByteArray()))
+        memTable.put("c".toComparableByteArray(), MemtableValue("c".toComparableByteArray()))
+
+        val memTableIterator = MemTableIterator(
+            memTable = memTable,
+            lower = Bound.unbounded(),
+            upper = Bound("b".toComparableByteArray(), BoundFlag.NOT_INCLUDED)
+        )
+
+        assertEquals(memTableIterator.key(), "a".toComparableByteArray())
+        memTableIterator.next()
         assertFalse { memTableIterator.isValid() }
     }
 }

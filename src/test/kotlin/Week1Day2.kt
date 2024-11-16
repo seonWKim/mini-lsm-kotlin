@@ -15,7 +15,26 @@ class Week1Day2 {
         memTable.forTestingPutSlice("key2".toComparableByteArray(), "value2".toComparableByteArray())
         memTable.forTestingPutSlice("key3".toComparableByteArray(), "value3".toComparableByteArray())
 
-        memTable.forTestingScanSlice(Bound.UNBOUNDED, Bound.UNBOUNDED).run {
+        memTable.forTestingScanSlice(Bound.unbounded(), Bound.unbounded()).run {
+            assertTrue(isValid())
+            assertEquals("key1".toComparableByteArray(), key())
+            assertEquals("value1".toComparableByteArray(), value())
+            next()
+
+            assertTrue(isValid())
+            assertEquals("key2".toComparableByteArray(), key())
+            assertEquals("value2".toComparableByteArray(), value())
+            next()
+
+            assertTrue(isValid())
+            assertEquals("key3".toComparableByteArray(), key())
+            assertEquals("value3".toComparableByteArray(), value())
+            next()
+
+            assertFalse(isValid())
+        }
+
+        memTable.forTestingScanSlice(Bound.unbounded(), Bound.unbounded()).run {
             assertTrue(isValid())
             assertEquals("key1".toComparableByteArray(), key())
             assertEquals("value1".toComparableByteArray(), value())
