@@ -64,4 +64,30 @@ class Week1Day2 {
             assertFalse(isValid())
         }
     }
+
+    @Test
+    fun `test task1 empty memtable iter`() {
+        val memtable = MemTable.create(0)
+
+        memtable.forTestingScanSlice(
+            Bound("key1".toComparableByteArray(), BoundFlag.EXCLUDED),
+            Bound("key3".toComparableByteArray(), BoundFlag.EXCLUDED)
+        ).run {
+            assertFalse { isValid() }
+        }
+
+        memtable.forTestingScanSlice(
+            Bound("key1".toComparableByteArray(), BoundFlag.INCLUDED),
+            Bound("key2".toComparableByteArray(), BoundFlag.INCLUDED)
+        ).run {
+            assertFalse { isValid() }
+        }
+
+        memtable.forTestingScanSlice(
+            Bound.unbounded(),
+            Bound.unbounded()
+        ).run {
+            assertFalse { isValid() }
+        }
+    }
 }
