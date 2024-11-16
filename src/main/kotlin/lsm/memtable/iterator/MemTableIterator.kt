@@ -8,7 +8,7 @@ import org.example.lsm.memtable.MemTableKey
 import org.example.lsm.memtable.MemtableValue
 
 class MemTableIterator(
-    memTable: MemTable,
+    private val memTable: MemTable,
     lower: Bound,
     upper: Bound
 ) : StorageIterator {
@@ -60,5 +60,9 @@ class MemTableIterator(
                 current!!.key == upper.value && upper.flag == BoundFlag.EXCLUDED -> current = null
             }
         }
+    }
+
+    override fun copy(): StorageIterator {
+        return MemTableIterator(memTable, lower, upper)
     }
 }

@@ -41,10 +41,7 @@ class MergeIterator(
     }
 
     override fun next() {
-        current = priorityQueue.pollFirstEntry()
-        if (current == null) return
-
-        val currentIdx = current!!.value.iteratorsIdx
+        val currentIdx = current?.value?.iteratorsIdx ?: return
         val currentIter = iterators[currentIdx]
         if (currentIter.isValid()) {
             priorityQueue[currentIter.key()]?.let { (prevIdx, _) ->
@@ -53,6 +50,9 @@ class MergeIterator(
                 }
             }
         }
+
+        current = priorityQueue.pollFirstEntry()
+        if (current == null) return
 
         while (priorityQueue.isNotEmpty() && current!!.key == priorityQueue.firstEntry().key) {
             val nextEntry = priorityQueue.pollFirstEntry() ?: break
@@ -67,9 +67,13 @@ class MergeIterator(
                 }
             }
 
-            if (nextIdx > currentIdx) {
+            if (nextIdx > current!!.value.iteratorsIdx) {
                 current = nextEntry
             }
         }
+    }
+
+    override fun copy(): StorageIterator {
+        return MergeIterator(iterators)
     }
 }

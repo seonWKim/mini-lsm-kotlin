@@ -23,4 +23,8 @@ class MockIterator(
     override fun next() {
         currentIdx++
     }
+
+    override fun copy(): StorageIterator {
+        return MockIterator(data)
+    }
 }

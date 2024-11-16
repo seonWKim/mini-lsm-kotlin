@@ -19,4 +19,6 @@ interface StorageIterator {
     fun numActiveIterators(): Int {
         return 1
     }
+
+    fun copy(): StorageIterator
 }
