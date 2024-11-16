@@ -8,6 +8,7 @@ import org.example.lsm.memtable.MemTable
 import org.example.lsm.memtable.iterator.MergeIterator
 import org.example.lsm.memtable.iterator.MockIterator
 import org.example.lsm.memtable.iterator.StorageIterator
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -200,11 +201,37 @@ class Day2 {
         )
         val iter2 = MockIterator(listOf())
         val mergeIterator = MergeIterator(listOf(iter1, iter2))
-        assertIterator(mergeIterator, listOf(
-            Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
-            Pair("b".toComparableByteArray(), "2.1".toComparableByteArray()),
-            Pair("c".toComparableByteArray(), "3.1".toComparableByteArray()),
-        ))
+        assertIterator(
+            mergeIterator, listOf(
+                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+                Pair("b".toComparableByteArray(), "2.1".toComparableByteArray()),
+                Pair("c".toComparableByteArray(), "3.1".toComparableByteArray()),
+            )
+        )
+    }
+
+    @Test
+    fun `test task2 merge error`() {
+        val iter = MergeIterator(listOf(MockIterator(emptyList())))
+        assertIterator(iter, emptyList())
+
+        val iter1 = MockIterator(
+            listOf(
+                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+                Pair("b".toComparableByteArray(), "2.1".toComparableByteArray()),
+                Pair("c".toComparableByteArray(), "3.1".toComparableByteArray()),
+            )
+        )
+        val iter2 = MockIterator(
+            listOf(
+                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+                Pair("b".toComparableByteArray(), "2.1".toComparableByteArray()),
+                Pair("c".toComparableByteArray(), "3.1".toComparableByteArray()),
+            ),
+            throwErrorOnIdx = 1
+        )
+        val mergeIterator = MergeIterator(listOf(iter1.copy(), iter1, iter2))
+        assertIteratorThrows<IllegalStateException>(mergeIterator)
     }
 
     private fun assertIterator(
@@ -218,6 +245,16 @@ class Day2 {
             assertEquals(expectedValue, iter.value(), "$expectedValue != iter_value(${iter.value()})")
             idx++
             iter.next()
+        }
+    }
+
+    private inline fun <reified T : Throwable> assertIteratorThrows(
+        iter: StorageIterator
+    ) {
+        assertThrows<T> {
+            while (iter.isValid()) {
+                iter.next()
+            }
         }
     }
 }

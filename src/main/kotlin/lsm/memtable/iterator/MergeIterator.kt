@@ -19,7 +19,6 @@ class MergeIterator(
         for ((idx, iter) in this.iterators.withIndex()) {
             if (iter.isValid()) {
                 priorityQueue.computeIfAbsent(iter.key()) { MergeIteratorValue(idx, iter.value()) }
-                iter.next()
             }
         }
 
@@ -43,6 +42,7 @@ class MergeIterator(
     override fun next() {
         val currentIdx = current?.value?.iteratorsIdx ?: return
         val currentIter = iterators[currentIdx]
+        currentIter.next()
         if (currentIter.isValid()) {
             priorityQueue[currentIter.key()]?.let { (prevIdx, _) ->
                 if (currentIdx < prevIdx) {
@@ -59,7 +59,8 @@ class MergeIterator(
             val nextIdx = nextEntry.value.iteratorsIdx
             val nextIter = iterators[nextIdx]
 
-            nextIter.takeIf { it.isValid() }?.let {
+            nextIter.next()
+            if (nextIter.isValid()) {
                 priorityQueue[nextEntry.key]?.let { (prevIdx, _) ->
                     if (nextIdx < prevIdx) {
                         priorityQueue[nextEntry.key] = MergeIteratorValue(nextIdx, nextIter.value())

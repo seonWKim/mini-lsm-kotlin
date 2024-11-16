@@ -3,7 +3,8 @@ package org.example.lsm.memtable.iterator
 import org.example.common.ComparableByteArray
 
 class MockIterator(
-    private val data: List<Pair<ComparableByteArray, ComparableByteArray>>
+    private val data: List<Pair<ComparableByteArray, ComparableByteArray>>,
+    private val throwErrorOnIdx: Int = -1
 ) : StorageIterator {
 
     private var currentIdx: Int = 0
@@ -22,6 +23,9 @@ class MockIterator(
 
     override fun next() {
         currentIdx++
+        if (currentIdx == throwErrorOnIdx) {
+            throw IllegalStateException("Mock error!!")
+        }
     }
 
     override fun copy(): StorageIterator {
