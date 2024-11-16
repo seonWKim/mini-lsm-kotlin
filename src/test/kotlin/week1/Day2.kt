@@ -4,12 +4,15 @@ import org.example.common.Bound
 import org.example.common.BoundFlag
 import org.example.common.ComparableByteArray
 import org.example.common.toComparableByteArray
+import org.example.lsm.LsmStorageInner
+import org.example.lsm.LsmStorageOptions
 import org.example.lsm.memtable.MemTable
 import org.example.lsm.memtable.iterator.FusedIterator
 import org.example.lsm.memtable.iterator.MergeIterator
 import org.example.lsm.memtable.iterator.MockIterator
 import org.example.lsm.memtable.iterator.StorageIterator
 import org.junit.jupiter.api.assertThrows
+import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -258,6 +261,56 @@ class Day2 {
         assertFalse { fusedIter2.isValid() }
         assertThrows<Error> { fusedIter2.next() }
         assertThrows<Error> { fusedIter2.next() }
+    }
+
+    @Test
+    fun `test task4 integration`() {
+        val dir = createTempDirectory("test_task4_integration")
+        val storage = LsmStorageInner.open(dir, LsmStorageOptions.defaultForWeek1Test())
+        storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
+        storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
+        storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
+        storage.forceFreezeMemtable()
+
+        storage.delete("1".toComparableByteArray())
+        storage.delete("2".toComparableByteArray())
+        storage.put("3".toComparableByteArray(), "2333".toComparableByteArray())
+        storage.put("4".toComparableByteArray(), "23333".toComparableByteArray())
+        storage.forceFreezeMemtable()
+
+        storage.put("1".toComparableByteArray(), "233333".toComparableByteArray())
+        storage.put("3".toComparableByteArray(), "233333".toComparableByteArray())
+
+        storage.scan(Bound.unbounded(), Bound.unbounded()).let { iter ->
+            assertIterator(
+                iter = iter,
+                values = listOf(
+                    Pair("1".toComparableByteArray(), "233333".toComparableByteArray()),
+                    Pair("3".toComparableByteArray(), "233333".toComparableByteArray()),
+                    Pair("4".toComparableByteArray(), "23333".toComparableByteArray()),
+                )
+            )
+            assertFalse { iter.isValid() }
+            iter.next()
+            iter.next()
+            iter.next()
+            assertFalse { iter.isValid() }
+        }
+
+        storage.scan(
+            Bound("2".toComparableByteArray(), BoundFlag.INCLUDED),
+            Bound("3".toComparableByteArray(), BoundFlag.INCLUDED)
+        ).let { iter ->
+            assertIterator(
+                iter = iter,
+                listOf(Pair("3".toComparableByteArray(), "233333".toComparableByteArray()))
+            )
+            assertFalse { iter.isValid() }
+            iter.next()
+            iter.next()
+            iter.next()
+            assertFalse { iter.isValid() }
+        }
     }
 
     private fun assertIterator(

@@ -1,7 +1,9 @@
 package org.example.lsm
 
+import org.example.common.Bound
 import org.example.common.ComparableByteArray
 import org.example.lsm.memtable.*
+import org.example.lsm.memtable.iterator.FusedIterator
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
@@ -85,6 +87,10 @@ class LsmStorageInner(
         } finally {
             lock.unlock()
         }
+    }
+
+    fun scan(lower: Bound, upper: Bound): FusedIterator {
+        return FusedIterator(state.memTable.iterator(lower, upper))
     }
 
     private fun shouldFreezeMemtable(): Boolean {

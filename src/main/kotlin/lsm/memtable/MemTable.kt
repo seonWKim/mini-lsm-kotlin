@@ -37,6 +37,10 @@ class MemTable(
         map[key] = value
     }
 
+    fun iterator(lower: Bound, upper: Bound): MemTableIterator {
+        return MemTableIterator(this, lower, upper)
+    }
+
     fun forTestingGetSlice(key: ComparableByteArray): MemtableValue? {
         return map[key]
     }
