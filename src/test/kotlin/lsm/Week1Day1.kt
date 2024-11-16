@@ -1,12 +1,13 @@
-import org.example.LsmStorageInner
-import org.example.LsmStorageOptions
-import org.example.MemTable
-import org.example.toComparableByteArray
+package lsm
+
+import org.example.lsm.LsmStorageInner
+import org.example.lsm.LsmStorageOptions
+import org.example.lsm.memtable.MemTable
+import org.example.lsm.toComparableByteArray
 import org.junit.jupiter.api.assertDoesNotThrow
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class Week1Day1 {

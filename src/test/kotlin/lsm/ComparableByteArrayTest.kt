@@ -1,4 +1,6 @@
-import org.example.ComparableByteArray
+package lsm
+
+import org.example.lsm.ComparableByteArray
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

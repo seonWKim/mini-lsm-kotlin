@@ -1,4 +1,4 @@
-package org.example
+package org.example.lsm
 
 class Wal {
     companion object {

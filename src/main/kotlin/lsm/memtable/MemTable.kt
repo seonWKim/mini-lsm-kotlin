@@ -1,30 +1,10 @@
-package org.example
+package org.example.lsm.memtable
 
+import org.example.lsm.ComparableByteArray
+import org.example.lsm.Wal
 import java.util.concurrent.ConcurrentSkipListMap
 
 typealias MemTableKey = ComparableByteArray
-
-data class MemtableValue(
-    val value: ComparableByteArray,
-    val flag: MemtableValueFlag
-) {
-    fun size(): Int {
-        return value.size()
-    }
-}
-
-fun MemtableValue?.isValid(): Boolean {
-    return this != null && this.flag != MemtableValueFlag.DELETED
-}
-
-fun MemtableValue?.isDeleted(): Boolean {
-    return this != null && this.flag == MemtableValueFlag.DELETED
-}
-
-enum class MemtableValueFlag {
-    NORMAL,
-    DELETED
-}
 
 class MemTable(
     val map: ConcurrentSkipListMap<MemTableKey, MemtableValue>,
@@ -53,14 +33,6 @@ class MemTable(
         }
         approximateSize += key.size() + value.size()
         map[key] = value
-    }
-
-    fun delete(key: ComparableByteArray) {
-        val value = map[key]
-        if (value != null) {
-            approximateSize -= key.size() + value.size()
-            map[key] = MemtableValue(ComparableByteArray.empty(), MemtableValueFlag.DELETED)
-        }
     }
 
     fun forTestingGetSlice(key: ComparableByteArray): MemtableValue? {

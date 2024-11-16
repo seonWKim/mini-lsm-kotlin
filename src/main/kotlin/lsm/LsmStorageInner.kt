@@ -1,5 +1,6 @@
-package org.example
+package org.example.lsm
 
+import org.example.lsm.memtable.*
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
@@ -9,7 +10,7 @@ class LsmStorageInner(
     val state: LsmStorageState
 ) {
 
-    val memtableStateLock: ReentrantReadWriteLock = ReentrantReadWriteLock()
+    private val memtableStateLock: ReentrantReadWriteLock = ReentrantReadWriteLock()
 
     companion object {
         fun open(path: Path, options: LsmStorageOptions): LsmStorageInner {

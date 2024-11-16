@@ -1,5 +1,6 @@
-package org.example
+package org.example.lsm
 
+import org.example.lsm.memtable.MemTable
 import java.util.*
 
 class LsmStorageState {
