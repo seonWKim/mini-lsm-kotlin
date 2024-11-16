@@ -43,10 +43,10 @@ class MemTableIterator(
                 }
 
                 if (lower.flag == BoundFlag.INCLUDED) {
-                    return@firstOrNull it.value.value >= lower.value
+                    return@firstOrNull it.key >= lower.value
                 }
 
-                it.value.value > lower.value
+                it.key > lower.value
             }
         this.iter = iter
         this.lower = lower
@@ -73,7 +73,7 @@ class MemTableIterator(
         if (current != null && upper.flag != BoundFlag.UNBOUNDED) {
             when {
                 current!!.key > upper.value -> current = null
-                current!!.key == upper.value && upper.flag == BoundFlag.NOT_INCLUDED -> current = null
+                current!!.key == upper.value && upper.flag == BoundFlag.EXCLUDED -> current = null
             }
         }
     }

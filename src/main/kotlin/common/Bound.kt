@@ -2,7 +2,7 @@ package org.example.common
 
 class Bound(
     val value: ComparableByteArray,
-    val flag: BoundFlag = BoundFlag.NOT_INCLUDED
+    val flag: BoundFlag = BoundFlag.EXCLUDED
 ) {
     companion object {
         fun unbounded(): Bound {
@@ -12,7 +12,7 @@ class Bound(
 }
 
 enum class BoundFlag {
-    NOT_INCLUDED,
+    EXCLUDED,
     INCLUDED,
     UNBOUNDED,
 }

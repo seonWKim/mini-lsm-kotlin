@@ -1,4 +1,5 @@
 import org.example.common.Bound
+import org.example.common.BoundFlag
 import org.example.common.toComparableByteArray
 import org.example.lsm.memtable.MemTable
 import kotlin.test.Test
@@ -34,7 +35,10 @@ class Week1Day2 {
             assertFalse(isValid())
         }
 
-        memTable.forTestingScanSlice(Bound.unbounded(), Bound.unbounded()).run {
+        memTable.forTestingScanSlice(
+            Bound("key1".toComparableByteArray(), BoundFlag.INCLUDED),
+            Bound("key2".toComparableByteArray(), BoundFlag.INCLUDED)
+        ).run {
             assertTrue(isValid())
             assertEquals("key1".toComparableByteArray(), key())
             assertEquals("value1".toComparableByteArray(), value())
@@ -45,9 +49,16 @@ class Week1Day2 {
             assertEquals("value2".toComparableByteArray(), value())
             next()
 
+            assertFalse(isValid())
+        }
+
+        memTable.forTestingScanSlice(
+            Bound("key1".toComparableByteArray(), BoundFlag.EXCLUDED),
+            Bound("key3".toComparableByteArray(), BoundFlag.EXCLUDED)
+        ).run {
             assertTrue(isValid())
-            assertEquals("key3".toComparableByteArray(), key())
-            assertEquals("value3".toComparableByteArray(), value())
+            assertEquals("key2".toComparableByteArray(), key())
+            assertEquals("value2".toComparableByteArray(), value())
             next()
 
             assertFalse(isValid())
