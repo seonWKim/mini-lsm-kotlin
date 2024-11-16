@@ -1,5 +1,6 @@
 package org.example.lsm
 
+import org.example.common.ComparableByteArray
 import org.example.lsm.memtable.*
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantReadWriteLock

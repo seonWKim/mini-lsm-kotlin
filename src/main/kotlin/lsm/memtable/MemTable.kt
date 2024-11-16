@@ -1,6 +1,7 @@
 package org.example.lsm.memtable
 
-import org.example.lsm.ComparableByteArray
+import org.example.common.Bound
+import org.example.common.ComparableByteArray
 import org.example.lsm.Wal
 import java.util.concurrent.ConcurrentSkipListMap
 
@@ -41,6 +42,10 @@ class MemTable(
 
     fun forTestingPutSlice(key: ComparableByteArray, value: ComparableByteArray) {
         map[key] = MemtableValue(value, MemtableValueFlag.NORMAL)
+    }
+
+    fun forTestingScanSlice(lower: Bound, upper: Bound): MemTableIterator {
+        return MemTableIterator(this, lower, upper)
     }
 
     fun approximateSize(): Int {

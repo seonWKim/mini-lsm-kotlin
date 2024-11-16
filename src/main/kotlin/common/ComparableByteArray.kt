@@ -1,8 +1,12 @@
-package org.example.lsm
+package org.example.common
 
 class ComparableByteArray(
     val array: ByteArray
 ) : Comparable<ComparableByteArray> {
+    companion object {
+        val EMPTY = ComparableByteArray("".toByteArray())
+    }
+
     override fun compareTo(other: ComparableByteArray): Int {
         if (this.array.size > other.array.size) {
             return other.compareTo(this)

@@ -1,10 +1,10 @@
 package org.example.lsm.memtable
 
-import org.example.lsm.ComparableByteArray
+import org.example.common.ComparableByteArray
 
 data class MemtableValue(
     val value: ComparableByteArray,
-    val flag: MemtableValueFlag
+    val flag: MemtableValueFlag = MemtableValueFlag.NORMAL
 ) {
     fun size(): Int {
         return value.size()
