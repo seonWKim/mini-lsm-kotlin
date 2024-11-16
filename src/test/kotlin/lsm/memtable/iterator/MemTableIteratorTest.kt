@@ -1,4 +1,4 @@
-package lsm.memtable
+package lsm.memtable.iterator
 
 import org.example.common.Bound
 import org.example.common.BoundFlag
