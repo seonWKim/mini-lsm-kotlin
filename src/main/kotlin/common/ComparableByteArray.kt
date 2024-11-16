@@ -1,5 +1,7 @@
 package org.example.common
 
+import java.nio.charset.Charset
+
 class ComparableByteArray(
     val array: ByteArray
 ) : Comparable<ComparableByteArray> {
@@ -30,6 +32,10 @@ class ComparableByteArray(
 
     fun size(): Int {
         return array.size
+    }
+
+    override fun toString(): String {
+        return String(array, Charset.defaultCharset())
     }
 }
 
