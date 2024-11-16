@@ -6,9 +6,6 @@ import java.util.*
 class MergeIterator(
     private val iterators: List<StorageIterator>
 ) : StorageIterator {
-
-    private val priorityQueue = PriorityQueue<PriorityQueueKey>()
-
     data class PriorityQueueKey(
         val idx: Int,
         val iterator: StorageIterator,
@@ -22,12 +19,7 @@ class MergeIterator(
         }
     }
 
-    data class MergeIteratorValue(
-        // idx from iterators list
-        // iterators[iteratorIdx].value() == value is preserved. When the value is no longer used, we call next() on the iterator
-        val iteratorsIdx: Int,
-        val value: ComparableByteArray,
-    )
+    private val priorityQueue = PriorityQueue<PriorityQueueKey>()
 
     init {
         for ((idx, iter) in this.iterators.withIndex()) {
