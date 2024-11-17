@@ -73,7 +73,7 @@ class BlockBuilder(
 
         val nextEstimatedSize =
             estimatedSize() + key.size() + value.size() + SIZEOF_U16 * OFFSET_KEY_VALUE_COUNT
-        println("estimated size: ${nextEstimatedSize}")
+        // println("estimated size: ${nextEstimatedSize}")
         return nextEstimatedSize <= blockSize
     }
 

@@ -38,4 +38,19 @@ class Day3 {
         assertFalse { builder.add("11".toBlockKey(), "1".repeat(100).toComparableByteArray()) }
         builder.build()
     }
+
+    @Test
+    fun `test block build all`() {
+        generateBlock()
+    }
+
+    private fun generateBlock() {
+        val builder = BlockBuilder(10000)
+        for (idx in 0..100) {
+            val key = "key_%03d".format(idx * 5).toBlockKey()
+            val value = "value_%010d".format(idx).toComparableByteArray()
+            assertTrue { builder.add(key, value) }
+        }
+        builder.build()
+    }
 }
