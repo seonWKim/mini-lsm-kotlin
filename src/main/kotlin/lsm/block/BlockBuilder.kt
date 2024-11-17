@@ -54,7 +54,7 @@ class BlockBuilder(
         data.addAll(value.size().toU16ByteArray())
 
         // encode value content
-        data.addAll(value.array.toList())
+        data.addAll(value.array)
 
         if (firstKey == null) {
             firstKey = key

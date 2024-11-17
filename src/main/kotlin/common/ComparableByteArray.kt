@@ -1,12 +1,10 @@
 package org.seonWKim.common
 
-import java.nio.charset.Charset
-
 class ComparableByteArray(
-    val array: ByteArray
+    val array: List<Byte>
 ) : Comparable<ComparableByteArray> {
     companion object {
-        val EMPTY = ComparableByteArray(ByteArray(0))
+        val EMPTY = ComparableByteArray(emptyList())
     }
 
     fun size(): Int {
@@ -47,18 +45,23 @@ class ComparableByteArray(
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is ComparableByteArray && array.contentEquals(other.array)
+        return other is ComparableByteArray && this.compareTo(other) == 0
     }
 
     override fun hashCode(): Int {
-        return array.contentHashCode()
+        return array.hashCode()
     }
 
     override fun toString(): String {
-        return String(array, Charset.defaultCharset())
+        val sb = StringBuilder(array.size)
+        for (byte in array) {
+            sb.append(byte.toInt().toChar())
+        }
+        return sb.toString()
     }
 }
 
 fun String.toComparableByteArray(): ComparableByteArray {
-    return ComparableByteArray(this.toByteArray())
+    val byteList = this.map { it.code.toByte() }
+    return ComparableByteArray(byteList)
 }
