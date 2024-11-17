@@ -4,6 +4,7 @@ import org.example.common.Bound
 import org.example.common.ComparableByteArray
 import org.example.lsm.memtable.*
 import org.example.lsm.memtable.iterator.FusedIterator
+import org.example.lsm.memtable.iterator.MergeIterator
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
@@ -13,7 +14,7 @@ class LsmStorageInner(
     val state: LsmStorageState
 ) {
 
-    private val memtableStateLock: ReentrantReadWriteLock = ReentrantReadWriteLock()
+    private val memTableLock: ReentrantReadWriteLock = ReentrantReadWriteLock()
 
     companion object {
         fun open(path: Path, options: LsmStorageOptions): LsmStorageInner {
@@ -26,61 +27,82 @@ class LsmStorageInner(
     }
 
     fun get(key: ComparableByteArray): ComparableByteArray? {
-        val lock = memtableStateLock.readLock()
-        lock.lock()
-        try {
-            val memtableResult = state.memTable.get(key)
-            if (memtableResult.isValid()) {
-                return memtableResult!!.value
-            }
-
-            for (immMemtable in state.immutableMemtables) {
-                val immMemtableResult = immMemtable.get(key)
-                if (immMemtableResult.isValid()) {
-                    return immMemtableResult!!.value
-                }
-
-                if (immMemtableResult.isDeleted()) {
-                    return null
-                }
-            }
-
-            return null
-            TODO("retrieve from immutable memtables")
-            TODO("retrieve from sstables stored in disk")
-        } finally {
-            lock.unlock()
+        val memtableResult = state.memTable.get(key)
+        if (memtableResult.isValid()) {
+            return memtableResult!!.value
         }
+
+        for (immMemtable in state.immutableMemtables) {
+            val immMemtableResult = immMemtable.get(key)
+            if (immMemtableResult.isValid()) {
+                return immMemtableResult!!.value
+            }
+
+            if (immMemtableResult.isDeleted()) {
+                return null
+            }
+        }
+
+        // TODO("retrieve from sstables stored in disk")
+        return null
     }
 
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
-        val lock = memtableStateLock.writeLock()
-        lock.lock()
-        return try {
+        val readLock = memTableLock.readLock()
+        readLock.lock()
+        var readLockUnlocked = false
+        try {
             if (shouldFreezeMemtable()) {
-                forceFreezeMemtable()
+                readLock.unlock()
+                readLockUnlocked = true
+                val writeLock = memTableLock.writeLock()
+                writeLock.lock()
+                try {
+                    if (shouldFreezeMemtable()) {
+                        forceFreezeMemtable()
+                    }
+                } finally {
+                    writeLock.unlock()
+                }
             }
+
             state.memTable.put(key, MemtableValue(value, MemtableValueFlag.NORMAL))
         } finally {
-            lock.unlock()
+            if (!readLockUnlocked) {
+                readLock.unlock()
+            }
         }
     }
 
     fun delete(key: ComparableByteArray) {
-        val lock = memtableStateLock.writeLock()
-        lock.lock()
-        return try {
+        val readLock = memTableLock.readLock()
+        readLock.lock()
+        var readLockUnlocked = false
+        try {
             if (shouldFreezeMemtable()) {
-                forceFreezeMemtable()
+                readLock.unlock()
+                readLockUnlocked = true
+                val writeLock = memTableLock.writeLock()
+                writeLock.lock()
+                try {
+                    if (shouldFreezeMemtable()) {
+                        forceFreezeMemtable()
+                    }
+                } finally {
+                    writeLock.unlock()
+                }
             }
-            state.memTable.put(key, MemtableValue(key, MemtableValueFlag.DELETED))
+
+            state.memTable.put(key, MemtableValue(ComparableByteArray.EMPTY, MemtableValueFlag.DELETED))
         } finally {
-            lock.unlock()
+            if (!readLockUnlocked) {
+                readLock.unlock()
+            }
         }
     }
 
     fun forceFreezeMemtable() {
-        val lock = memtableStateLock.writeLock()
+        val lock = memTableLock.writeLock()
         lock.lock()
         try {
             state.freezeMemtable()
@@ -90,11 +112,17 @@ class LsmStorageInner(
     }
 
     fun scan(lower: Bound, upper: Bound): FusedIterator {
-        return FusedIterator(state.memTable.iterator(lower, upper))
+        val iter = FusedIterator(
+            MergeIterator(
+                listOf(state.memTable.iterator(lower, upper)) +
+                        state.immutableMemtables.map { it.iterator(lower, upper) }
+            )
+        )
+        return iter
     }
 
     private fun shouldFreezeMemtable(): Boolean {
-        val lock = memtableStateLock.readLock()
+        val lock = memTableLock.readLock()
         lock.lock()
         try {
             if (state.memTable.approximateSize() > options.targetSstSize) {

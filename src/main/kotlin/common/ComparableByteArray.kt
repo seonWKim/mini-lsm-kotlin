@@ -6,7 +6,7 @@ class ComparableByteArray(
     val array: ByteArray
 ) : Comparable<ComparableByteArray> {
     companion object {
-        val EMPTY = ComparableByteArray("".toByteArray())
+        val EMPTY = ComparableByteArray(ByteArray(0))
     }
 
     fun size(): Int {
