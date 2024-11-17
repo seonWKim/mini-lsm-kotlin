@@ -48,33 +48,18 @@ class LsmStorageInner(
     }
 
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
-        val readLock = memTableLock.readLock()
-        readLock.lock()
-        var readLockUnlocked = false
-        try {
-            if (shouldFreezeMemtable()) {
-                readLock.unlock()
-                readLockUnlocked = true
-                val writeLock = memTableLock.writeLock()
-                writeLock.lock()
-                try {
-                    if (shouldFreezeMemtable()) {
-                        forceFreezeMemtable()
-                    }
-                } finally {
-                    writeLock.unlock()
-                }
-            }
-
+        updateMemTable {
             state.memTable.put(key, MemtableValue(value, MemtableValueFlag.NORMAL))
-        } finally {
-            if (!readLockUnlocked) {
-                readLock.unlock()
-            }
         }
     }
 
     fun delete(key: ComparableByteArray) {
+        updateMemTable {
+            state.memTable.put(key, MemtableValue(ComparableByteArray.EMPTY, MemtableValueFlag.DELETED))
+        }
+    }
+
+    private fun updateMemTable(action: () -> Unit) {
         val readLock = memTableLock.readLock()
         readLock.lock()
         var readLockUnlocked = false
@@ -92,8 +77,7 @@ class LsmStorageInner(
                     writeLock.unlock()
                 }
             }
-
-            state.memTable.put(key, MemtableValue(ComparableByteArray.EMPTY, MemtableValueFlag.DELETED))
+            action()
         } finally {
             if (!readLockUnlocked) {
                 readLock.unlock()
