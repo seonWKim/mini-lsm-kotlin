@@ -1,10 +1,14 @@
 package org.seonWKim.common
 
 class ComparableByteArray(
-    val array: List<Byte>
+    array: List<Byte>
 ) : Comparable<ComparableByteArray> {
+
+    var array: MutableList<Byte> = array.toMutableList()
+        private set
+
     companion object {
-        val EMPTY = ComparableByteArray(emptyList())
+        val EMPTY = ComparableByteArray(ArrayList())
     }
 
     fun size(): Int {
@@ -29,6 +33,10 @@ class ComparableByteArray(
             i++
         }
         return i
+    }
+
+    fun append(bytes: List<Byte>) {
+        array.addAll(bytes)
     }
 
     override fun compareTo(other: ComparableByteArray): Int {
@@ -62,6 +70,5 @@ class ComparableByteArray(
 }
 
 fun String.toComparableByteArray(): ComparableByteArray {
-    val byteList = this.map { it.code.toByte() }
-    return ComparableByteArray(byteList)
+    return ComparableByteArray(this.map { it.code.toByte() })
 }

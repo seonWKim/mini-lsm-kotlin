@@ -1,8 +1,10 @@
 package week1
 
+import org.seonWKim.common.ComparableByteArray
 import org.seonWKim.common.toComparableByteArray
 import org.seonWKim.lsm.block.Block
 import org.seonWKim.lsm.block.BlockBuilder
+import org.seonWKim.lsm.block.BlockIterator
 import org.seonWKim.lsm.block.toBlockKey
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -64,15 +66,39 @@ class Day3 {
     @Test
     fun `test block iterator`() {
         val block = generateBlock()
+        val iter = BlockIterator.createAndSeekToFirst(block)
+        for (unused in 0..<5) {
+            for (i in 0..<100) {
+                val key = iter.key().key
+                val expectedKey = createKey(i).toComparableByteArray()
+                assertTrue("expected: $expectedKey, actual: $key") {
+                    key.compareTo(createKey(i).toComparableByteArray()) == 0
+                }
+
+                val value = iter.value()
+                val expectedValue = createValue(i).toComparableByteArray()
+                assertTrue("expected: $expectedValue, actual: $value") {
+                    ComparableByteArray(value).compareTo(expectedValue) == 0
+                }
+            }
+        }
     }
 
     private fun generateBlock(): Block {
         val builder = BlockBuilder(10000)
         for (idx in 0..<100) {
-            val key = "key_%03d".format(idx * 5).toBlockKey()
-            val value = "value_%010d".format(idx).toComparableByteArray()
+            val key = createKey(idx).toBlockKey()
+            val value = createValue(idx).toComparableByteArray()
             assertTrue { builder.add(key, value) }
         }
         return builder.build()
+    }
+
+    private fun createKey(i: Int): String {
+        return "key_%03d".format(i * 5)
+    }
+
+    private fun createValue(i: Int): String {
+        return "value_%010d".format(i)
     }
 }

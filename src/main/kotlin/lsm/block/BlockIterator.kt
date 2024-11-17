@@ -1,7 +1,7 @@
 package org.seonWKim.lsm.block
 
 import org.seonWKim.common.ComparableByteArray
-import org.seonWKim.common.SIZEOF_U16_IN_BYTE
+import org.seonWKim.common.SIZE_OF_U16_IN_BYTE
 import org.seonWKim.common.toUInt
 
 class BlockIterator(
@@ -69,7 +69,7 @@ class BlockIterator(
             valueRange = IntRange.EMPTY
             return
         }
-        val offset = (block.offsets.subList(idx, idx + SIZEOF_U16_IN_BYTE)).toUInt()
+        val offset = (block.offsets.subList(idx, idx + SIZE_OF_U16_IN_BYTE)).toUInt()
         seekToOffset(offset)
         this.idx = idx
     }
@@ -80,17 +80,17 @@ class BlockIterator(
      */
     fun seekToOffset(offset: Int) {
         var currentOffset = offset
-        val overlapLength = block.data.subList(currentOffset, currentOffset + SIZEOF_U16_IN_BYTE).toUInt()
-        currentOffset += SIZEOF_U16_IN_BYTE
-        val keyLength = block.data.subList(currentOffset, currentOffset + SIZEOF_U16_IN_BYTE).toUInt()
-        currentOffset += SIZEOF_U16_IN_BYTE
+        val overlapLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toUInt()
+        currentOffset += SIZE_OF_U16_IN_BYTE
+        val keyLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toUInt()
+        currentOffset += SIZE_OF_U16_IN_BYTE
         val key = block.data.subList(currentOffset, currentOffset + keyLength)
         this.key.clear()
-        this.key.append(this.key.slice(0..<overlapLength))
+        this.key.append(this.firstKey.slice(0..<overlapLength))
         this.key.append(key)
         currentOffset += keyLength
-        val valueLength = block.data.subList(currentOffset, currentOffset + SIZEOF_U16_IN_BYTE).toUInt()
-        val valueOffsetBegin = offset + SIZEOF_U16_IN_BYTE + SIZEOF_U16_IN_BYTE + keyLength + SIZEOF_U16_IN_BYTE
+        val valueLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toUInt()
+        val valueOffsetBegin = offset + SIZE_OF_U16_IN_BYTE + SIZE_OF_U16_IN_BYTE + keyLength + SIZE_OF_U16_IN_BYTE
         val valueOffsetEnd = valueOffsetBegin + valueLength
         this.valueRange = valueOffsetBegin..<valueOffsetEnd
     }
@@ -117,7 +117,7 @@ class BlockIterator(
     }
 
     fun next() {
-        idx += SIZEOF_U16_IN_BYTE
+        idx += SIZE_OF_U16_IN_BYTE
         seekTo(idx)
     }
 }
