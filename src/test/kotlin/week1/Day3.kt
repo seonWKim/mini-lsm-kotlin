@@ -57,8 +57,13 @@ class Day3 {
         val block = generateBlock()
         val encoded = block.encode()
         val decoded = Block.decode(encoded)
-        assertEquals(block.offset, decoded.offset)
+        assertEquals(block.offsets, decoded.offsets)
         assertEquals(block.data, decoded.data)
+    }
+
+    @Test
+    fun `test block iterator`() {
+        val block = generateBlock()
     }
 
     private fun generateBlock(): Block {

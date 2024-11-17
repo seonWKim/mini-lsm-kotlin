@@ -1,7 +1,7 @@
 package org.seonWKim.lsm.block
 
 import org.seonWKim.common.ComparableByteArray
-import org.seonWKim.common.SIZEOF_U16
+import org.seonWKim.common.SIZEOF_U16_IN_BYTE
 import org.seonWKim.common.toU16ByteArray
 import org.seonWKim.common.toU64ByteArray
 
@@ -67,7 +67,7 @@ class BlockBuilder(
         if (isEmpty()) return true
 
         val nextEstimatedSize =
-            estimatedSize() + key.size() + value.size() + SIZEOF_U16 * OFFSET_KEY_VALUE_COUNT
+            estimatedSize() + key.size() + value.size() + SIZEOF_U16_IN_BYTE * OFFSET_KEY_VALUE_COUNT
         // println("estimated size: ${nextEstimatedSize}")
         return nextEstimatedSize <= blockSize
     }
@@ -79,7 +79,7 @@ class BlockBuilder(
      */
     private fun estimatedSize(): Int {
         // println("offset: ${offset.size}, data: ${data.size}")
-        return SIZEOF_U16 + offset.size * SIZEOF_U16 + data.size
+        return SIZEOF_U16_IN_BYTE + offset.size * SIZEOF_U16_IN_BYTE + data.size
     }
 
     /**
@@ -99,7 +99,7 @@ class BlockBuilder(
 
         return Block(
             data = data,
-            offset = offset
+            offsets = offset
         )
     }
 }

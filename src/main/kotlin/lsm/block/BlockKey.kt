@@ -4,9 +4,9 @@ import org.seonWKim.common.ComparableByteArray
 import org.seonWKim.common.toComparableByteArray
 
 class BlockKey(
-    val key: ComparableByteArray,
+    private var key: ComparableByteArray,
     private val timestamp: Long = 0
-) {
+): Comparable<BlockKey> {
     fun isEmpty(): Boolean {
         return key.isEmpty()
     }
@@ -25,6 +25,18 @@ class BlockKey(
 
     fun computeOverlap(other: BlockKey): Int {
         return key.computeOverlap(other.key)
+    }
+
+    fun clear() {
+        key = ComparableByteArray.EMPTY
+    }
+
+    fun append(bytes: List<Byte>) {
+        TODO()
+    }
+
+    override fun compareTo(other: BlockKey): Int {
+        return this.key.compareTo(other.key)
     }
 }
 
