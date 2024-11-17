@@ -46,7 +46,7 @@ class MemTable(
     }
 
     fun forTestingPutSlice(key: ComparableByteArray, value: ComparableByteArray) {
-        map[key] = MemtableValue(value, MemtableValueFlag.NORMAL)
+        map[key] = MemtableValue(value, MemTableValueFlag.NORMAL)
     }
 
     fun forTestingScanSlice(lower: Bound, upper: Bound): MemTableIterator {

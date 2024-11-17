@@ -49,13 +49,13 @@ class LsmStorageInner(
 
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
         updateMemTable {
-            state.memTable.put(key, MemtableValue(value, MemtableValueFlag.NORMAL))
+            state.memTable.put(key, MemtableValue(value, MemTableValueFlag.NORMAL))
         }
     }
 
     fun delete(key: ComparableByteArray) {
         updateMemTable {
-            state.memTable.put(key, MemtableValue(ComparableByteArray.EMPTY, MemtableValueFlag.DELETED))
+            state.memTable.put(key, MemtableValue(ComparableByteArray.EMPTY, MemTableValueFlag.DELETED))
         }
     }
 

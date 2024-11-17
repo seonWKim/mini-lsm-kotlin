@@ -4,7 +4,7 @@ import org.example.common.ComparableByteArray
 
 data class MemtableValue(
     val value: ComparableByteArray,
-    val flag: MemtableValueFlag = MemtableValueFlag.NORMAL
+    val flag: MemTableValueFlag = MemTableValueFlag.NORMAL
 ) {
     fun size(): Int {
         return value.size()
@@ -12,9 +12,9 @@ data class MemtableValue(
 }
 
 fun MemtableValue?.isValid(): Boolean {
-    return this != null && this.flag != MemtableValueFlag.DELETED
+    return this != null && this.flag != MemTableValueFlag.DELETED
 }
 
 fun MemtableValue?.isDeleted(): Boolean {
-    return this != null && this.flag == MemtableValueFlag.DELETED
+    return this != null && this.flag == MemTableValueFlag.DELETED
 }

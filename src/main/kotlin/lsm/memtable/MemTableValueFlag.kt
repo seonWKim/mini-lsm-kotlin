@@ -1,6 +1,6 @@
 package org.example.lsm.memtable
 
-enum class MemtableValueFlag {
+enum class MemTableValueFlag {
     NORMAL,
     DELETED
 }
