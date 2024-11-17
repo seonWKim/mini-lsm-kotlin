@@ -9,6 +9,30 @@ class ComparableByteArray(
         val EMPTY = ComparableByteArray("".toByteArray())
     }
 
+    fun size(): Int {
+        return array.size
+    }
+
+    fun isEmpty(): Boolean {
+        return array.isEmpty()
+    }
+
+    fun computeOverlap(other: ComparableByteArray): Int {
+        var i = 0
+        while (true) {
+            if (i >= this.array.size || i >= other.array.size) {
+                break
+            }
+
+            if (this.array[i] != other.array[i]) {
+                break
+            }
+
+            i++
+        }
+        return i
+    }
+
     override fun compareTo(other: ComparableByteArray): Int {
         if (this.array.size > other.array.size) {
             return other.compareTo(this)
@@ -28,10 +52,6 @@ class ComparableByteArray(
 
     override fun hashCode(): Int {
         return array.contentHashCode()
-    }
-
-    fun size(): Int {
-        return array.size
     }
 
     override fun toString(): String {
