@@ -1,6 +1,6 @@
-package org.example.lsm.iterator
+package org.seonWKim.lsm.iterator
 
-import org.example.common.ComparableByteArray
+import org.seonWKim.common.ComparableByteArray
 
 interface StorageIterator {
     // Get the current key

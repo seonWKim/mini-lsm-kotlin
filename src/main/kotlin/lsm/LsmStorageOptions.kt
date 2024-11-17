@@ -1,4 +1,4 @@
-package org.example.lsm
+package org.seonWKim.lsm
 
 class LsmStorageOptions(blockSize: Int, targetSstSize: Int, numMemTableLimit: Int) {
     var blockSize: Int = blockSize

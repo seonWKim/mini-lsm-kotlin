@@ -1,8 +1,8 @@
-package org.example.lsm.memtable
+package org.seonWKim.lsm.memtable
 
-import org.example.common.ComparableByteArray
-import org.example.lsm.iterator.IteratorFlag
-import org.example.lsm.iterator.IteratorMeta
+import org.seonWKim.common.ComparableByteArray
+import org.seonWKim.lsm.iterator.IteratorFlag
+import org.seonWKim.lsm.iterator.IteratorMeta
 
 data class MemtableValue(
     val value: ComparableByteArray,

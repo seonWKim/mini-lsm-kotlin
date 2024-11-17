@@ -1,9 +1,9 @@
 package week1
 
-import org.example.common.toComparableByteArray
-import org.example.lsm.block.Block
-import org.example.lsm.block.BlockBuilder
-import org.example.lsm.block.toBlockKey
+import org.seonWKim.common.toComparableByteArray
+import org.seonWKim.lsm.block.Block
+import org.seonWKim.lsm.block.BlockBuilder
+import org.seonWKim.lsm.block.toBlockKey
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

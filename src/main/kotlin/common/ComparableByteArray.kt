@@ -1,4 +1,4 @@
-package org.example.common
+package org.seonWKim.common
 
 import java.nio.charset.Charset
 

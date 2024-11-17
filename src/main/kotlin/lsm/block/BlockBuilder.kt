@@ -1,9 +1,9 @@
-package org.example.lsm.block
+package org.seonWKim.lsm.block
 
-import org.example.common.ComparableByteArray
-import org.example.common.SIZEOF_U16
-import org.example.common.toU16ByteArray
-import org.example.common.toU64ByteArray
+import org.seonWKim.common.ComparableByteArray
+import org.seonWKim.common.SIZEOF_U16
+import org.seonWKim.common.toU16ByteArray
+import org.seonWKim.common.toU64ByteArray
 
 class BlockBuilder(
     // expected block size

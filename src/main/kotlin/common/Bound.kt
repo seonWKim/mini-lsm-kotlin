@@ -1,4 +1,4 @@
-package org.example.common
+package org.seonWKim.common
 
 class Bound(
     val value: ComparableByteArray,

@@ -1,6 +1,6 @@
-package org.example.lsm
+package org.seonWKim.lsm
 
-import org.example.lsm.memtable.MemTable
+import org.seonWKim.lsm.memtable.MemTable
 import java.util.*
 
 class LsmStorageState(memTable: MemTable) {

@@ -1,6 +1,6 @@
 package common
 
-import org.example.common.toComparableByteArray
+import org.seonWKim.common.toComparableByteArray
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

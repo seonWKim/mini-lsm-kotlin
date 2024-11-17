@@ -1,7 +1,7 @@
-package org.example.lsm.block
+package org.seonWKim.lsm.block
 
-import org.example.common.ComparableByteArray
-import org.example.common.toComparableByteArray
+import org.seonWKim.common.ComparableByteArray
+import org.seonWKim.common.toComparableByteArray
 
 class BlockKey(
     val key: ComparableByteArray,

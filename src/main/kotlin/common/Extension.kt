@@ -1,4 +1,4 @@
-package org.example.common
+package org.seonWKim.common
 
 fun Int.toU16ByteArray(): List<Byte> {
     val highByte = (this shr 8).toByte()

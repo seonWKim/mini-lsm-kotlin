@@ -1,9 +1,9 @@
 package week1
 
-import org.example.lsm.LsmStorageInner
-import org.example.lsm.LsmStorageOptions
-import org.example.lsm.memtable.MemTable
-import org.example.common.toComparableByteArray
+import org.seonWKim.lsm.LsmStorageInner
+import org.seonWKim.lsm.LsmStorageOptions
+import org.seonWKim.lsm.memtable.MemTable
+import org.seonWKim.common.toComparableByteArray
 import org.junit.jupiter.api.assertDoesNotThrow
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test

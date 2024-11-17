@@ -1,11 +1,11 @@
 package lsm.iterator
 
-import org.example.common.Bound
-import org.example.common.BoundFlag
-import org.example.common.toComparableByteArray
-import org.example.lsm.memtable.MemTable
-import org.example.lsm.iterator.MemTableIterator
-import org.example.lsm.memtable.MemtableValue
+import org.seonWKim.common.Bound
+import org.seonWKim.common.BoundFlag
+import org.seonWKim.common.toComparableByteArray
+import org.seonWKim.lsm.memtable.MemTable
+import org.seonWKim.lsm.iterator.MemTableIterator
+import org.seonWKim.lsm.memtable.MemtableValue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
