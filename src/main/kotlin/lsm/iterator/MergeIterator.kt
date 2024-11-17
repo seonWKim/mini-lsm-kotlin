@@ -27,6 +27,10 @@ class MergeIterator(
                 priorityQueue.add(PriorityQueueKey(idx, iter))
             }
         }
+
+        if (current()?.iterator?.meta()?.flag == IteratorFlag.DELETED) {
+            next()
+        }
     }
 
     override fun key(): ComparableByteArray {
@@ -55,6 +59,10 @@ class MergeIterator(
             } else {
                 break
             }
+        }
+
+        if (current()?.iterator?.meta()?.flag == IteratorFlag.DELETED) {
+            next()
         }
     }
 

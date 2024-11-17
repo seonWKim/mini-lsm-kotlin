@@ -65,4 +65,8 @@ class MemTableIterator(
     override fun copy(): StorageIterator {
         return MemTableIterator(memTable, lower, upper)
     }
+
+    override fun meta(): IteratorMeta? {
+        return current?.value?.meta
+    }
 }

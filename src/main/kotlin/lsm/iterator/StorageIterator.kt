@@ -15,10 +15,13 @@ interface StorageIterator {
     // Move to the next position
     fun next()
 
+    fun copy(): StorageIterator
+
     // Number of underlying active iterators for this iterator
     fun numActiveIterators(): Int {
         return 1
     }
 
-    fun copy(): StorageIterator
+    // Check additional information
+    fun meta(): IteratorMeta? = null
 }

@@ -2,9 +2,14 @@ package org.example.lsm
 
 import org.example.common.Bound
 import org.example.common.ComparableByteArray
-import org.example.lsm.memtable.*
 import org.example.lsm.iterator.FusedIterator
+import org.example.lsm.iterator.IteratorFlag
+import org.example.lsm.iterator.IteratorMeta
 import org.example.lsm.iterator.MergeIterator
+import org.example.lsm.memtable.MemTable
+import org.example.lsm.memtable.MemtableValue
+import org.example.lsm.memtable.isDeleted
+import org.example.lsm.memtable.isValid
 import java.nio.file.Path
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
@@ -49,13 +54,19 @@ class LsmStorageInner(
 
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
         updateMemTable {
-            state.memTable.put(key, MemtableValue(value, ValueFlag.NORMAL))
+            state.memTable.put(
+                key = key,
+                value = MemtableValue(value, IteratorMeta(IteratorFlag.NORMAL))
+            )
         }
     }
 
     fun delete(key: ComparableByteArray) {
         updateMemTable {
-            state.memTable.put(key, MemtableValue(ComparableByteArray.EMPTY, ValueFlag.DELETED))
+            state.memTable.put(
+                key = key,
+                value = MemtableValue(ComparableByteArray.EMPTY, IteratorMeta(IteratorFlag.DELETED))
+            )
         }
     }
 
