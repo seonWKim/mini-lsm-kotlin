@@ -30,4 +30,12 @@ class Day3 {
         assertTrue { builder.add("11".toBlockKey(), "1".repeat(100).toComparableByteArray()) }
         builder.build()
     }
+
+    @Test
+    fun `test block build large 2`() {
+        val builder = BlockBuilder(16)
+        assertTrue { builder.add("11".toBlockKey(), "1".toComparableByteArray()) }
+        assertFalse { builder.add("11".toBlockKey(), "1".repeat(100).toComparableByteArray()) }
+        builder.build()
+    }
 }
