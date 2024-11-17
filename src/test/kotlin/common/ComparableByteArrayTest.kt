@@ -1,4 +1,4 @@
-package lsm
+package common
 
 import org.example.common.ComparableByteArray
 import kotlin.test.Test

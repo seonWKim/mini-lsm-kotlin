@@ -7,10 +7,10 @@ import org.example.common.toComparableByteArray
 import org.example.lsm.LsmStorageInner
 import org.example.lsm.LsmStorageOptions
 import org.example.lsm.memtable.MemTable
-import org.example.lsm.memtable.iterator.FusedIterator
-import org.example.lsm.memtable.iterator.MergeIterator
-import org.example.lsm.memtable.iterator.MockIterator
-import org.example.lsm.memtable.iterator.StorageIterator
+import org.example.lsm.iterator.FusedIterator
+import org.example.lsm.iterator.MergeIterator
+import org.example.lsm.iterator.MockIterator
+import org.example.lsm.iterator.StorageIterator
 import org.junit.jupiter.api.assertThrows
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test

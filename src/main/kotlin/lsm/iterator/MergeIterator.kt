@@ -1,4 +1,4 @@
-package org.example.lsm.memtable.iterator
+package org.example.lsm.iterator
 
 import org.example.common.ComparableByteArray
 import java.util.*
