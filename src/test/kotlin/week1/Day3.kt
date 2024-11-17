@@ -63,7 +63,7 @@ class Day3 {
 
     private fun generateBlock(): Block {
         val builder = BlockBuilder(10000)
-        for (idx in 0..100) {
+        for (idx in 0..<100) {
             val key = "key_%03d".format(idx * 5).toBlockKey()
             val value = "value_%010d".format(idx).toComparableByteArray()
             assertTrue { builder.add(key, value) }

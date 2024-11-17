@@ -1,16 +1,16 @@
 package org.example.lsm.block
 
 import org.example.common.SIZEOF_U16
-import org.example.common.toInt
-import org.example.common.toU16
+import org.example.common.toU16ByteArray
+import org.example.common.toUInt
 
 class Block(
-    val data: List<UByte>,
-    val offset: List<UByte>
+    val data: List<Byte>,
+    val offset: List<Byte>
 ) {
     companion object {
-        fun decode(data: List<UByte>): Block {
-            val entryOffsetLength = data.subList(data.size - SIZEOF_U16, data.size).toInt()
+        fun decode(data: List<Byte>): Block {
+            val entryOffsetLength = data.subList(data.size - SIZEOF_U16, data.size).toUInt()
 
             val dataEnd = data.size - SIZEOF_U16 - entryOffsetLength * SIZEOF_U16
             return Block(
@@ -20,8 +20,8 @@ class Block(
         }
     }
 
-    fun encode(): List<UByte> {
-        val offsetLength = offset.size
-        return data + offset + offsetLength.toU16()
+    fun encode(): List<Byte> {
+        val offsetLength = offset.size / SIZEOF_U16
+        return data + offset + offsetLength.toU16ByteArray()
     }
 }

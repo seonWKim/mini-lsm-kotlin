@@ -5,7 +5,7 @@ import org.example.common.toComparableByteArray
 
 class BlockKey(
     val key: ComparableByteArray,
-    val timestamp: Long = 0
+    private val timestamp: Long = 0
 ) {
     fun isEmpty(): Boolean {
         return key.isEmpty()
@@ -17,6 +17,10 @@ class BlockKey(
 
     fun slice(range: IntRange): List<Byte> {
         return key.array.slice(range)
+    }
+
+    fun timestamp(): Long {
+        return timestamp
     }
 
     fun computeOverlap(other: BlockKey): Int {

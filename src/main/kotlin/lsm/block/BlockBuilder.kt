@@ -2,7 +2,8 @@ package org.example.lsm.block
 
 import org.example.common.ComparableByteArray
 import org.example.common.SIZEOF_U16
-import org.example.common.toU16
+import org.example.common.toU16ByteArray
+import org.example.common.toU64ByteArray
 
 class BlockBuilder(
     // expected block size
@@ -34,20 +35,23 @@ class BlockBuilder(
         }
 
         // add offset of the data into the offset array
-        offset.addAll(data.size.toU16())
+        offset.addAll(data.size.toU16ByteArray())
 
         // encode key overlap
         val overlap = firstKey?.computeOverlap(key) ?: 0
-        data.addAll(overlap.toU16())
+        data.addAll(overlap.toU16ByteArray())
 
         // encode key length
-        data.addAll((key.size() - overlap).toU16())
+        data.addAll((key.size() - overlap).toU16ByteArray())
 
         // encode key content
         data.addAll(key.slice(overlap..<key.size()))
 
+        // encode key ts
+        data.addAll(key.timestamp().toU64ByteArray())
+
         // encode value length
-        data.addAll(value.size().toU16())
+        data.addAll(value.size().toU16ByteArray())
 
         // encode value content
         data.addAll(value.array.toList())
