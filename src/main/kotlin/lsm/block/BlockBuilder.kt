@@ -1,6 +1,7 @@
 package org.example.lsm.block
 
 import org.example.common.ComparableByteArray
+import org.example.common.SIZEOF_U16
 import org.example.common.toU16
 
 class BlockBuilder(
@@ -17,17 +18,7 @@ class BlockBuilder(
     private var firstKey: BlockKey? = null
 
     companion object {
-        private const val SIZEOF_U16: Int = Short.SIZE_BYTES // Size of a `Short` which is 2 bytes in JVM
         private const val OFFSET_KEY_VALUE_COUNT = 3
-    }
-
-    /**
-     * 1. number of key-value pairs in the block
-     * 2. offsets
-     * 3. key-value pairs
-     */
-    fun estimatedSize(): Int {
-        return SIZEOF_U16 + offset.size * SIZEOF_U16 + data.size
     }
 
     /**
@@ -75,6 +66,16 @@ class BlockBuilder(
             estimatedSize() + key.size() + value.size() + SIZEOF_U16 * OFFSET_KEY_VALUE_COUNT
         // println("estimated size: ${nextEstimatedSize}")
         return nextEstimatedSize <= blockSize
+    }
+
+    /**
+     * 1. number of key-value pairs in the block
+     * 2. offsets
+     * 3. key-value pairs
+     */
+    private fun estimatedSize(): Int {
+        // println("offset: ${offset.size}, data: ${data.size}")
+        return SIZEOF_U16 + offset.size * SIZEOF_U16 + data.size
     }
 
     /**

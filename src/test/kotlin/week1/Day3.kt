@@ -1,9 +1,11 @@
 package week1
 
 import org.example.common.toComparableByteArray
+import org.example.lsm.block.Block
 import org.example.lsm.block.BlockBuilder
 import org.example.lsm.block.toBlockKey
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -44,13 +46,28 @@ class Day3 {
         generateBlock()
     }
 
-    private fun generateBlock() {
+    @Test
+    fun `test block encode`() {
+        val block = generateBlock()
+        block.encode()
+    }
+
+    @Test
+    fun `test block decode`() {
+        val block = generateBlock()
+        val encoded = block.encode()
+        val decoded = Block.decode(encoded)
+        assertEquals(block.offset, decoded.offset)
+        assertEquals(block.data, decoded.data)
+    }
+
+    private fun generateBlock(): Block {
         val builder = BlockBuilder(10000)
         for (idx in 0..100) {
             val key = "key_%03d".format(idx * 5).toBlockKey()
             val value = "value_%010d".format(idx).toComparableByteArray()
             assertTrue { builder.add(key, value) }
         }
-        builder.build()
+        return builder.build()
     }
 }
