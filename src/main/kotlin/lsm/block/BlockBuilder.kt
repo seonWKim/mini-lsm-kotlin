@@ -14,7 +14,7 @@ class BlockBuilder(
     private val data: MutableList<Byte> = mutableListOf()
 
     // first key in the block
-    private var firstKey: ComparableByteArray? = null
+    private var firstKey: BlockKey? = null
 
     companion object {
         private const val SIZEOF_U16: Int = Short.SIZE_BYTES // Size of a `Short` which is 2 bytes in JVM
@@ -33,7 +33,7 @@ class BlockBuilder(
     /**
      * Adds a key-value pair to the block. Returns false when the block is full.
      */
-    fun add(key: ComparableByteArray, value: ComparableByteArray): Boolean {
+    fun add(key: BlockKey, value: ComparableByteArray): Boolean {
         if (key.isEmpty()) {
             throw IllegalArgumentException("key should not be empty")
         }
@@ -53,7 +53,7 @@ class BlockBuilder(
         data.addAll((key.size() - overlap).toU16())
 
         // encode key content
-        data.addAll(key.array.slice(overlap..<key.size()))
+        data.addAll(key.slice(overlap..<key.size()))
 
         // encode value length
         data.addAll(value.size().toU16())
@@ -68,11 +68,12 @@ class BlockBuilder(
         return true
     }
 
-    private fun additionAllowed(key: ComparableByteArray, value: ComparableByteArray): Boolean {
+    private fun additionAllowed(key: BlockKey, value: ComparableByteArray): Boolean {
         if (isEmpty()) return true
 
         val nextEstimatedSize =
             estimatedSize() + key.size() + value.size() + SIZEOF_U16 * OFFSET_KEY_VALUE_COUNT
+        println("estimated size: ${nextEstimatedSize}")
         return nextEstimatedSize <= blockSize
     }
 
