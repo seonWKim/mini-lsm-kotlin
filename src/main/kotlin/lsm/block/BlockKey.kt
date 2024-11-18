@@ -10,6 +10,12 @@ class BlockKey(
     var key: ComparableByteArray = key
         private set
 
+    companion object {
+        fun empty(): BlockKey {
+            return BlockKey(key = ComparableByteArray.empty())
+        }
+    }
+
     fun isEmpty(): Boolean {
         return key.isEmpty()
     }
@@ -40,6 +46,10 @@ class BlockKey(
 
     fun append(bytes: List<Byte>) {
         key.append(bytes)
+    }
+
+    fun setFromBlockKey(blockKey: BlockKey) {
+        key = blockKey.key
     }
 
     override fun compareTo(other: BlockKey): Int {

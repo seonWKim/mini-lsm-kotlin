@@ -41,6 +41,10 @@ class ComparableByteArray(
         array.addAll(bytes)
     }
 
+    fun getByteArray(): ByteArray {
+        return array.toByteArray()
+    }
+
     override fun compareTo(other: ComparableByteArray): Int {
         if (this.array.size > other.array.size) {
             return -other.compareTo(this)
