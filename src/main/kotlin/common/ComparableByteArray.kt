@@ -8,7 +8,9 @@ class ComparableByteArray(
         private set
 
     companion object {
-        val EMPTY = ComparableByteArray(ArrayList())
+        fun empty(): ComparableByteArray {
+            return ComparableByteArray(ArrayList())
+        }
     }
 
     fun size(): Int {

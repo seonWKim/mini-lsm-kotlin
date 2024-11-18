@@ -80,7 +80,9 @@ class Day3 {
                 assertTrue("expected: $expectedValue, actual: $value") {
                     ComparableByteArray(value).compareTo(expectedValue) == 0
                 }
+                iter.next()
             }
+            iter.seekToFirst()
         }
     }
 

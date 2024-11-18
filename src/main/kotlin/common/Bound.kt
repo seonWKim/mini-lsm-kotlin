@@ -6,7 +6,7 @@ class Bound(
 ) {
     companion object {
         fun unbounded(): Bound {
-            return Bound(ComparableByteArray.EMPTY, BoundFlag.UNBOUNDED)
+            return Bound(ComparableByteArray.empty(), BoundFlag.UNBOUNDED)
         }
     }
 }

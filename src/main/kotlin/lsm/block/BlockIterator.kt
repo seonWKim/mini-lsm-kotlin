@@ -1,8 +1,6 @@
 package org.seonWKim.lsm.block
 
-import org.seonWKim.common.ComparableByteArray
-import org.seonWKim.common.SIZE_OF_U16_IN_BYTE
-import org.seonWKim.common.toUInt
+import org.seonWKim.common.*
 
 class BlockIterator(
     private val block: Block,
@@ -20,7 +18,7 @@ class BlockIterator(
             return BlockIterator(
                 firstKey = BlockUtil.getFirstKey(block),
                 block = block,
-                key = BlockKey(ComparableByteArray.EMPTY),
+                key = BlockKey(ComparableByteArray.empty()),
                 valueRange = IntRange.EMPTY,
                 idx = 0
             )
@@ -86,11 +84,19 @@ class BlockIterator(
         currentOffset += SIZE_OF_U16_IN_BYTE
         val key = block.data.subList(currentOffset, currentOffset + keyLength)
         this.key.clear()
-        this.key.append(this.firstKey.slice(0..<overlapLength))
-        this.key.append(key)
+        this.key.append(this.firstKey.slice(0..<overlapLength)) // overlapping key
+        this.key.append(key) // non-overlapping key
         currentOffset += keyLength
+        val timestamp = block.data.subList(currentOffset, currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
+        this.key.setTimestamp(timestamp)
+        currentOffset += SIZE_OF_U64_IN_BYTE
         val valueLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toUInt()
-        val valueOffsetBegin = offset + SIZE_OF_U16_IN_BYTE + SIZE_OF_U16_IN_BYTE + keyLength + SIZE_OF_U16_IN_BYTE
+        val valueOffsetBegin = offset +
+                SIZE_OF_U16_IN_BYTE + // (overlap length)'s length
+                SIZE_OF_U16_IN_BYTE + // (key length)'s length
+                SIZE_OF_U64_IN_BYTE + // timestamp length
+                keyLength + // key length
+                SIZE_OF_U16_IN_BYTE // (value length)'s length
         val valueOffsetEnd = valueOffsetBegin + valueLength
         this.valueRange = valueOffsetBegin..<valueOffsetEnd
     }
