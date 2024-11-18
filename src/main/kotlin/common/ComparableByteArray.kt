@@ -43,7 +43,7 @@ class ComparableByteArray(
 
     override fun compareTo(other: ComparableByteArray): Int {
         if (this.array.size > other.array.size) {
-            return other.compareTo(this)
+            return -other.compareTo(this)
         }
 
         for (idx in array.indices) {

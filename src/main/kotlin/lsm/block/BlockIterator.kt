@@ -76,7 +76,7 @@ class BlockIterator(
      * Seek to the specified position and update the current [key] and [value]
      * Index update will be handled by the caller
      */
-    fun seekToOffset(offset: Int) {
+    private fun seekToOffset(offset: Int) {
         var currentOffset = offset
         val overlapLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toUInt()
         currentOffset += SIZE_OF_U16_IN_BYTE
@@ -105,16 +105,21 @@ class BlockIterator(
         var low = 0
         var high = block.offsets.size
         while (low < high) {
-            val mid = low + (high - low) / 2
-            seekTo(mid)
+            val mid = low + (high - low) / 2  // Ensure mid is even
+            seekTo(if (mid % 2 == 0) mid else mid - 1)
             if (!isValid()) {
                 throw IllegalStateException("invalid")
             }
 
             val comparedResult = key().compareTo(key)
             when {
-                comparedResult < 0 -> low = mid + 1
-                comparedResult > 0 -> high = mid
+                comparedResult < 0 -> {
+                    low = if (mid % 2 == 0) mid + 2 else mid + 1
+                } // Move to the next even number
+                comparedResult > 0 -> {
+                    high = if (mid % 2 == 0) mid else mid - 1
+                }
+
                 else -> return
             }
         }
