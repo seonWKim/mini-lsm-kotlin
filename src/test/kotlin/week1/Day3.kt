@@ -66,7 +66,7 @@ class Day3 {
         val iter = BlockIterator.createAndSeekToFirst(block)
         for (unused in 0..<5) {
             for (i in 0..<100) {
-                val key = iter.key().key
+                val key = iter.key().bytes
                 val expectedKey = createKey(i).toComparableByteArray()
                 assertTrue("expected: $expectedKey, actual: $key") {
                     key.compareTo(createKey(i).toComparableByteArray()) == 0
@@ -75,7 +75,7 @@ class Day3 {
                 val value = iter.value()
                 val expectedValue = createValue(i).toComparableByteArray()
                 assertTrue("expected: $expectedValue, actual: $value") {
-                    ComparableByteArray(value).compareTo(expectedValue) == 0
+                    value.compareTo(expectedValue) == 0
                 }
                 iter.next()
             }
@@ -89,7 +89,7 @@ class Day3 {
         val iter = BlockIterator.createAndSeekToKey(block, createKey(0).toBlockKey())
         for (offset in 1..5) {
             for (i in 0..<100) {
-                val key = iter.key().key
+                val key = iter.key().bytes
                 val expectedKey = createKey(i).toComparableByteArray()
                 assertTrue("expected: $expectedKey, actual: $key") {
                     key.compareTo(createKey(i).toComparableByteArray()) == 0
@@ -98,7 +98,7 @@ class Day3 {
                 val value = iter.value()
                 val expectedValue = createValue(i).toComparableByteArray()
                 assertTrue("expected: $expectedValue, actual: $value") {
-                    ComparableByteArray(value).compareTo(expectedValue) == 0
+                    value.compareTo(expectedValue) == 0
                 }
                 iter.seekToKey(BlockKey("key_%03d".format(i * 5 + offset).toComparableByteArray()))
             }

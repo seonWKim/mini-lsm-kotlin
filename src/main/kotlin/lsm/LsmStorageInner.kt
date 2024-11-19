@@ -65,7 +65,7 @@ class LsmStorageInner(
         updateMemTable {
             state.memTable.put(
                 key = key,
-                value = MemtableValue(ComparableByteArray.empty(), IteratorMeta(IteratorFlag.DELETED))
+                value = MemtableValue(ComparableByteArray.new(), IteratorMeta(IteratorFlag.DELETED))
             )
         }
     }

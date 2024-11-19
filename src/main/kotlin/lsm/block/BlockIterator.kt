@@ -18,7 +18,7 @@ class BlockIterator(
             return BlockIterator(
                 firstKey = BlockUtil.getFirstKey(block),
                 block = block,
-                key = BlockKey(ComparableByteArray.empty()),
+                key = BlockKey(ComparableByteArray.new()),
                 valueRange = IntRange.EMPTY,
                 idx = 0
             )
@@ -45,7 +45,7 @@ class BlockIterator(
         return key
     }
 
-    fun value(): List<Byte> {
+    fun value(): ComparableByteArray {
         if (key.isEmpty()) {
             throw IllegalStateException("Invalid iterator")
         }
@@ -62,12 +62,12 @@ class BlockIterator(
     }
 
     fun seekTo(idx: Int) {
-        if (idx >= block.offsets.size) {
+        if (idx >= block.offsets.size()) {
             key.clear()
             valueRange = IntRange.EMPTY
             return
         }
-        val offset = (block.offsets.subList(idx, idx + SIZE_OF_U16_IN_BYTE)).toU16Int()
+        val offset = (block.offsets.slice(idx, idx + SIZE_OF_U16_IN_BYTE)).toU16Int()
         seekToOffset(offset)
         this.idx = idx
     }
@@ -78,19 +78,19 @@ class BlockIterator(
      */
     private fun seekToOffset(offset: Int) {
         var currentOffset = offset
-        val overlapLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
+        val overlapLength = block.data.slice(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
         currentOffset += SIZE_OF_U16_IN_BYTE
-        val keyLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
+        val keyLength = block.data.slice(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
         currentOffset += SIZE_OF_U16_IN_BYTE
-        val key = block.data.subList(currentOffset, currentOffset + keyLength)
+        val key = block.data.slice(currentOffset, currentOffset + keyLength)
         this.key.clear()
         this.key.append(this.firstKey.slice(0..<overlapLength)) // overlapping key
         this.key.append(key) // non-overlapping key
         currentOffset += keyLength
-        val timestamp = block.data.subList(currentOffset, currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
+        val timestamp = block.data.slice(currentOffset, currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
         this.key.setTimestamp(timestamp)
         currentOffset += SIZE_OF_U64_IN_BYTE
-        val valueLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
+        val valueLength = block.data.slice(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
         val valueOffsetBegin = offset +
                 SIZE_OF_U16_IN_BYTE + // (overlap length)'s length
                 SIZE_OF_U16_IN_BYTE + // (key length)'s length
@@ -103,7 +103,7 @@ class BlockIterator(
 
     fun seekToKey(key: BlockKey) {
         var low = 0
-        var high = block.offsets.size
+        var high = block.offsets.size()
         while (low < high) {
             val mid = low + (high - low) / 2  // Ensure mid is even
             seekTo(if (mid % 2 == 0) mid else mid - 1)

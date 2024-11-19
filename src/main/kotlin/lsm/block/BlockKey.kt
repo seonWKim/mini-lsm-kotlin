@@ -4,28 +4,28 @@ import org.seonWKim.common.ComparableByteArray
 import org.seonWKim.common.toComparableByteArray
 
 class BlockKey(
-    key: ComparableByteArray,
+    bytes: ComparableByteArray,
     private var timestamp: Long = 0
 ) : Comparable<BlockKey> {
-    var key: ComparableByteArray = key
+    var bytes: ComparableByteArray = bytes
         private set
 
     companion object {
         fun empty(): BlockKey {
-            return BlockKey(key = ComparableByteArray.empty())
+            return BlockKey(bytes = ComparableByteArray.new())
         }
     }
 
     fun isEmpty(): Boolean {
-        return key.isEmpty()
+        return bytes.isEmpty()
     }
 
     fun size(): Int {
-        return key.size()
+        return bytes.size()
     }
 
-    fun slice(range: IntRange): List<Byte> {
-        return key.array.slice(range)
+    fun slice(range: IntRange): ComparableByteArray {
+        return bytes.slice(range)
     }
 
     fun timestamp(): Long {
@@ -37,23 +37,31 @@ class BlockKey(
     }
 
     fun computeOverlap(other: BlockKey): Int {
-        return key.computeOverlap(other.key)
+        return bytes.computeOverlap(other.bytes)
     }
 
     fun clear() {
-        key = ComparableByteArray.empty()
+        bytes = ComparableByteArray.new()
     }
 
-    fun append(bytes: List<Byte>) {
-        key.append(bytes)
+    fun append(blockKey: BlockKey) {
+        if (this.timestamp != blockKey.timestamp) {
+            throw IllegalArgumentException("timestamp differs ${this.timestamp} != ${blockKey.timestamp}")
+        }
+
+        bytes = bytes + blockKey.bytes
+    }
+
+    fun append(bytes: ComparableByteArray) {
+        this.bytes = this.bytes + bytes
     }
 
     fun setFromBlockKey(blockKey: BlockKey) {
-        key = blockKey.key
+        bytes = blockKey.bytes
     }
 
     override fun compareTo(other: BlockKey): Int {
-        val keyComparison = this.key.compareTo(other.key)
+        val keyComparison = this.bytes.compareTo(other.bytes)
         if (keyComparison != 0) {
             return keyComparison
         }
@@ -71,7 +79,7 @@ class BlockKey(
 
     override fun hashCode(): Int {
         var result = timestamp.hashCode()
-        result = 31 * result + key.hashCode()
+        result = 31 * result + bytes.hashCode()
         return result
     }
 }

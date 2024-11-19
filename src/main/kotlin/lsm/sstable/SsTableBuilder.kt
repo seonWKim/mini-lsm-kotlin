@@ -13,7 +13,7 @@ class SsTableBuilder(
     private var builder: BlockBuilder
     private var firstKey: BlockKey
     private var lastKey: BlockKey
-    private val data: MutableList<Byte>
+    private val data: ComparableByteArray
 
     val meta: MutableList<BlockMeta>
     private val keyHashes: MutableList<Int>
@@ -23,7 +23,7 @@ class SsTableBuilder(
         this.builder = BlockBuilder(blockSize)
         this.firstKey = BlockKey.empty()
         this.lastKey = BlockKey.empty()
-        this.data = mutableListOf()
+        this.data = ComparableByteArray.new()
         this.meta = mutableListOf()
         this.keyHashes = mutableListOf()
         this.maxTimestamp = 0L
@@ -37,7 +37,7 @@ class SsTableBuilder(
         if (key.timestamp() > maxTimestamp) {
             maxTimestamp = key.timestamp()
         }
-        keyHashes.add(murmurHash(value.getByteArray()))
+        keyHashes.add(murmurHash(value))
 
         if (builder.add(key, value)) {
             lastKey.setFromBlockKey(key)
@@ -60,13 +60,13 @@ class SsTableBuilder(
         val encodedBlock = builder.build().encode()
         meta.add(
             BlockMeta(
-                offset = data.size,
+                offset = data.size(),
                 firstKey = firstKey,
                 lastKey = lastKey
             )
         )
-        data.addAll(encodedBlock)
-        data.addAll(crcHash(encodedBlock).toU32ByteArray())
+        data += encodedBlock
+        data += crcHash(encodedBlock).toU32ByteArray()
 
         // reset
         firstKey = BlockKey.empty()
@@ -82,9 +82,9 @@ class SsTableBuilder(
     ): SsTable {
         finishBlock()
         val buf = data
-        val metaOffset = buf.size
+        val metaOffset = buf.size()
         BlockMetaUtil.encodeBlockMeta(meta, maxTimestamp, buf)
-        buf.addAll(metaOffset.toU32ByteArray())
+        buf += metaOffset.toU32ByteArray()
 
         // TODO: we will add bloom filter at the end of the Sstable
         val file = SsTableFile.create(path, buf)

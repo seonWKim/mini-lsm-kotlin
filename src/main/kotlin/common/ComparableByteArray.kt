@@ -8,7 +8,7 @@ class ComparableByteArray(
         private set
 
     companion object {
-        fun empty(): ComparableByteArray {
+        fun new(): ComparableByteArray {
             return ComparableByteArray(ArrayList())
         }
     }
@@ -43,6 +43,33 @@ class ComparableByteArray(
 
     fun getByteArray(): ByteArray {
         return array.toByteArray()
+    }
+
+    fun slice(range: IntRange): ComparableByteArray {
+        return ComparableByteArray(array.slice(range))
+    }
+
+    /**
+     * Return a slice including [startIdx] and excluding [endIdx]
+     */
+    fun slice(startIdx: Int, endIdx: Int): ComparableByteArray {
+        return slice(startIdx..<endIdx)
+    }
+
+    operator fun plus(other: ComparableByteArray): ComparableByteArray {
+        return ComparableByteArray(this.array + other.array)
+    }
+
+    operator fun plusAssign(other: ComparableByteArray): Unit {
+        this.array.addAll(other.array)
+    }
+
+    operator fun get(idx: Int): Byte {
+        return array[idx]
+    }
+
+    operator fun set(idx: Int, value: Byte): Byte {
+        return array.set(idx, value)
     }
 
     override fun compareTo(other: ComparableByteArray): Int {

@@ -10,10 +10,10 @@ class BlockBuilder(
     private val blockSize: Int,
 ) {
     // offsets of each key-value entries
-    private val offset: MutableList<Byte> = mutableListOf()
+    private val offset: ComparableByteArray = ComparableByteArray.new()
 
     // all serialized key-value pairs in the block
-    private val data: MutableList<Byte> = mutableListOf()
+    private val data: ComparableByteArray = ComparableByteArray.new()
 
     // first key in the block
     private var firstKey: BlockKey? = null
@@ -35,26 +35,26 @@ class BlockBuilder(
         }
 
         // add offset of the data into the offset array
-        offset.addAll(data.size.toU16ByteArray())
+        offset += data.size().toU16ByteArray()
 
         // encode key overlap
         val overlap = firstKey?.computeOverlap(key) ?: 0
-        data.addAll(overlap.toU16ByteArray())
+        data += overlap.toU16ByteArray()
 
         // encode key length
-        data.addAll((key.size() - overlap).toU16ByteArray())
+        data += (key.size() - overlap).toU16ByteArray()
 
         // encode key content
-        data.addAll(key.slice(overlap..<key.size()))
+        data += key.slice(overlap..<key.size())
 
         // encode key ts
-        data.addAll(key.timestamp().toU64ByteArray())
+        data += key.timestamp().toU64ByteArray()
 
         // encode value length
-        data.addAll(value.size().toU16ByteArray())
+        data += value.size().toU16ByteArray()
 
         // encode value content
-        data.addAll(value.array)
+        data += value
 
         if (firstKey == null) {
             firstKey = key
@@ -79,7 +79,7 @@ class BlockBuilder(
      */
     private fun estimatedSize(): Int {
         // println("offset: ${offset.size}, data: ${data.size}")
-        return SIZE_OF_U16_IN_BYTE + offset.size * SIZE_OF_U16_IN_BYTE + data.size
+        return SIZE_OF_U16_IN_BYTE + offset.size() * SIZE_OF_U16_IN_BYTE + data.size()
     }
 
     /**

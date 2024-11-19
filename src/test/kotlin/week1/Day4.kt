@@ -80,6 +80,6 @@ class Day4 {
     }
 
     private fun assertBlockKeyEqualsContent(key1: BlockKey, key2: BlockKey): Boolean {
-        return key1.key.array == key2.key.array
+        return key1.bytes.array == key2.bytes.array
     }
 }
