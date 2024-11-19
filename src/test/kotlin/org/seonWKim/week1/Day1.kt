@@ -1,4 +1,4 @@
-package week1
+package org.seonWKim.week1
 
 import org.seonWKim.lsm.LsmStorageInner
 import org.seonWKim.lsm.LsmStorageOptions

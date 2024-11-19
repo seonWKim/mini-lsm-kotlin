@@ -3,7 +3,6 @@ package org.seonWKim.common
 class ComparableByteArray(
     array: List<Byte>
 ) : Comparable<ComparableByteArray> {
-
     var array: MutableList<Byte> = array.toMutableList()
         private set
 

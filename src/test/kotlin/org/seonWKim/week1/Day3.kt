@@ -1,6 +1,5 @@
-package week1
+package org.seonWKim.week1
 
-import org.seonWKim.common.ComparableByteArray
 import org.seonWKim.common.toComparableByteArray
 import org.seonWKim.lsm.block.*
 import kotlin.test.Test

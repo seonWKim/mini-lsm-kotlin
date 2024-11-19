@@ -1,4 +1,4 @@
-package week1
+package org.seonWKim.week1
 
 import org.seonWKim.common.Bound
 import org.seonWKim.common.BoundFlag

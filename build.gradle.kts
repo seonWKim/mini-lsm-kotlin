@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation("com.google.guava:guava:33.3.1-jre")
+    implementation("com.tngtech.archunit:archunit-junit5:0.23.1")
     testImplementation(kotlin("test"))
 }
 

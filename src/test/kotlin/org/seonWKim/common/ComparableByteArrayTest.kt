@@ -1,4 +1,4 @@
-package common
+package org.seonWKim.common
 
 import org.seonWKim.common.toComparableByteArray
 import kotlin.test.Test

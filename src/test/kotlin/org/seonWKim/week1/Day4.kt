@@ -1,4 +1,4 @@
-package week1
+package org.seonWKim.week1
 
 import org.junit.jupiter.api.Test
 import org.seonWKim.common.toComparableByteArray
