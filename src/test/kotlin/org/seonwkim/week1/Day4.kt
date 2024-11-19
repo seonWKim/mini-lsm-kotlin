@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import org.seonwkim.common.toComparableByteArray
 import org.seonwkim.lsm.block.BlockKey
 import org.seonwkim.lsm.block.toBlockKey
+import org.seonwkim.lsm.iterator.SsTableIterator
 import org.seonwkim.lsm.sstable.SsTable
 import org.seonwkim.lsm.sstable.SsTableBuilder
 import java.nio.file.Path
@@ -56,7 +57,30 @@ class Day4 {
         val newSst = SsTable.openForTest(sst.file)
         assertEquals(newSst.blockMeta, meta)
         assertBlockKeyEqualsContent(newSst.firstKey, BlockKey(createKey(0).toComparableByteArray()))
-        assertBlockKeyEqualsContent(newSst.lastKey, BlockKey(createKey(NUMBER_OF_KEYS - 1).toComparableByteArray()))
+        assertBlockKeyEqualsContent(
+            newSst.lastKey,
+            BlockKey(createKey(NUMBER_OF_KEYS - 1).toComparableByteArray())
+        )
+    }
+
+    @Test
+    fun `test sst iterator`() {
+        val (_, sst) = generateSst()
+        val iter = SsTableIterator.createAndSeekToFirst(sst)
+        for (unused in 0 until 5) {
+            for (i in 0 until NUMBER_OF_KEYS) {
+                val key = iter.key()
+                val expectedKey = createKey(i).toComparableByteArray()
+                assertTrue("expected: $expectedKey, actual: $key") { key.compareTo(expectedKey) == 0 }
+
+                val value = iter.value()
+                val expectedValue = createValue(i).toComparableByteArray()
+                assertTrue("expected: $expectedValue, actual: $value") { value.compareTo(expectedValue) == 0 }
+                iter.next()
+            }
+
+            iter.seekToFirst()
+        }
     }
 
     private fun generateSst(): Pair<Path, SsTable> {

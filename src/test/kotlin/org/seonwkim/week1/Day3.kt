@@ -47,14 +47,14 @@ class Day3 {
     @Test
     fun `test block encode`() {
         val block = generateBlock()
-        block.encode()
+        BlockUtil.encode(block)
     }
 
     @Test
     fun `test block decode`() {
         val block = generateBlock()
-        val encoded = block.encode()
-        val decoded = Block.decode(encoded)
+        val encoded = BlockUtil.encode(block)
+        val decoded = BlockUtil.decode(encoded)
         assertEquals(block.offsets, decoded.offsets)
         assertEquals(block.data, decoded.data)
     }
@@ -68,7 +68,7 @@ class Day3 {
                 val key = iter.key().bytes
                 val expectedKey = createKey(i).toComparableByteArray()
                 assertTrue("expected: $expectedKey, actual: $key") {
-                    key.compareTo(createKey(i).toComparableByteArray()) == 0
+                    key.compareTo(expectedKey) == 0
                 }
 
                 val value = iter.value()
@@ -91,7 +91,7 @@ class Day3 {
                 val key = iter.key().bytes
                 val expectedKey = createKey(i).toComparableByteArray()
                 assertTrue("expected: $expectedKey, actual: $key") {
-                    key.compareTo(createKey(i).toComparableByteArray()) == 0
+                    key.compareTo(expectedKey) == 0
                 }
 
                 val value = iter.value()

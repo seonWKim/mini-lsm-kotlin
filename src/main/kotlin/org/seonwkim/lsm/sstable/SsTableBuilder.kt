@@ -1,10 +1,7 @@
 package org.seonwkim.lsm.sstable
 
 import org.seonwkim.common.*
-import org.seonwkim.lsm.block.BlockBuilder
-import org.seonwkim.lsm.block.BlockKey
-import org.seonwkim.lsm.block.BlockMeta
-import org.seonwkim.lsm.block.BlockMetaUtil
+import org.seonwkim.lsm.block.*
 import java.nio.file.Path
 
 class SsTableBuilder(
@@ -57,7 +54,7 @@ class SsTableBuilder(
 
     private fun finishBlock() {
         val builder = this.builder
-        val encodedBlock = builder.build().encode()
+        val encodedBlock = BlockUtil.encode(builder.build())
         meta.add(
             BlockMeta(
                 offset = data.size(),

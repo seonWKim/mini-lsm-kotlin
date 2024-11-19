@@ -1,9 +1,9 @@
 package org.seonwkim.lsm.sstable
 
+import org.seonwkim.common.SIZE_OF_U32_IN_BYTE
+import org.seonwkim.common.crcHash
 import org.seonwkim.common.toU32Int
-import org.seonwkim.lsm.block.BlockKey
-import org.seonwkim.lsm.block.BlockMeta
-import org.seonwkim.lsm.block.BlockMetaUtil
+import org.seonwkim.lsm.block.*
 
 class SsTable(
     val file: SsTableFile,
@@ -40,5 +40,29 @@ class SsTable(
                 maxTs = maxTs
             )
         }
+    }
+
+    fun readBlockCached(blockIdx: Int): Block {
+        return blockCache?.let {
+            it.getOrDefault(BlockCacheKey(id, blockIdx)) { readBlock(blockIdx) }
+        } ?: readBlock(blockIdx)
+    }
+
+    fun readBlock(blockIdx: Int): Block {
+        val offset = blockMeta[blockIdx].offset
+        val offsetEnd = blockMeta.getOrNull(blockIdx + 1)?.offset ?: blockMetaOffset
+        val blockLen = offsetEnd - offset - SIZE_OF_U32_IN_BYTE
+        val blockDataWithChecksum = file.read(offset.toLong(), (offsetEnd - offset))
+        val blockData = blockDataWithChecksum.slice(0, blockLen)
+        val checksum = blockDataWithChecksum.slice(blockLen, blockDataWithChecksum.size()).toU32Int()
+        if (checksum != crcHash(blockData)) {
+            throw Error("Block checksum mismatch")
+        }
+
+        return BlockUtil.decode(blockData)
+    }
+
+    fun numberOfBlocks(): Int {
+        return blockMeta.size
     }
 }
