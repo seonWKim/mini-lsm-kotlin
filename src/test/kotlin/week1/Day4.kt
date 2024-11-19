@@ -2,12 +2,19 @@ package week1
 
 import org.junit.jupiter.api.Test
 import org.seonWKim.common.toComparableByteArray
+import org.seonWKim.lsm.block.BlockKey
 import org.seonWKim.lsm.block.toBlockKey
+import org.seonWKim.lsm.sstable.SsTable
 import org.seonWKim.lsm.sstable.SsTableBuilder
+import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
 import kotlin.test.assertTrue
 
 class Day4 {
+
+    companion object {
+        private val NUMBER_OF_KEYS = 100
+    }
 
     @Test
     fun `test sst build single key`() {
@@ -29,5 +36,39 @@ class Day4 {
         assertTrue { builder.meta.size >= 2 }
         val dir = createTempDirectory("test_set_build_two_blocks")
         builder.buildForTest(dir.resolve("1.sst"))
+    }
+
+    @Test
+    fun `test sst build all`() {
+        val (_, sst) = generateSst()
+        assertBlockKeyEqualsContent(sst.firstKey, BlockKey(createKey(0).toComparableByteArray()))
+        assertBlockKeyEqualsContent(
+            sst.lastKey,
+            BlockKey(createKey(NUMBER_OF_KEYS - 1).toComparableByteArray())
+        )
+    }
+
+    private fun generateSst(): Pair<Path, SsTable> {
+        val builder = SsTableBuilder(128)
+        for (idx in 0 until NUMBER_OF_KEYS) {
+            val key = createKey(idx)
+            val value = createValue(idx)
+            builder.add(BlockKey(createKey(idx).toComparableByteArray()), value.toComparableByteArray())
+        }
+        val dir = createTempDirectory("temp")
+        val path = dir.resolve("1.sst")
+        return Pair(dir, builder.buildForTest(path))
+    }
+
+    private fun createKey(i: Int): String {
+        return "key_%03d".format(i * 5)
+    }
+
+    private fun createValue(i: Int): String {
+        return "value_%010d".format(i)
+    }
+
+    private fun assertBlockKeyEqualsContent(key1: BlockKey, key2: BlockKey): Boolean {
+        return key1.key.array == key2.key.array
     }
 }
