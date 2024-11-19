@@ -88,6 +88,39 @@ class Day5 {
         ))
     }
 
+    @Test
+    fun `test task1 merge 4`() {
+        val i2 = MockIterator(emptyList())
+        val i1 = MockIterator(
+            listOf(
+                MockIteratorData("b".toComparableByteArray(), "2.2".toComparableByteArray()),
+                MockIteratorData("c".toComparableByteArray(), "3.2".toComparableByteArray()),
+                MockIteratorData("d".toComparableByteArray(), "4.2".toComparableByteArray()),
+            )
+        )
+        val iter1 = TwoMergeIterator.create(i1, i2)
+        checkIterator(iter1, listOf(
+            Pair("b".toComparableByteArray(), "2.2".toComparableByteArray()),
+            Pair("c".toComparableByteArray(), "3.2".toComparableByteArray()),
+            Pair("d".toComparableByteArray(), "4.2".toComparableByteArray()),
+        ))
+
+        val i3 = MockIterator(emptyList())
+        val i4 = MockIterator(
+            listOf(
+                MockIteratorData("b".toComparableByteArray(), "2.2".toComparableByteArray()),
+                MockIteratorData("c".toComparableByteArray(), "3.2".toComparableByteArray()),
+                MockIteratorData("d".toComparableByteArray(), "4.2".toComparableByteArray()),
+            )
+        )
+        val iter2 = TwoMergeIterator.create(i3, i4)
+        checkIterator(iter2, listOf(
+            Pair("b".toComparableByteArray(), "2.2".toComparableByteArray()),
+            Pair("c".toComparableByteArray(), "3.2".toComparableByteArray()),
+            Pair("d".toComparableByteArray(), "4.2".toComparableByteArray()),
+        ))
+    }
+
     private fun checkIterator(
         actual: StorageIterator,
         expected: List<Pair<ComparableByteArray, ComparableByteArray>>
