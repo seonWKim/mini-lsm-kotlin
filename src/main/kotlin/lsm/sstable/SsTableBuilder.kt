@@ -1,42 +1,42 @@
 package org.seonWKim.lsm.sstable
 
-import com.google.common.hash.Hashing
-import org.seonWKim.common.ComparableByteArray
+import org.seonWKim.common.*
 import org.seonWKim.lsm.block.BlockBuilder
 import org.seonWKim.lsm.block.BlockKey
+import org.seonWKim.lsm.block.BlockMeta
 import java.nio.file.Path
 
 class SsTableBuilder(
     private val blockSize: Int,
 ) {
-    private val builder: BlockBuilder
-    private val firstKey: BlockKey
-    private val lastKey: BlockKey
+    private var builder: BlockBuilder
+    private var firstKey: BlockKey
+    private var lastKey: BlockKey
     private val data: MutableList<Byte>
 
-    // private val meta: List<BlockMeta>,
+    val meta: MutableList<BlockMeta>
     private val keyHashes: MutableList<Int>
+    private var maxTimestamp: Long
 
     init {
         this.builder = BlockBuilder(blockSize)
         this.firstKey = BlockKey.empty()
         this.lastKey = BlockKey.empty()
         this.data = mutableListOf()
+        this.meta = mutableListOf()
         this.keyHashes = mutableListOf()
+        this.maxTimestamp = 0L
     }
-
-    companion object {
-        private val hasher = Hashing.murmur3_32_fixed().newHasher()
-    }
-
 
     fun add(key: BlockKey, value: ComparableByteArray) {
         if (this.firstKey.isEmpty()) {
             firstKey.setFromBlockKey(key)
         }
 
-        val hasher = Hashing.murmur3_32_fixed().newHasher().let { it.putBytes(value.getByteArray()) }
-        keyHashes.add(hasher.hash().asInt())
+        if (key.timestamp() > maxTimestamp) {
+            maxTimestamp = key.timestamp()
+        }
+        keyHashes.add(murmurHash(value.getByteArray()))
 
         if (builder.add(key, value)) {
             lastKey.setFromBlockKey(key)
@@ -47,33 +47,77 @@ class SsTableBuilder(
         finishBlock()
 
         // add the key-value pair to the next block
-        if (builder.add(key, value)) {
+        if (!builder.add(key, value)) {
             throw IllegalStateException("Unable to add key($key) and value($value) to builder")
         }
         firstKey.setFromBlockKey(key)
         lastKey.setFromBlockKey(key)
     }
 
-    fun estimatedSize(): Int {
-        return data.size
-    }
+    private fun finishBlock() {
+        val builder = this.builder
+        val encodedBlock = builder.build().encode()
+        meta.add(
+            BlockMeta(
+                offset = data.size,
+                firstKey = firstKey,
+                lastKey = lastKey
+            )
+        )
+        data.addAll(encodedBlock)
+        data.addAll(crcHash(encodedBlock).toU32ByteArray())
 
-    fun finishBlock() {
-        // TODO
+        // reset
+        firstKey = BlockKey.empty()
+        lastKey = BlockKey.empty()
+        this.builder = BlockBuilder(blockSize)
     }
 
     // build SSTable and write it to given path
-    fun build(): SsTable {
-        // TODO
-        return SsTable()
+    fun build(
+        id: Int,
+        blockCache: BlockCache?,
+        path: Path
+    ): SsTable {
+        finishBlock()
+        val buf = data
+        val metaOffset = buf.size
+        encodeBlockMeta(meta, maxTimestamp, buf)
+        buf.addAll(metaOffset.toU32ByteArray())
+
+        // TODO: bloom filter
+        val file = SsTableFile.create(path, buf)
+
+        return SsTable(
+            file = file,
+            blockMeta = meta,
+            blockMetaOffset = metaOffset,
+            id = id,
+            blockCache = blockCache,
+            firstKey = meta.first().firstKey,
+            lastKey = meta.last().lastKey,
+            maxTs = 0
+        )
     }
+
+    private fun encodeBlockMeta(blockMeta: List<BlockMeta>, maxTimestamp: Long, buf: MutableList<Byte>) {
+        val originalLength = buf.size
+        buf.addAll(blockMeta.size.toU32ByteArray())
+        for (meta in blockMeta) {
+            buf.addAll(meta.offset.toU32ByteArray())
+            buf.addAll(meta.firstKey.size().toU16ByteArray())
+            buf.addAll(meta.firstKey.key.array)
+            buf.addAll(meta.firstKey.timestamp().toU64ByteArray())
+            buf.addAll(meta.lastKey.size().toU16ByteArray())
+            buf.addAll(meta.lastKey.key.array)
+            buf.addAll(meta.lastKey.timestamp().toU64ByteArray())
+        }
+        buf.addAll(maxTimestamp.toU64ByteArray())
+        buf.addAll(crcHash(buf.slice(originalLength + 4..<buf.size)).toU32ByteArray())
+    }
+
 
     fun buildForTest(path: Path): SsTable {
-        // TODO
-        return build()
+        return build(0, null, path)
     }
-}
-
-class SsTable {
-
 }
