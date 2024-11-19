@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm") version "2.0.21"
 }
 
-group = "org.seonWKim"
+group = "org.seonwkim"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -11,8 +11,9 @@ repositories {
 
 dependencies {
     implementation("com.google.guava:guava:33.3.1-jre")
-    implementation("com.tngtech.archunit:archunit-junit5:0.23.1")
+
     testImplementation(kotlin("test"))
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
 }
 
 tasks.test {
