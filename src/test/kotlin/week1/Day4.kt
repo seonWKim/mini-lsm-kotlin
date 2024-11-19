@@ -64,7 +64,7 @@ class Day4 {
         for (idx in 0 until NUMBER_OF_KEYS) {
             val key = createKey(idx)
             val value = createValue(idx)
-            builder.add(BlockKey(createKey(idx).toComparableByteArray()), value.toComparableByteArray())
+            builder.add(BlockKey(key.toComparableByteArray()), value.toComparableByteArray())
         }
         val dir = createTempDirectory("temp")
         val path = dir.resolve("1.sst")
