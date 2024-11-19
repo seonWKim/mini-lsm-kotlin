@@ -6,7 +6,7 @@ object BlockUtil {
     fun getFirstKey(block: Block): BlockKey {
         var currentOffset = 0
         currentOffset += SIZE_OF_U16_IN_BYTE
-        val keyLength = block.data.slice(currentOffset..<currentOffset + 2).toUInt()
+        val keyLength = block.data.slice(currentOffset..<currentOffset + 2).toU16Int()
         currentOffset += SIZE_OF_U16_IN_BYTE
         val key = block.data.slice(currentOffset..<currentOffset + keyLength)
         currentOffset += keyLength

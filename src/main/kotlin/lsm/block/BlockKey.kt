@@ -6,7 +6,7 @@ import org.seonWKim.common.toComparableByteArray
 class BlockKey(
     key: ComparableByteArray,
     private var timestamp: Long = 0
-): Comparable<BlockKey> {
+) : Comparable<BlockKey> {
     var key: ComparableByteArray = key
         private set
 
@@ -53,7 +53,26 @@ class BlockKey(
     }
 
     override fun compareTo(other: BlockKey): Int {
-        return this.key.compareTo(other.key)
+        val keyComparison = this.key.compareTo(other.key)
+        if (keyComparison != 0) {
+            return keyComparison
+        }
+        return this.timestamp.compareTo(other.timestamp)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as BlockKey
+
+        return this.compareTo(other) == 0
+    }
+
+    override fun hashCode(): Int {
+        var result = timestamp.hashCode()
+        result = 31 * result + key.hashCode()
+        return result
     }
 }
 

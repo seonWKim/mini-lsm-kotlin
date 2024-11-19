@@ -8,6 +8,7 @@ import org.seonWKim.lsm.sstable.SsTable
 import org.seonWKim.lsm.sstable.SsTableBuilder
 import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class Day4 {
@@ -46,6 +47,16 @@ class Day4 {
             sst.lastKey,
             BlockKey(createKey(NUMBER_OF_KEYS - 1).toComparableByteArray())
         )
+    }
+
+    @Test
+    fun `test sst decode`() {
+        val (_, sst) = generateSst()
+        val meta = sst.blockMeta
+        val newSst = SsTable.openForTest(sst.file)
+        assertEquals(newSst.blockMeta, meta)
+        assertBlockKeyEqualsContent(newSst.firstKey, BlockKey(createKey(0).toComparableByteArray()))
+        assertBlockKeyEqualsContent(newSst.lastKey, BlockKey(createKey(NUMBER_OF_KEYS - 1).toComparableByteArray()))
     }
 
     private fun generateSst(): Pair<Path, SsTable> {

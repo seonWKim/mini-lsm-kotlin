@@ -31,10 +31,19 @@ fun Long.toU64ByteArray(): List<Byte> {
     )
 }
 
-fun List<Byte>.toUInt(): Int {
+fun List<Byte>.toU16Int(): Int {
+    require(this.size == 2) { "List must contain exactly 2 bytes" }
     val highByte = this[0].toInt() and 0xFF
     val lowByte = this[1].toInt() and 0xFF
     return (highByte shl 8) or lowByte
+}
+
+fun List<Byte>.toU32Int(): Int {
+    require(this.size == 4) { "List must contain exactly 4 bytes" }
+    return (this[0].toInt() and 0xFF shl 24) or
+            (this[1].toInt() and 0xFF shl 16) or
+            (this[2].toInt() and 0xFF shl 8) or
+            (this[3].toInt() and 0xFF)
 }
 
 fun List<Byte>.toU64Long(): Long {

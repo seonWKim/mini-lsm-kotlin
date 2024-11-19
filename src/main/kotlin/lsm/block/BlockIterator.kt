@@ -67,7 +67,7 @@ class BlockIterator(
             valueRange = IntRange.EMPTY
             return
         }
-        val offset = (block.offsets.subList(idx, idx + SIZE_OF_U16_IN_BYTE)).toUInt()
+        val offset = (block.offsets.subList(idx, idx + SIZE_OF_U16_IN_BYTE)).toU16Int()
         seekToOffset(offset)
         this.idx = idx
     }
@@ -78,9 +78,9 @@ class BlockIterator(
      */
     private fun seekToOffset(offset: Int) {
         var currentOffset = offset
-        val overlapLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toUInt()
+        val overlapLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
         currentOffset += SIZE_OF_U16_IN_BYTE
-        val keyLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toUInt()
+        val keyLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
         currentOffset += SIZE_OF_U16_IN_BYTE
         val key = block.data.subList(currentOffset, currentOffset + keyLength)
         this.key.clear()
@@ -90,7 +90,7 @@ class BlockIterator(
         val timestamp = block.data.subList(currentOffset, currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
         this.key.setTimestamp(timestamp)
         currentOffset += SIZE_OF_U64_IN_BYTE
-        val valueLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toUInt()
+        val valueLength = block.data.subList(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
         val valueOffsetBegin = offset +
                 SIZE_OF_U16_IN_BYTE + // (overlap length)'s length
                 SIZE_OF_U16_IN_BYTE + // (key length)'s length

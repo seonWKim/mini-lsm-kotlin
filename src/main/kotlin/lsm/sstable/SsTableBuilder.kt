@@ -4,6 +4,7 @@ import org.seonWKim.common.*
 import org.seonWKim.lsm.block.BlockBuilder
 import org.seonWKim.lsm.block.BlockKey
 import org.seonWKim.lsm.block.BlockMeta
+import org.seonWKim.lsm.block.BlockMetaUtil
 import java.nio.file.Path
 
 class SsTableBuilder(
@@ -82,10 +83,10 @@ class SsTableBuilder(
         finishBlock()
         val buf = data
         val metaOffset = buf.size
-        encodeBlockMeta(meta, maxTimestamp, buf)
+        BlockMetaUtil.encodeBlockMeta(meta, maxTimestamp, buf)
         buf.addAll(metaOffset.toU32ByteArray())
 
-        // TODO: bloom filter
+        // TODO: we will add bloom filter at the end of the Sstable
         val file = SsTableFile.create(path, buf)
 
         return SsTable(
@@ -99,23 +100,6 @@ class SsTableBuilder(
             maxTs = 0
         )
     }
-
-    private fun encodeBlockMeta(blockMeta: List<BlockMeta>, maxTimestamp: Long, buf: MutableList<Byte>) {
-        val originalLength = buf.size
-        buf.addAll(blockMeta.size.toU32ByteArray())
-        for (meta in blockMeta) {
-            buf.addAll(meta.offset.toU32ByteArray())
-            buf.addAll(meta.firstKey.size().toU16ByteArray())
-            buf.addAll(meta.firstKey.key.array)
-            buf.addAll(meta.firstKey.timestamp().toU64ByteArray())
-            buf.addAll(meta.lastKey.size().toU16ByteArray())
-            buf.addAll(meta.lastKey.key.array)
-            buf.addAll(meta.lastKey.timestamp().toU64ByteArray())
-        }
-        buf.addAll(maxTimestamp.toU64ByteArray())
-        buf.addAll(crcHash(buf.slice(originalLength + 4..<buf.size)).toU32ByteArray())
-    }
-
 
     fun buildForTest(path: Path): SsTable {
         return build(0, null, path)
