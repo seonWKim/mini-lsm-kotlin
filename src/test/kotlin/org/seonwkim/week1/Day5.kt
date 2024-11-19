@@ -121,6 +121,14 @@ class Day5 {
         ))
     }
 
+    @Test
+    fun `test task1 merge 5`() {
+        val i2 = MockIterator(emptyList())
+        val i1 = MockIterator(emptyList())
+        val iter = TwoMergeIterator.create(i1, i2)
+        checkIterator(iter, emptyList())
+    }
+
     private fun checkIterator(
         actual: StorageIterator,
         expected: List<Pair<ComparableByteArray, ComparableByteArray>>
