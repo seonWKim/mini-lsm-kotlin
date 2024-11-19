@@ -2,6 +2,7 @@ package org.seonwkim.lsm.iterator
 
 import org.seonwkim.common.ComparableByteArray
 import org.seonwkim.lsm.block.BlockIterator
+import org.seonwkim.lsm.block.BlockKey
 import org.seonwkim.lsm.sstable.SsTable
 
 interface StorageIterator {
@@ -46,10 +47,37 @@ class SsTableIterator(
                 blockIdx = blockIdx
             )
         }
+
+        fun seekToKeyInner(table: SsTable, key: BlockKey): Pair<Int, BlockIterator> {
+            var blockIdx = table.findBlockIdx(key)
+            var blockIter = BlockIterator.createAndSeekToKey(table.readBlockCached(blockIdx), key)
+            if (!blockIter.isValid()) {
+                blockIdx += 1
+                if (blockIdx < table.numberOfBlocks()) {
+                    blockIter = BlockIterator.createAndSeekToFirst(table.readBlockCached(blockIdx))
+                }
+            }
+            return Pair(blockIdx, blockIter)
+        }
+
+        fun createAndSeekToKey(table: SsTable, key: BlockKey): SsTableIterator {
+            val (blockIdx, blockIter) = seekToKeyInner(table, key)
+            return SsTableIterator(
+                table = table,
+                blockIter = blockIter,
+                blockIdx = blockIdx
+            )
+        }
     }
 
     fun seekToFirst() {
         val (blockIdx, blockIter) = seekToFirstInner(table)
+        this.blockIdx = blockIdx
+        this.blockIter = blockIter
+    }
+
+    fun seekToKey(key: BlockKey) {
+        val (blockIdx, blockIter) = seekToKeyInner(table, key)
         this.blockIdx = blockIdx
         this.blockIter = blockIter
     }

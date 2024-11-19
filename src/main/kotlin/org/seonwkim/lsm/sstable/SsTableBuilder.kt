@@ -72,7 +72,7 @@ class SsTableBuilder(
     }
 
     // build SSTable and write it to given path
-    fun build(
+    private fun build(
         id: Int,
         blockCache: BlockCache?,
         path: Path

@@ -42,13 +42,16 @@ class SsTable(
         }
     }
 
+    /**
+     * Read a block from disk, with block cache.
+     */
     fun readBlockCached(blockIdx: Int): Block {
         return blockCache?.let {
             it.getOrDefault(BlockCacheKey(id, blockIdx)) { readBlock(blockIdx) }
         } ?: readBlock(blockIdx)
     }
 
-    fun readBlock(blockIdx: Int): Block {
+    private fun readBlock(blockIdx: Int): Block {
         val offset = blockMeta[blockIdx].offset
         val offsetEnd = blockMeta.getOrNull(blockIdx + 1)?.offset ?: blockMetaOffset
         val blockLen = offsetEnd - offset - SIZE_OF_U32_IN_BYTE
@@ -62,6 +65,19 @@ class SsTable(
         return BlockUtil.decode(blockData)
     }
 
+    /**
+     * Find the block that may contain [key].
+     */
+    fun findBlockIdx(key: BlockKey): Int {
+        return blockMeta.indexOfFirst { it.firstKey > key }
+            .let { if (it == -1) blockMeta.size else it  }
+            .minus(1)
+            .coerceAtLeast(0)
+    }
+
+    /**
+     * Get the number of blocks.
+     */
     fun numberOfBlocks(): Int {
         return blockMeta.size
     }

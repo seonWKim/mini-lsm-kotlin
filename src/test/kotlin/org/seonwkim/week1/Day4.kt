@@ -83,6 +83,27 @@ class Day4 {
         }
     }
 
+    @Test
+    fun `test sst seek key`() {
+        val (_, sst) = generateSst()
+        val iter = SsTableIterator.createAndSeekToKey(sst, createKey(0).toBlockKey())
+        for (offset in 1..5) {
+            for (i in 0 until NUMBER_OF_KEYS) {
+                val key = iter.key()
+                val expectedKey = createKey(i).toComparableByteArray()
+                assertTrue("expected: $expectedKey, actual: $key") { key.compareTo(expectedKey) == 0 }
+
+                val value = iter.value()
+                val expectedValue = createValue(i).toComparableByteArray()
+                assertTrue("expected: $expectedValue, actual: $value") { value.compareTo(expectedValue) == 0 }
+
+                iter.seekToKey("key_%03d".format(i * 5 + offset).toBlockKey())
+            }
+
+            iter.seekToKey("k".toBlockKey())
+        }
+    }
+
     private fun generateSst(): Pair<Path, SsTable> {
         val builder = SsTableBuilder(128)
         for (idx in 0 until NUMBER_OF_KEYS) {
