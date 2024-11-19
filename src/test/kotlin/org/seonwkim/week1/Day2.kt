@@ -1,17 +1,14 @@
 package org.seonwkim.week1
 
+import org.junit.jupiter.api.assertThrows
 import org.seonwkim.common.Bound
 import org.seonwkim.common.BoundFlag
 import org.seonwkim.common.ComparableByteArray
 import org.seonwkim.common.toComparableByteArray
 import org.seonwkim.lsm.LsmStorageInner
 import org.seonwkim.lsm.LsmStorageOptions
+import org.seonwkim.lsm.iterator.*
 import org.seonwkim.lsm.memtable.MemTable
-import org.seonwkim.lsm.iterator.FusedIterator
-import org.seonwkim.lsm.iterator.MergeIterator
-import org.seonwkim.lsm.iterator.MockIterator
-import org.seonwkim.lsm.iterator.StorageIterator
-import org.junit.jupiter.api.assertThrows
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -106,25 +103,25 @@ class Day2 {
     fun `test task2 merge 1`() {
         val iter1 = MockIterator(
             listOf(
-                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
-                Pair("b".toComparableByteArray(), "2.1".toComparableByteArray()),
-                Pair("c".toComparableByteArray(), "3.1".toComparableByteArray()),
-                Pair("e".toComparableByteArray(), "".toComparableByteArray()),
+                MockIteratorData("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+                MockIteratorData("b".toComparableByteArray(), "2.1".toComparableByteArray()),
+                MockIteratorData("c".toComparableByteArray(), "3.1".toComparableByteArray()),
+                MockIteratorData("e".toComparableByteArray(), "".toComparableByteArray()),
             )
         )
         val iter2 = MockIterator(
             listOf(
-                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
-                Pair("b".toComparableByteArray(), "2.2".toComparableByteArray()),
-                Pair("c".toComparableByteArray(), "3.2".toComparableByteArray()),
-                Pair("d".toComparableByteArray(), "4.2".toComparableByteArray()),
+                MockIteratorData("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+                MockIteratorData("b".toComparableByteArray(), "2.2".toComparableByteArray()),
+                MockIteratorData("c".toComparableByteArray(), "3.2".toComparableByteArray()),
+                MockIteratorData("d".toComparableByteArray(), "4.2".toComparableByteArray()),
             )
         )
         val iter3 = MockIterator(
             listOf(
-                Pair("b".toComparableByteArray(), "2.3".toComparableByteArray()),
-                Pair("c".toComparableByteArray(), "3.3".toComparableByteArray()),
-                Pair("d".toComparableByteArray(), "4.3".toComparableByteArray()),
+                MockIteratorData("b".toComparableByteArray(), "2.3".toComparableByteArray()),
+                MockIteratorData("c".toComparableByteArray(), "3.3".toComparableByteArray()),
+                MockIteratorData("d".toComparableByteArray(), "4.3".toComparableByteArray()),
             )
         )
 
@@ -145,25 +142,25 @@ class Day2 {
     fun `test task2 merge 2`() {
         val iter1 = MockIterator(
             listOf(
-                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
-                Pair("b".toComparableByteArray(), "2.1".toComparableByteArray()),
-                Pair("c".toComparableByteArray(), "3.1".toComparableByteArray()),
+                MockIteratorData("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+                MockIteratorData("b".toComparableByteArray(), "2.1".toComparableByteArray()),
+                MockIteratorData("c".toComparableByteArray(), "3.1".toComparableByteArray()),
             )
         )
         val iter2 = MockIterator(
             listOf(
-                Pair("d".toComparableByteArray(), "1.2".toComparableByteArray()),
-                Pair("e".toComparableByteArray(), "2.2".toComparableByteArray()),
-                Pair("f".toComparableByteArray(), "3.2".toComparableByteArray()),
-                Pair("g".toComparableByteArray(), "4.2".toComparableByteArray()),
+                MockIteratorData("d".toComparableByteArray(), "1.2".toComparableByteArray()),
+                MockIteratorData("e".toComparableByteArray(), "2.2".toComparableByteArray()),
+                MockIteratorData("f".toComparableByteArray(), "3.2".toComparableByteArray()),
+                MockIteratorData("g".toComparableByteArray(), "4.2".toComparableByteArray()),
             )
         )
         val iter3 = MockIterator(
             listOf(
-                Pair("h".toComparableByteArray(), "1.3".toComparableByteArray()),
-                Pair("i".toComparableByteArray(), "2.3".toComparableByteArray()),
-                Pair("j".toComparableByteArray(), "3.3".toComparableByteArray()),
-                Pair("k".toComparableByteArray(), "4.3".toComparableByteArray()),
+                MockIteratorData("h".toComparableByteArray(), "1.3".toComparableByteArray()),
+                MockIteratorData("i".toComparableByteArray(), "2.3".toComparableByteArray()),
+                MockIteratorData("j".toComparableByteArray(), "3.3".toComparableByteArray()),
+                MockIteratorData("k".toComparableByteArray(), "4.3".toComparableByteArray()),
             )
         )
         val iter4 = MockIterator(listOf())
@@ -198,9 +195,9 @@ class Day2 {
 
         val iter1 = MockIterator(
             listOf(
-                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
-                Pair("b".toComparableByteArray(), "2.1".toComparableByteArray()),
-                Pair("c".toComparableByteArray(), "3.1".toComparableByteArray()),
+                MockIteratorData("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+                MockIteratorData("b".toComparableByteArray(), "2.1".toComparableByteArray()),
+                MockIteratorData("c".toComparableByteArray(), "3.1".toComparableByteArray()),
             )
         )
         val iter2 = MockIterator(listOf())
@@ -221,16 +218,16 @@ class Day2 {
 
         val iter1 = MockIterator(
             listOf(
-                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
-                Pair("b".toComparableByteArray(), "2.1".toComparableByteArray()),
-                Pair("c".toComparableByteArray(), "3.1".toComparableByteArray()),
+                MockIteratorData("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+                MockIteratorData("b".toComparableByteArray(), "2.1".toComparableByteArray()),
+                MockIteratorData("c".toComparableByteArray(), "3.1".toComparableByteArray()),
             )
         )
         val iter2 = MockIterator(
             listOf(
-                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
-                Pair("b".toComparableByteArray(), "2.1".toComparableByteArray()),
-                Pair("c".toComparableByteArray(), "3.1".toComparableByteArray()),
+                MockIteratorData("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+                MockIteratorData("b".toComparableByteArray(), "2.1".toComparableByteArray()),
+                MockIteratorData("c".toComparableByteArray(), "3.1".toComparableByteArray()),
             ),
             throwErrorOnIdx = 1
         )
@@ -250,8 +247,8 @@ class Day2 {
 
         val iter2 = MockIterator(
             listOf(
-                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
-                Pair("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+                MockIteratorData("a".toComparableByteArray(), "1.1".toComparableByteArray()),
+                MockIteratorData("a".toComparableByteArray(), "1.1".toComparableByteArray()),
             ),
             throwErrorOnIdx = 1
         )

@@ -3,18 +3,18 @@ package org.seonwkim.lsm.iterator
 import org.seonwkim.common.ComparableByteArray
 
 class MockIterator(
-    private val data: List<Pair<ComparableByteArray, ComparableByteArray>>,
+    private val data: List<MockIteratorData>,
     private val throwErrorOnIdx: Int = -1
 ) : StorageIterator {
 
     private var currentIdx: Int = 0
 
     override fun key(): ComparableByteArray {
-        return data[currentIdx].first
+        return data[currentIdx].key
     }
 
     override fun value(): ComparableByteArray {
-        return data[currentIdx].second
+        return data[currentIdx].value
     }
 
     override fun isValid(): Boolean {
@@ -32,3 +32,8 @@ class MockIterator(
         return MockIterator(data)
     }
 }
+
+data class MockIteratorData(
+    val key: ComparableByteArray,
+    val value: ComparableByteArray
+)
