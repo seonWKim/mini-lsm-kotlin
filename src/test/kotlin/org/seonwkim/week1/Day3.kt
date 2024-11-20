@@ -1,5 +1,7 @@
 package org.seonwkim.week1
 
+import org.seonwkim.common.TimestampedKey
+import org.seonwkim.common.toBlockKey
 import org.seonwkim.common.toComparableByteArray
 import org.seonwkim.lsm.block.*
 import kotlin.test.Test
@@ -99,9 +101,9 @@ class Day3 {
                 assertTrue("expected: $expectedValue, actual: $value") {
                     value.compareTo(expectedValue) == 0
                 }
-                iter.seekToKey(BlockKey("key_%03d".format(i * 5 + offset).toComparableByteArray()))
+                iter.seekToKey(TimestampedKey("key_%03d".format(i * 5 + offset).toComparableByteArray()))
             }
-            iter.seekToKey(BlockKey("k".toComparableByteArray()))
+            iter.seekToKey(TimestampedKey("k".toComparableByteArray()))
         }
     }
 

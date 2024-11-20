@@ -2,8 +2,8 @@ package org.seonwkim.week1
 
 import org.junit.jupiter.api.Test
 import org.seonwkim.common.toComparableByteArray
-import org.seonwkim.lsm.block.BlockKey
-import org.seonwkim.lsm.block.toBlockKey
+import org.seonwkim.common.TimestampedKey
+import org.seonwkim.common.toBlockKey
 import org.seonwkim.lsm.iterator.SsTableIterator
 import org.seonwkim.lsm.sstable.SsTable
 import org.seonwkim.lsm.sstable.SsTableBuilder
@@ -43,10 +43,10 @@ class Day4 {
     @Test
     fun `test sst build all`() {
         val (_, sst) = generateSst()
-        assertBlockKeyEqualsContent(sst.firstKey, BlockKey(createKey(0).toComparableByteArray()))
+        assertBlockKeyEqualsContent(sst.firstKey, TimestampedKey(createKey(0).toComparableByteArray()))
         assertBlockKeyEqualsContent(
             sst.lastKey,
-            BlockKey(createKey(NUMBER_OF_KEYS - 1).toComparableByteArray())
+            TimestampedKey(createKey(NUMBER_OF_KEYS - 1).toComparableByteArray())
         )
     }
 
@@ -56,10 +56,10 @@ class Day4 {
         val meta = sst.blockMeta
         val newSst = SsTable.openForTest(sst.file)
         assertEquals(newSst.blockMeta, meta)
-        assertBlockKeyEqualsContent(newSst.firstKey, BlockKey(createKey(0).toComparableByteArray()))
+        assertBlockKeyEqualsContent(newSst.firstKey, TimestampedKey(createKey(0).toComparableByteArray()))
         assertBlockKeyEqualsContent(
             newSst.lastKey,
-            BlockKey(createKey(NUMBER_OF_KEYS - 1).toComparableByteArray())
+            TimestampedKey(createKey(NUMBER_OF_KEYS - 1).toComparableByteArray())
         )
     }
 
@@ -109,7 +109,7 @@ class Day4 {
         for (idx in 0 until NUMBER_OF_KEYS) {
             val key = createKey(idx)
             val value = createValue(idx)
-            builder.add(BlockKey(key.toComparableByteArray()), value.toComparableByteArray())
+            builder.add(TimestampedKey(key.toComparableByteArray()), value.toComparableByteArray())
         }
         val dir = createTempDirectory("temp")
         val path = dir.resolve("1.sst")
@@ -124,7 +124,7 @@ class Day4 {
         return "value_%010d".format(i)
     }
 
-    private fun assertBlockKeyEqualsContent(key1: BlockKey, key2: BlockKey): Boolean {
+    private fun assertBlockKeyEqualsContent(key1: TimestampedKey, key2: TimestampedKey): Boolean {
         return key1.bytes.array == key2.bytes.array
     }
 }

@@ -2,7 +2,7 @@ package org.seonwkim.lsm.iterator
 
 import org.seonwkim.common.ComparableByteArray
 import org.seonwkim.lsm.block.BlockIterator
-import org.seonwkim.lsm.block.BlockKey
+import org.seonwkim.common.TimestampedKey
 import org.seonwkim.lsm.sstable.SsTable
 
 class SsTableIterator(
@@ -24,7 +24,7 @@ class SsTableIterator(
             )
         }
 
-        fun seekToKeyInner(table: SsTable, key: BlockKey): Pair<Int, BlockIterator> {
+        fun seekToKeyInner(table: SsTable, key: TimestampedKey): Pair<Int, BlockIterator> {
             var blockIdx = table.findBlockIdx(key)
             var blockIter = BlockIterator.createAndSeekToKey(table.readBlockCached(blockIdx), key)
             if (!blockIter.isValid()) {
@@ -36,7 +36,7 @@ class SsTableIterator(
             return Pair(blockIdx, blockIter)
         }
 
-        fun createAndSeekToKey(table: SsTable, key: BlockKey): SsTableIterator {
+        fun createAndSeekToKey(table: SsTable, key: TimestampedKey): SsTableIterator {
             val (blockIdx, blockIter) = seekToKeyInner(table, key)
             return SsTableIterator(
                 table = table,
@@ -52,7 +52,7 @@ class SsTableIterator(
         this.blockIter = blockIter
     }
 
-    fun seekToKey(key: BlockKey) {
+    fun seekToKey(key: TimestampedKey) {
         val (blockIdx, blockIter) = seekToKeyInner(table, key)
         this.blockIdx = blockIdx
         this.blockIter = blockIter

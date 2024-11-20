@@ -3,7 +3,7 @@ package org.seonwkim.lsm
 import org.seonwkim.common.Bound
 import org.seonwkim.common.BoundFlag
 import org.seonwkim.common.ComparableByteArray
-import org.seonwkim.lsm.block.BlockKey
+import org.seonwkim.common.TimestampedKey
 import org.seonwkim.lsm.iterator.*
 import org.seonwkim.lsm.memtable.MemTable
 import org.seonwkim.lsm.memtable.MemtableValue
@@ -118,9 +118,9 @@ class LsmStorageInner(
             val table = state.ssTables[idx]!!
             if (rangeOverlap(lower, upper, table.firstKey, table.lastKey)) {
                 when (lower.flag) {
-                    BoundFlag.INCLUDED -> SsTableIterator.createAndSeekToKey(table, BlockKey(lower.value))
+                    BoundFlag.INCLUDED -> SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.value))
                     BoundFlag.EXCLUDED -> {
-                        val iter = SsTableIterator.createAndSeekToKey(table, BlockKey(lower.value))
+                        val iter = SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.value))
                         if (iter.isValid() && iter.key() == lower.value) {
                             iter.next()
                         }
@@ -157,7 +157,7 @@ class LsmStorageInner(
     }
 }
 
-fun rangeOverlap(userBegin: Bound, userEnd: Bound, tableBegin: BlockKey, tableEnd: BlockKey): Boolean {
+fun rangeOverlap(userBegin: Bound, userEnd: Bound, tableBegin: TimestampedKey, tableEnd: TimestampedKey): Boolean {
     when (userEnd.flag) {
         BoundFlag.EXCLUDED -> if (userEnd.value <= tableBegin.bytes) {
             return false

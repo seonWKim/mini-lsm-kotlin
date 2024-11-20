@@ -235,6 +235,11 @@ class Day5 {
         )
     }
 
+    @Test
+    fun `test task3 storage get`() {
+
+    }
+
     private fun checkIterator(
         actual: StorageIterator,
         expected: List<Pair<ComparableByteArray, ComparableByteArray>>

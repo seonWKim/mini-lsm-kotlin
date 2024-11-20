@@ -61,8 +61,8 @@ object BlockMetaUtil {
             blockMeta.add(
                 BlockMeta(
                     offset = offset,
-                    firstKey = BlockKey(bytes = firstKey, timestamp = firstKeyTimestamp),
-                    lastKey = BlockKey(bytes = lastKey, timestamp = lastKeyTimestamp)
+                    firstKey = TimestampedKey(bytes = firstKey, timestamp = firstKeyTimestamp),
+                    lastKey = TimestampedKey(bytes = lastKey, timestamp = lastKeyTimestamp)
                 )
             )
         }

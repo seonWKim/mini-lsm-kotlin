@@ -5,20 +5,20 @@ import org.seonwkim.common.*
 class BlockIterator(
     private val block: Block,
     // key of current iterator position
-    private val key: BlockKey,
+    private val key: TimestampedKey,
     // value range in the block.data, which corresponds to the current key
     private var valueRange: IntRange,
     // current index at the iterator position
     private var idx: Int,
     // first key in the block
-    private val firstKey: BlockKey
+    private val firstKey: TimestampedKey
 ) {
     companion object {
         fun new(block: Block): BlockIterator {
             return BlockIterator(
                 firstKey = BlockUtil.getFirstKey(block),
                 block = block,
-                key = BlockKey(ComparableByteArray.new()),
+                key = TimestampedKey(ComparableByteArray.new()),
                 valueRange = IntRange.EMPTY,
                 idx = 0
             )
@@ -30,14 +30,14 @@ class BlockIterator(
             return iter
         }
 
-        fun createAndSeekToKey(block: Block, key: BlockKey): BlockIterator {
+        fun createAndSeekToKey(block: Block, key: TimestampedKey): BlockIterator {
             val iter = new(block)
             iter.seekToKey(key)
             return iter
         }
     }
 
-    fun key(): BlockKey {
+    fun key(): TimestampedKey {
         if (key.isEmpty()) {
             throw IllegalStateException("Invalid iterator")
         }
@@ -101,7 +101,7 @@ class BlockIterator(
         this.valueRange = valueOffsetBegin..<valueOffsetEnd
     }
 
-    fun seekToKey(key: BlockKey) {
+    fun seekToKey(key: TimestampedKey) {
         var low = 0
         var high = block.offsets.size()
         while (low < high) {

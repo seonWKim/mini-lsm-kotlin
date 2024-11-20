@@ -8,8 +8,8 @@ class SsTableBuilder(
     private val blockSize: Int,
 ) {
     private var builder: BlockBuilder
-    private var firstKey: BlockKey
-    private var lastKey: BlockKey
+    private var firstKey: TimestampedKey
+    private var lastKey: TimestampedKey
     private val data: ComparableByteArray
 
     val meta: MutableList<BlockMeta>
@@ -18,15 +18,15 @@ class SsTableBuilder(
 
     init {
         this.builder = BlockBuilder(blockSize)
-        this.firstKey = BlockKey.empty()
-        this.lastKey = BlockKey.empty()
+        this.firstKey = TimestampedKey.empty()
+        this.lastKey = TimestampedKey.empty()
         this.data = ComparableByteArray.new()
         this.meta = mutableListOf()
         this.keyHashes = mutableListOf()
         this.maxTimestamp = 0L
     }
 
-    fun add(key: BlockKey, value: ComparableByteArray) {
+    fun add(key: TimestampedKey, value: ComparableByteArray) {
         if (this.firstKey.isEmpty()) {
             firstKey.setFromBlockKey(key)
         }
@@ -66,8 +66,8 @@ class SsTableBuilder(
         data += crcHash(encodedBlock).toU32ByteArray()
 
         // reset
-        firstKey = BlockKey.empty()
-        lastKey = BlockKey.empty()
+        firstKey = TimestampedKey.empty()
+        lastKey = TimestampedKey.empty()
         this.builder = BlockBuilder(blockSize)
     }
 

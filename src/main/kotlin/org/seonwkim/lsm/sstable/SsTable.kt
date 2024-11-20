@@ -1,6 +1,7 @@
 package org.seonwkim.lsm.sstable
 
 import org.seonwkim.common.SIZE_OF_U32_IN_BYTE
+import org.seonwkim.common.TimestampedKey
 import org.seonwkim.common.crcHash
 import org.seonwkim.common.toU32Int
 import org.seonwkim.lsm.block.*
@@ -11,8 +12,8 @@ class SsTable(
     val blockMetaOffset: Int,
     val id: Int,
     val blockCache: BlockCache?,
-    val firstKey: BlockKey,
-    val lastKey: BlockKey,
+    val firstKey: TimestampedKey,
+    val lastKey: TimestampedKey,
     // private val bloom: Bloom?,
     val maxTs: Long
 ) {
@@ -68,7 +69,7 @@ class SsTable(
     /**
      * Find the block that may contain [key].
      */
-    fun findBlockIdx(key: BlockKey): Int {
+    fun findBlockIdx(key: TimestampedKey): Int {
         return blockMeta.indexOfFirst { it.firstKey > key }
             .let { if (it == -1) blockMeta.size else it  }
             .minus(1)

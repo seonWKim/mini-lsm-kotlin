@@ -1,19 +1,16 @@
-package org.seonwkim.lsm.block
-
-import org.seonwkim.common.ComparableByteArray
-import org.seonwkim.common.toComparableByteArray
+package org.seonwkim.common
 
 // TODO: rename the class appropriately
-class BlockKey(
+class TimestampedKey(
     bytes: ComparableByteArray,
     private var timestamp: Long = 0
-) : Comparable<BlockKey> {
+) : Comparable<TimestampedKey> {
     var bytes: ComparableByteArray = bytes
         private set
 
     companion object {
-        fun empty(): BlockKey {
-            return BlockKey(bytes = ComparableByteArray.new())
+        fun empty(): TimestampedKey {
+            return TimestampedKey(bytes = ComparableByteArray.new())
         }
     }
 
@@ -37,7 +34,7 @@ class BlockKey(
         this.timestamp = timestamp
     }
 
-    fun computeOverlap(other: BlockKey): Int {
+    fun computeOverlap(other: TimestampedKey): Int {
         return bytes.computeOverlap(other.bytes)
     }
 
@@ -45,23 +42,23 @@ class BlockKey(
         bytes = ComparableByteArray.new()
     }
 
-    fun append(blockKey: BlockKey) {
-        if (this.timestamp != blockKey.timestamp) {
-            throw IllegalArgumentException("timestamp differs ${this.timestamp} != ${blockKey.timestamp}")
+    fun append(timestampedKey: TimestampedKey) {
+        if (this.timestamp != timestampedKey.timestamp) {
+            throw IllegalArgumentException("timestamp differs ${this.timestamp} != ${timestampedKey.timestamp}")
         }
 
-        bytes = bytes + blockKey.bytes
+        bytes = bytes + timestampedKey.bytes
     }
 
     fun append(bytes: ComparableByteArray) {
         this.bytes = this.bytes + bytes
     }
 
-    fun setFromBlockKey(blockKey: BlockKey) {
-        bytes = blockKey.bytes
+    fun setFromBlockKey(timestampedKey: TimestampedKey) {
+        bytes = timestampedKey.bytes
     }
 
-    override fun compareTo(other: BlockKey): Int {
+    override fun compareTo(other: TimestampedKey): Int {
         val keyComparison = this.bytes.compareTo(other.bytes)
         if (keyComparison != 0) {
             return keyComparison
@@ -73,7 +70,7 @@ class BlockKey(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as BlockKey
+        other as TimestampedKey
 
         return this.compareTo(other) == 0
     }
@@ -85,6 +82,6 @@ class BlockKey(
     }
 }
 
-fun String.toBlockKey(): BlockKey {
-    return BlockKey(this.toComparableByteArray())
+fun String.toBlockKey(): TimestampedKey {
+    return TimestampedKey(this.toComparableByteArray())
 }

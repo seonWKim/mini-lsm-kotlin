@@ -1,12 +1,14 @@
 package org.seonwkim.lsm.block
 
+import org.seonwkim.common.TimestampedKey
+
 data class BlockMeta(
     // offset of this data block
     val offset: Int,
     // first key of the data block
-    val firstKey: BlockKey,
+    val firstKey: TimestampedKey,
     // last key of the data block
-    val lastKey: BlockKey
+    val lastKey: TimestampedKey
 )
 
 data class BlockMetaDecodedResult(

@@ -1,9 +1,6 @@
 package org.seonwkim.lsm.block
 
-import org.seonwkim.common.ComparableByteArray
-import org.seonwkim.common.SIZE_OF_U16_IN_BYTE
-import org.seonwkim.common.toU16ByteArray
-import org.seonwkim.common.toU64ByteArray
+import org.seonwkim.common.*
 
 class BlockBuilder(
     // expected block size
@@ -16,7 +13,7 @@ class BlockBuilder(
     private val data: ComparableByteArray = ComparableByteArray.new()
 
     // first key in the block
-    private var firstKey: BlockKey? = null
+    private var firstKey: TimestampedKey? = null
 
     companion object {
         private const val OFFSET_KEY_VALUE_COUNT = 3
@@ -25,7 +22,7 @@ class BlockBuilder(
     /**
      * Adds a key-value pair to the block. Returns false when the block is full.
      */
-    fun add(key: BlockKey, value: ComparableByteArray): Boolean {
+    fun add(key: TimestampedKey, value: ComparableByteArray): Boolean {
         if (key.isEmpty()) {
             throw IllegalArgumentException("key should not be empty")
         }
@@ -63,7 +60,7 @@ class BlockBuilder(
         return true
     }
 
-    private fun additionAllowed(key: BlockKey, value: ComparableByteArray): Boolean {
+    private fun additionAllowed(key: TimestampedKey, value: ComparableByteArray): Boolean {
         if (isEmpty()) return true
 
         val nextEstimatedSize =
