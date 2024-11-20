@@ -69,39 +69,25 @@ class LsmStorageInnerTest {
             state = LsmStorageState(MemTable.create(0)),
             blockCache = BlockCache(),
             lock = SimulatedRwLock(
-                readBehavior = {
-                },
-                writeBehavior = {
-                    Thread.sleep(1000)
-                }
+                readBehavior = {},
+                writeBehavior = { Thread.sleep(100) }
             )
         )
 
-        val executor1 = Executors.newVirtualThreadPerTaskExecutor()
-        val executor2 = Executors.newVirtualThreadPerTaskExecutor()
-        val executor3 = Executors.newVirtualThreadPerTaskExecutor()
+        val executors = List(3) { Executors.newVirtualThreadPerTaskExecutor() }
 
-        val tasks = ('a'..'c').flatMap { c ->
-            Thread.sleep(100)
-            listOf(
-                executor1.submit {
-                    val char = c
-                    storage.put(char.toString().toComparableByteArray(), "$char$char".toComparableByteArray())
-                },
-                executor2.submit {
-                    val char = c + 3
-                    storage.put(char.toString().toComparableByteArray(), "$char$char".toComparableByteArray())
-                },
-                executor3.submit {
-                    val char = c + 6
+        val tasks = ('a'..'c').flatMapIndexed { index, c ->
+            executors.map { executor ->
+                executor.submit {
+                    val char = c + index * 3
                     storage.put(char.toString().toComparableByteArray(), "$char$char".toComparableByteArray())
                 }
-            )
+            }
         }
 
         tasks.forEach { it.get() } // Wait for all tasks to complete
 
-        executor1.shutdown()
+        executors.forEach { it.shutdown() }
         assertEquals(8, storage.state.immutableMemTables.size)
     }
 }

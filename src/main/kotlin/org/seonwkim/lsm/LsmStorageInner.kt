@@ -86,28 +86,15 @@ class LsmStorageInner(
      * |                                        | -> memTable frozen by thread 1, skip   |
      */
     private fun updateMemTable(action: () -> Unit) {
-        val readLock = stateLock.readLock()
-        readLock.lock()
-        var readLockUnlocked = false
+        val writeLock = stateLock.writeLock()
+        writeLock.lock()
         try {
             if (shouldFreezeMemTable()) {
-                readLock.unlock()
-                readLockUnlocked = true
-                val writeLock = stateLock.writeLock()
-                writeLock.lock()
-                try {
-                    if (shouldFreezeMemTable()) {
-                        forceFreezeMemTable()
-                    }
-                } finally {
-                    writeLock.unlock()
-                }
+                forceFreezeMemTable()
             }
             action()
         } finally {
-            if (!readLockUnlocked) {
-                readLock.unlock()
-            }
+            writeLock.unlock()
         }
     }
 
