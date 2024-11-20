@@ -97,7 +97,7 @@ class LsmStorageInner(
                 writeLock.lock()
                 try {
                     if (shouldFreezeMemTable()) {
-                        forceFreezeMemtable()
+                        forceFreezeMemTable()
                     }
                 } finally {
                     writeLock.unlock()
@@ -111,7 +111,7 @@ class LsmStorageInner(
         }
     }
 
-    fun forceFreezeMemtable() {
+    fun forceFreezeMemTable() {
         val lock = stateLock.writeLock()
         lock.lock()
         try {
