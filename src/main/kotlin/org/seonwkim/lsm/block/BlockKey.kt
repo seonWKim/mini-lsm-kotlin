@@ -3,6 +3,7 @@ package org.seonwkim.lsm.block
 import org.seonwkim.common.ComparableByteArray
 import org.seonwkim.common.toComparableByteArray
 
+// TODO: rename the class appropriately
 class BlockKey(
     bytes: ComparableByteArray,
     private var timestamp: Long = 0
