@@ -1,4 +1,4 @@
-package org.seonwkim.week1
+package org.seonwkim.minilsm.week1
 
 import org.seonwkim.common.Bound
 import org.seonwkim.common.BoundFlag

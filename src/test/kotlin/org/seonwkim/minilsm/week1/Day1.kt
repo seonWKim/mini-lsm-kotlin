@@ -1,4 +1,4 @@
-package org.seonwkim.week1
+package org.seonwkim.minilsm.week1
 
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.seonwkim.common.toComparableByteArray
