@@ -7,6 +7,7 @@ import org.seonwkim.lsm.iterator.IteratorFlag
 import org.seonwkim.lsm.iterator.IteratorMeta
 import org.seonwkim.lsm.iterator.MemTableIterator
 import java.util.concurrent.ConcurrentSkipListMap
+import java.util.concurrent.atomic.AtomicInteger
 
 typealias MemTableKey = ComparableByteArray
 
@@ -25,7 +26,7 @@ class MemTable(
         }
     }
 
-    private var approximateSize: Int = 0
+    private val approximateSize: AtomicInteger = AtomicInteger(0)
 
     fun get(key: ComparableByteArray): MemtableValue? {
         return map[key]
@@ -35,7 +36,9 @@ class MemTable(
         if (key.array.isEmpty()) {
             throw IllegalArgumentException("key should not be empty")
         }
-        approximateSize += key.size() + value.size()
+
+        // TODO: what if map already contains same key? should we only add value size?
+        approximateSize.addAndGet(key.size() + value.size())
         map[key] = value
     }
 
@@ -56,7 +59,7 @@ class MemTable(
     }
 
     fun approximateSize(): Int {
-        return approximateSize
+        return approximateSize.get()
     }
 
     fun countEntries(): Int {

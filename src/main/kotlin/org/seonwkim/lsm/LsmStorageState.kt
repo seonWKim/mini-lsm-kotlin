@@ -12,8 +12,8 @@ class LsmStorageState(
     var memTable: MemTable = memTable
         private set
 
-    // immutable memtables from latest to earliest earliest
-    var immutableMemtables: LinkedList<MemTable> = LinkedList()
+    // immutable memTables from latest to earliest earliest
+    var immutableMemTables: LinkedList<MemTable> = LinkedList()
 
     // L0 SSTs, from latest to earliest
     val l0SsTables: MutableList<Int> = mutableListOf()
@@ -23,7 +23,7 @@ class LsmStorageState(
     fun freezeMemtable() {
         val prevId = memTable.id
         val newMemtable = MemTable.create(prevId + 1)
-        immutableMemtables.addFirst(memTable)
+        immutableMemTables.addFirst(memTable)
         this.memTable = newMemtable
     }
 }

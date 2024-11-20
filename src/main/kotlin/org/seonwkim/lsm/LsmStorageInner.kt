@@ -1,9 +1,6 @@
 package org.seonwkim.lsm
 
-import org.seonwkim.common.Bound
-import org.seonwkim.common.BoundFlag
-import org.seonwkim.common.ComparableByteArray
-import org.seonwkim.common.TimestampedKey
+import org.seonwkim.common.*
 import org.seonwkim.lsm.iterator.*
 import org.seonwkim.lsm.memtable.MemTable
 import org.seonwkim.lsm.memtable.MemtableValue
@@ -11,16 +8,16 @@ import org.seonwkim.lsm.memtable.isDeleted
 import org.seonwkim.lsm.memtable.isValid
 import org.seonwkim.lsm.sstable.BlockCache
 import java.nio.file.Path
-import java.util.concurrent.locks.ReentrantReadWriteLock
 
 class LsmStorageInner(
     val path: Path,
     val options: LsmStorageOptions,
     val state: LsmStorageState,
-    val blockCache: BlockCache
+    val blockCache: BlockCache,
+    lock: RwLock = DefaultRwLock()
 ) {
 
-    private val stateLock: ReentrantReadWriteLock = ReentrantReadWriteLock()
+    private val stateLock: RwLock = lock
 
     companion object {
         fun open(path: Path, options: LsmStorageOptions): LsmStorageInner {
@@ -39,7 +36,7 @@ class LsmStorageInner(
             return memtableResult!!.value
         }
 
-        for (immMemtable in state.immutableMemtables) {
+        for (immMemtable in state.immutableMemTables) {
             val immMemtableResult = immMemtable.get(key)
             if (immMemtableResult.isValid()) {
                 return immMemtableResult!!.value
@@ -72,6 +69,22 @@ class LsmStorageInner(
         }
     }
 
+    /**
+     * | Thread1                                | Thread2                                |
+     * |----------------------------------------|----------------------------------------|
+     * | [checkShouldFreezeMemTableWithLock]    | [checkShouldFreezeMemTableWithLock]    |
+     * | -> acquire/release read lock           | -> acquire/release read lock           |
+     * | [stateLock.writeLock]                  | [stateLock.writeLock]                  |
+     * | -> acquire write lock                  |                                        |
+     * |                                        | -> wait to acquire write lock          |
+     * | [shouldFreezeMemTable]                 |                                        |
+     * |                                        |                                        |
+     * | [forceFreezeMemTable]                  |                                        |
+     * |                                        |                                        |
+     * | Release write lock                     | acquire write lock                     |
+     * |                                        | [shouldFreezeMemTable]                 |
+     * |                                        | -> memTable frozen by thread 1, skip   |
+     */
     private fun updateMemTable(action: () -> Unit) {
         val readLock = stateLock.readLock()
         readLock.lock()
@@ -111,7 +124,7 @@ class LsmStorageInner(
     fun scan(lower: Bound, upper: Bound): FusedIterator {
         // memTable iterators
         val memTableIters = listOf(state.memTable.iterator(lower, upper)) +
-                state.immutableMemtables.map { it.iterator(lower, upper) }
+                state.immutableMemTables.map { it.iterator(lower, upper) }
         val memTableMergedIter = MergeIterator(memTableIters)
 
         val tableIters = state.l0SsTables.mapNotNull { idx ->
@@ -146,9 +159,6 @@ class LsmStorageInner(
                 return true
             }
 
-            if (state.memTable.countEntries() > options.numMemtableLimit) {
-                return true
-            }
         } finally {
             lock.unlock()
         }
@@ -157,7 +167,12 @@ class LsmStorageInner(
     }
 }
 
-fun rangeOverlap(userBegin: Bound, userEnd: Bound, tableBegin: TimestampedKey, tableEnd: TimestampedKey): Boolean {
+fun rangeOverlap(
+    userBegin: Bound,
+    userEnd: Bound,
+    tableBegin: TimestampedKey,
+    tableEnd: TimestampedKey
+): Boolean {
     when (userEnd.flag) {
         BoundFlag.EXCLUDED -> if (userEnd.value <= tableBegin.bytes) {
             return false
