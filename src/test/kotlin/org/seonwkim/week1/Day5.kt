@@ -1,6 +1,7 @@
 package org.seonwkim.week1
 
 import org.seonwkim.common.Bound
+import org.seonwkim.common.BoundFlag
 import org.seonwkim.common.ComparableByteArray
 import org.seonwkim.common.toComparableByteArray
 import org.seonwkim.lsm.LsmStorageInner
@@ -13,6 +14,7 @@ import org.seonwkim.util.generateSst
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class Day5 {
 
@@ -190,20 +192,58 @@ class Day5 {
                 Pair("4".toComparableByteArray(), "".toComparableByteArray()), // because we push sst2 first
             )
         )
+
+        checkIterator(
+            storage.scan(
+                Bound("1".toComparableByteArray(), BoundFlag.INCLUDED),
+                Bound("2".toComparableByteArray(), BoundFlag.INCLUDED)
+            ),
+            listOf(
+                Pair("2".toComparableByteArray(), "2333".toComparableByteArray())
+            )
+        )
+
+        checkIterator(
+            storage.scan(
+                Bound("1".toComparableByteArray(), BoundFlag.INCLUDED),
+                Bound("3".toComparableByteArray(), BoundFlag.INCLUDED)
+            ),
+            listOf(
+                Pair("2".toComparableByteArray(), "2333".toComparableByteArray())
+            )
+        )
+
+        checkIterator(
+            storage.scan(
+                Bound("0".toComparableByteArray(), BoundFlag.INCLUDED),
+                Bound("1".toComparableByteArray(), BoundFlag.INCLUDED)
+            ),
+            listOf(
+                Pair("0".toComparableByteArray(), "2333333".toComparableByteArray()),
+                Pair("00".toComparableByteArray(), "2333".toComparableByteArray())
+            )
+        )
+
+        checkIterator(
+            storage.scan(
+                Bound("0".toComparableByteArray(), BoundFlag.EXCLUDED),
+                Bound("1".toComparableByteArray(), BoundFlag.INCLUDED)
+            ),
+            listOf(
+                Pair("00".toComparableByteArray(), "2333".toComparableByteArray())
+            )
+        )
     }
 
     private fun checkIterator(
         actual: StorageIterator,
         expected: List<Pair<ComparableByteArray, ComparableByteArray>>
     ) {
-        var i = 0
-        while (actual.isValid()) {
-            assertEquals(actual.key(), expected[i].first)
-            assertEquals(actual.value(), expected[i].second)
-            i++
+        for (e in expected) {
+            assertTrue { actual.isValid() }
+            assertEquals(actual.key(), e.first)
+            assertEquals(actual.value(), e.second)
             actual.next()
         }
-
-         assertEquals(i, expected.size)
     }
 }
