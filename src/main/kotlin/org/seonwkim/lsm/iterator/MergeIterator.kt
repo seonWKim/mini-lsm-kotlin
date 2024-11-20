@@ -31,7 +31,7 @@ class MergeIterator(
             }
         }
 
-        if (current()?.iterator?.meta()?.flag == IteratorFlag.DELETED) {
+        if (current()?.iterator?.isDeleted() == true) {
             next()
         }
     }
@@ -64,7 +64,7 @@ class MergeIterator(
             }
         }
 
-        if (current()?.iterator?.meta()?.flag == IteratorFlag.DELETED) {
+        if (current()?.iterator?.isDeleted() == true) {
             next()
         }
     }

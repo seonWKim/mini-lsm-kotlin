@@ -6,6 +6,7 @@ import org.seonwkim.common.ComparableByteArray
 import org.seonwkim.lsm.memtable.MemTable
 import org.seonwkim.lsm.memtable.MemTableKey
 import org.seonwkim.lsm.memtable.MemtableValue
+import org.seonwkim.lsm.memtable.isDeleted
 
 class MemTableIterator(
     private val memTable: MemTable,
@@ -51,6 +52,10 @@ class MemTableIterator(
         return current != null
     }
 
+    override fun isDeleted(): Boolean {
+        return current?.value.isDeleted()
+    }
+
     override fun next() {
         current = if (iter.hasNext()) iter.next() else null
 
@@ -64,9 +69,5 @@ class MemTableIterator(
 
     override fun copy(): StorageIterator {
         return MemTableIterator(memTable, lower, upper)
-    }
-
-    override fun meta(): IteratorMeta? {
-        return current?.value?.meta
     }
 }

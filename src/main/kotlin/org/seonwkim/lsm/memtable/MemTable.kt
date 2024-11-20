@@ -3,8 +3,6 @@ package org.seonwkim.lsm.memtable
 import org.seonwkim.common.Bound
 import org.seonwkim.common.ComparableByteArray
 import org.seonwkim.lsm.Wal
-import org.seonwkim.lsm.iterator.IteratorFlag
-import org.seonwkim.lsm.iterator.IteratorMeta
 import org.seonwkim.lsm.iterator.MemTableIterator
 import java.util.concurrent.ConcurrentSkipListMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -51,7 +49,7 @@ class MemTable(
     }
 
     fun forTestingPutSlice(key: ComparableByteArray, value: ComparableByteArray) {
-        map[key] = MemtableValue(value, IteratorMeta(IteratorFlag.NORMAL))
+        map[key] = MemtableValue(value)
     }
 
     fun forTestingScanSlice(lower: Bound, upper: Bound): MemTableIterator {
