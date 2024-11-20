@@ -1,25 +1,32 @@
 package org.seonwkim.lsm.sstable
 
+import com.github.benmanes.caffeine.cache.Caffeine
 import org.seonwkim.lsm.block.Block
+import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 
-// TODO: should we limit the max cache limit in bytes?
 class BlockCache(
-    size: Int = 1000
+    val size: Long = 1000,
+    val expireAfterWrite: Duration = Duration.ofMinutes(10)
 ) {
-    private val cache: ConcurrentHashMap<BlockCacheKey, Block> = ConcurrentHashMap(size)
+    /**
+     * We can calculate the size of the cache by using [BlockBuilder#blockSize] and the number of elements inside cache
+     */
+    private val cache = Caffeine.newBuilder()
+        .maximumSize(size)
+        .expireAfterWrite(expireAfterWrite)
+        .build<BlockCacheKey, Block>()
 
     fun getOrDefault(key: BlockCacheKey, defaultValue: () -> Block): Block {
-        return cache[key].let {
+        return cache.get(key) {
             val block = defaultValue()
-            cache[key] = block
             block
         }
     }
 
     fun copy(): BlockCache {
         val newCache = BlockCache()
-        newCache.cache.putAll(this.cache)
+        newCache.cache.putAll(cache.asMap())
         return newCache
     }
 }
