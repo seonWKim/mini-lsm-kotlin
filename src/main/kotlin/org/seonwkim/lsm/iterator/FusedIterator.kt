@@ -48,6 +48,6 @@ class FusedIterator(
     }
 
     override fun copy(): StorageIterator {
-        return FusedIterator(iter)
+        return FusedIterator(iter.copy())
     }
 }

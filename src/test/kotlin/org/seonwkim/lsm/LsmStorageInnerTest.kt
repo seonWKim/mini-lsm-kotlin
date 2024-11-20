@@ -22,13 +22,13 @@ class LsmStorageInnerTest {
         val storage = LsmStorageInner(
             path = createTempDirectory("test_concurrency").resolve("1.sst"),
             options = options,
-            state = LsmStorageState(MemTable.create(0)),
             blockCache = BlockCache(),
-            lock = SimulatedRwLock(
-                readBehavior = {
+            state = SimulatedRwLock(
+                value = LsmStorageState(MemTable.create(0)),
+                afterReadLockAcquireBehavior = {
                     println("Trying to acquire read lock from ${Thread.currentThread()}")
                 },
-                writeBehavior = {
+                afterWriteLockAcquireBehavior = {
                     println("Trying to acquire write lock from ${Thread.currentThread()}")
                 }
             )
@@ -66,12 +66,12 @@ class LsmStorageInnerTest {
         val storage = LsmStorageInner(
             path = createTempDirectory("test_concurrency").resolve("1.sst"),
             options = options,
-            state = LsmStorageState(MemTable.create(0)),
+            state = SimulatedRwLock(
+                value = LsmStorageState(MemTable.create(0)),
+                afterReadLockAcquireBehavior = {},
+                afterWriteLockAcquireBehavior = { Thread.sleep(100) }
+            ),
             blockCache = BlockCache(),
-            lock = SimulatedRwLock(
-                readBehavior = {},
-                writeBehavior = { Thread.sleep(100) }
-            )
         )
 
         val executors = List(3) { Executors.newVirtualThreadPerTaskExecutor() }

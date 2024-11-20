@@ -171,7 +171,7 @@ class Day5 {
             id = 11,
             path = dir.resolve("11.sst"),
             data = listOf(
-                Pair("4".toComparableByteArray(), "".toComparableByteArray())
+                Pair("4".toComparableByteArray(), "".toComparableByteArray()) // This is treated as deleted
             ),
             blockCache = storage.blockCache.copy()
         )
@@ -189,7 +189,6 @@ class Day5 {
                 Pair("00".toComparableByteArray(), "2333".toComparableByteArray()),
                 Pair("2".toComparableByteArray(), "2333".toComparableByteArray()),
                 Pair("3".toComparableByteArray(), "23333".toComparableByteArray()),
-                Pair("4".toComparableByteArray(), "".toComparableByteArray()), // because we push sst2 first
             )
         )
 

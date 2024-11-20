@@ -23,4 +23,15 @@ interface StorageIterator {
     fun numActiveIterators(): Int {
         return 1
     }
+
+    // for debugging purposes, it will consume your iterator
+    fun allKeyValues(): List<String> {
+        val result = mutableListOf<String>()
+        while (isValid()) {
+            result.add("key: ${key()}, value: ${value()}")
+            next()
+        }
+
+        return result
+    }
 }

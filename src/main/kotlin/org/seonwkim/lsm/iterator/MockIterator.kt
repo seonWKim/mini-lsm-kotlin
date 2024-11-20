@@ -29,7 +29,7 @@ class MockIterator(
     }
 
     override fun copy(): StorageIterator {
-        return MockIterator(data)
+        return MockIterator(data.map { it.copy() })
     }
 }
 

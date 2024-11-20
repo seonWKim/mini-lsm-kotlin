@@ -13,19 +13,15 @@ class LsmStorageInner(
     val path: Path,
     val options: LsmStorageOptions,
     val blockCache: BlockCache,
-    state: LsmStorageState,
-    lock: RwLock = DefaultRwLock(),
+    val state: RwLock<LsmStorageState>,
 ) {
-
-    val state: EncompassingRwLock<LsmStorageState> = EncompassingRwLock(state)
-    private val stateLock: RwLock = lock
 
     companion object {
         fun open(path: Path, options: LsmStorageOptions): LsmStorageInner {
             return LsmStorageInner(
                 path = path,
                 options = options,
-                state = LsmStorageState(memTable = MemTable.create(0)),
+                state = DefaultRwLock(LsmStorageState(memTable = MemTable.create(0))),
                 blockCache = BlockCache()
             )
         }
@@ -169,5 +165,12 @@ class LsmStorageInner(
         }
 
         return true
+    }
+
+    /**
+     * Force flush the earliest created immutable memTable to disk
+     */
+    fun forceFlushNextImmMemTable() {
+
     }
 }

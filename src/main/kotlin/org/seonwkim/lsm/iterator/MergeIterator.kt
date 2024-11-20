@@ -74,6 +74,6 @@ class MergeIterator(
     }
 
     override fun copy(): StorageIterator {
-        return MergeIterator(iterators)
+        return MergeIterator(iterators = iterators.map { it.copy() })
     }
 }
