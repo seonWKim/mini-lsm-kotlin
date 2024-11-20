@@ -26,10 +26,10 @@ class LsmStorageInnerTest {
             blockCache = BlockCache(),
             lock = SimulatedRwLock(
                 readBehavior = {
-                    println("Acquired read lock from ${Thread.currentThread()}")
+                    println("Trying to acquire read lock from ${Thread.currentThread()}")
                 },
                 writeBehavior = {
-                    println("Acquired write lock from ${Thread.currentThread()}")
+                    println("Trying to acquire write lock from ${Thread.currentThread()}")
                 }
             )
         )
