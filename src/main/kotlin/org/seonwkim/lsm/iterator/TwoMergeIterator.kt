@@ -2,6 +2,9 @@ package org.seonwkim.lsm.iterator
 
 import org.seonwkim.common.ComparableByteArray
 
+/**
+ * Used to merge two iterators of different type.
+ */
 class TwoMergeIterator(
     private val first: StorageIterator,
     private val second: StorageIterator,

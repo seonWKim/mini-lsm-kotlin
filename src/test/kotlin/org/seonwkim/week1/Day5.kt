@@ -5,12 +5,12 @@ import org.seonwkim.common.BoundFlag
 import org.seonwkim.common.ComparableByteArray
 import org.seonwkim.common.toComparableByteArray
 import org.seonwkim.lsm.LsmStorageInner
-import org.seonwkim.lsm.LsmStorageOptions
 import org.seonwkim.lsm.iterator.MockIterator
 import org.seonwkim.lsm.iterator.MockIteratorData
 import org.seonwkim.lsm.iterator.StorageIterator
 import org.seonwkim.lsm.iterator.TwoMergeIterator
 import org.seonwkim.util.generateSst
+import org.seonwkim.util.lsmStorageOptionForTest
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -149,11 +149,11 @@ class Day5 {
     @Test
     fun `test task2 storage scan`() {
         val dir = createTempDirectory("test_task2_storage_scan")
-        val storage = LsmStorageInner.open(dir, LsmStorageOptions.defaultForWeek1Test())
+        val storage = LsmStorageInner.open(dir, lsmStorageOptionForTest())
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.forceFreezeMemtable()
+        storage.forceFreezeMemTable()
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toComparableByteArray())
         val sst1 = generateSst(

@@ -3,6 +3,9 @@ package org.seonwkim.lsm.iterator
 import org.seonwkim.common.ComparableByteArray
 import java.util.*
 
+/**
+ * Merge iterators of same type
+ */
 class MergeIterator(
     private val iterators: List<StorageIterator>
 ) : StorageIterator {

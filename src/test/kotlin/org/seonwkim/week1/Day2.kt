@@ -9,6 +9,7 @@ import org.seonwkim.lsm.LsmStorageInner
 import org.seonwkim.lsm.LsmStorageOptions
 import org.seonwkim.lsm.iterator.*
 import org.seonwkim.lsm.memtable.MemTable
+import org.seonwkim.util.lsmStorageOptionForTest
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -263,17 +264,17 @@ class Day2 {
     @Test
     fun `test task4 integration`() {
         val dir = createTempDirectory("test_task4_integration")
-        val storage = LsmStorageInner.open(dir, LsmStorageOptions.defaultForWeek1Test())
+        val storage = LsmStorageInner.open(dir, lsmStorageOptionForTest())
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.forceFreezeMemtable()
+        storage.forceFreezeMemTable()
 
         storage.delete("1".toComparableByteArray())
         storage.delete("2".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("4".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.forceFreezeMemtable()
+        storage.forceFreezeMemTable()
 
         storage.put("1".toComparableByteArray(), "233333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "233333".toComparableByteArray())
