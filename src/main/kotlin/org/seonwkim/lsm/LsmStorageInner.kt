@@ -1,10 +1,7 @@
 package org.seonwkim.lsm
 
 import org.seonwkim.common.*
-import org.seonwkim.lsm.iterator.FusedIterator
-import org.seonwkim.lsm.iterator.MergeIterator
-import org.seonwkim.lsm.iterator.SsTableIterator
-import org.seonwkim.lsm.iterator.TwoMergeIterator
+import org.seonwkim.lsm.iterator.*
 import org.seonwkim.lsm.memtable.MemTable
 import org.seonwkim.lsm.memtable.MemtableValue
 import org.seonwkim.lsm.memtable.isDeleted
@@ -35,23 +32,42 @@ class LsmStorageInner(
     }
 
     fun get(key: ComparableByteArray): ComparableByteArray? {
-        val memtableResult = state.read().memTable.get(key)
-        if (memtableResult.isValid()) {
-            return memtableResult!!.value
+        val snapshot = state.read()
+
+        val memTableResult = snapshot.memTable.get(key)
+        if (memTableResult.isValid()) {
+            return memTableResult!!.value
         }
 
-        for (immMemtable in state.read().immutableMemTables) {
-            val immMemtableResult = immMemtable.get(key)
-            if (immMemtableResult.isValid()) {
-                return immMemtableResult!!.value
+        if (memTableResult.isDeleted()) {
+            return null
+        }
+
+        for (immMemTable in snapshot.immutableMemTables) {
+            val immMemTableResult = immMemTable.get(key)
+            if (immMemTableResult.isValid()) {
+                return immMemTableResult!!.value
             }
 
-            if (immMemtableResult.isDeleted()) {
+            if (immMemTableResult.isDeleted()) {
                 return null
             }
         }
 
-        // TODO("retrieve from sstables stored in disk")
+        val ssTableIters = mutableListOf<StorageIterator>()
+        for (tableIdx in snapshot.l0SsTables) {
+            val table = snapshot.ssTables[tableIdx]!!
+            // TODO: for now, we do not consider timestamp, so we set to 0
+            val timestampedKey = TimestampedKey(key, 0)
+            if (table.firstKey <= timestampedKey && timestampedKey <= table.lastKey) {
+                ssTableIters.add(SsTableIterator.createAndSeekToKey(table, timestampedKey))
+            }
+        }
+        val mergedIter = MergeIterator(ssTableIters)
+        if (!mergedIter.isValid()) return null
+        if (mergedIter.key() == key) {
+            return if (mergedIter.isDeleted()) null else mergedIter.value()
+        }
         return null
     }
 

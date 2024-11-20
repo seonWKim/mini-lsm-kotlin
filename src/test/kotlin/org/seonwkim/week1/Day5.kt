@@ -153,7 +153,7 @@ class Day5 {
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.forceFreezeMemTable()
+        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toComparableByteArray())
         val sst1 = generateSst(
@@ -176,7 +176,7 @@ class Day5 {
             blockCache = storage.blockCache.copy()
         )
 
-        val snapshot = storage.state
+        val snapshot = storage.state.read()
         snapshot.l0SsTables.add(sst2.id)
         snapshot.l0SsTables.add(sst1.id)
         snapshot.ssTables[sst2.id] = sst2
@@ -237,7 +237,51 @@ class Day5 {
 
     @Test
     fun `test task3 storage get`() {
+        val dir = createTempDirectory("test_task3_storage_get")
+        val storage = LsmStorageInner.open(
+            path = dir,
+            options = lsmStorageOptionForTest()
+        )
+        storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
+        storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
+        storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
+        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
 
+        storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
+        storage.delete("1".toComparableByteArray())
+        val sst1 = generateSst(
+            id = 10,
+            path = dir.resolve("10.sst"),
+            data = listOf(
+                Pair("0".toComparableByteArray(), "2333333".toComparableByteArray()),
+                Pair("00".toComparableByteArray(), "2333333".toComparableByteArray()),
+                Pair("4".toComparableByteArray(), "23".toComparableByteArray()),
+            ),
+            blockCache = storage.blockCache.copy()
+        )
+        val sst2 = generateSst(
+            id = 11,
+            path = dir.resolve("11.sst"),
+            data = listOf(
+                Pair("4".toComparableByteArray(), "".toComparableByteArray()),
+            ),
+            blockCache = storage.blockCache.copy()
+        )
+
+        storage.state.withReadLock {
+            it.l0SsTables.add(sst2.id)
+            it.l0SsTables.add(sst1.id)
+            it.ssTables[sst2.id] = sst2
+            it.ssTables[sst1.id] = sst1
+        }
+
+        assertEquals(storage.get("0".toComparableByteArray()), "2333333".toComparableByteArray())
+        assertEquals(storage.get("00".toComparableByteArray()), "2333".toComparableByteArray())
+        assertEquals(storage.get("2".toComparableByteArray()), "2333".toComparableByteArray())
+        assertEquals(storage.get("3".toComparableByteArray()), "23333".toComparableByteArray())
+        assertEquals(storage.get("4".toComparableByteArray()), null)
+        assertEquals(storage.get("--".toComparableByteArray()), null)
+        assertEquals(storage.get("555".toComparableByteArray()), null)
     }
 
     private fun checkIterator(

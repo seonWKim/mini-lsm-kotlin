@@ -70,6 +70,10 @@ class SsTableIterator(
         return blockIter.isValid()
     }
 
+    override fun isDeleted(): Boolean {
+        return blockIter.value().isEmpty()
+    }
+
     override fun next() {
         blockIter.next()
         if (!blockIter.isValid()) {

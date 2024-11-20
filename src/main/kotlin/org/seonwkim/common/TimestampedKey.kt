@@ -80,6 +80,10 @@ class TimestampedKey(
         result = 31 * result + bytes.hashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "$bytes@$timestamp"
+    }
 }
 
 fun String.toBlockKey(): TimestampedKey {
