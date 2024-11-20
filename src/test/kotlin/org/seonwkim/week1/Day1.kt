@@ -79,17 +79,17 @@ class Day1 {
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.forceFreezeMemTable()
-        assertEquals(storage.state.immutableMemTables.size, 1)
-        val previousApproximateSize = storage.state.immutableMemTables[0].approximateSize()
+        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
+        assertEquals(storage.state.read().immutableMemTables.size, 1)
+        val previousApproximateSize = storage.state.read().immutableMemTables[0].approximateSize()
         assertTrue("previousApproximate size should be greater than or equal to 15") { previousApproximateSize >= 15 }
         storage.put("1".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "23333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "233333".toComparableByteArray())
-        storage.forceFreezeMemTable()
-        assertEquals(storage.state.immutableMemTables.size, 2)
-        assertTrue("Wrong order of memtables?") { storage.state.immutableMemTables[1].approximateSize() == previousApproximateSize }
-        assertTrue { storage.state.immutableMemTables[0].approximateSize() > previousApproximateSize }
+        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
+        assertEquals(storage.state.read().immutableMemTables.size, 2)
+        assertTrue("Wrong order of memtables?") { storage.state.read().immutableMemTables[1].approximateSize() == previousApproximateSize }
+        assertTrue { storage.state.read().immutableMemTables[0].approximateSize() > previousApproximateSize }
     }
 
     @Test
@@ -104,12 +104,12 @@ class Day1 {
         for (_unused in 0..1000) {
             storage.put("1".toComparableByteArray(), "2333".toComparableByteArray())
         }
-        val numImmMemtables = storage.state.immutableMemTables.size
+        val numImmMemtables = storage.state.read().immutableMemTables.size
         assertTrue("No memtables frozen?") { numImmMemtables >= 1 }
         for (_unused in 0..1000) {
             storage.delete("1".toComparableByteArray())
         }
-        assertTrue("No more memTable frozen?") { storage.state.immutableMemTables.size > numImmMemtables }
+        assertTrue("No more memTable frozen?") { storage.state.read().immutableMemTables.size > numImmMemtables }
     }
 
     @Test
@@ -120,15 +120,15 @@ class Day1 {
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.forceFreezeMemTable()
+        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
         storage.delete("1".toComparableByteArray())
         storage.delete("2".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("4".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.forceFreezeMemTable()
+        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
         storage.put("1".toComparableByteArray(), "233333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "233333".toComparableByteArray())
-        assertEquals(storage.state.immutableMemTables.size, 2)
+        assertEquals(storage.state.read().immutableMemTables.size, 2)
         assertEquals(storage.get("1".toComparableByteArray()), "233333".toComparableByteArray())
         assertEquals(storage.get("2".toComparableByteArray()), null)
         assertEquals(storage.get("3".toComparableByteArray()), "233333".toComparableByteArray())

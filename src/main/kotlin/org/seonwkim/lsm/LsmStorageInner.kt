@@ -1,7 +1,10 @@
 package org.seonwkim.lsm
 
 import org.seonwkim.common.*
-import org.seonwkim.lsm.iterator.*
+import org.seonwkim.lsm.iterator.FusedIterator
+import org.seonwkim.lsm.iterator.MergeIterator
+import org.seonwkim.lsm.iterator.SsTableIterator
+import org.seonwkim.lsm.iterator.TwoMergeIterator
 import org.seonwkim.lsm.memtable.MemTable
 import org.seonwkim.lsm.memtable.MemtableValue
 import org.seonwkim.lsm.memtable.isDeleted
@@ -12,11 +15,12 @@ import java.nio.file.Path
 class LsmStorageInner(
     val path: Path,
     val options: LsmStorageOptions,
-    val state: LsmStorageState,
     val blockCache: BlockCache,
-    lock: RwLock = DefaultRwLock()
+    state: LsmStorageState,
+    lock: RwLock = DefaultRwLock(),
 ) {
 
+    val state: EncompassingRwLock<LsmStorageState> = EncompassingRwLock(state)
     private val stateLock: RwLock = lock
 
     companion object {
@@ -31,12 +35,12 @@ class LsmStorageInner(
     }
 
     fun get(key: ComparableByteArray): ComparableByteArray? {
-        val memtableResult = state.memTable.get(key)
+        val memtableResult = state.read().memTable.get(key)
         if (memtableResult.isValid()) {
             return memtableResult!!.value
         }
 
-        for (immMemtable in state.immutableMemTables) {
+        for (immMemtable in state.read().immutableMemTables) {
             val immMemtableResult = immMemtable.get(key)
             if (immMemtableResult.isValid()) {
                 return immMemtableResult!!.value
@@ -53,7 +57,7 @@ class LsmStorageInner(
 
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
         updateMemTable {
-            state.memTable.put(
+            it.memTable.put(
                 key = key,
                 value = MemtableValue(value)
             )
@@ -62,44 +66,36 @@ class LsmStorageInner(
 
     fun delete(key: ComparableByteArray) {
         updateMemTable {
-            state.memTable.put(
+            it.memTable.put(
                 key = key,
                 value = MemtableValue(ComparableByteArray.new())
             )
         }
     }
 
-    private fun updateMemTable(action: () -> Unit) {
-        val writeLock = stateLock.writeLock()
-        writeLock.lock()
-        try {
+    private fun updateMemTable(action: (state: LsmStorageState) -> Unit) {
+        state.withWriteLock {
             if (shouldFreezeMemTable()) {
-                forceFreezeMemTable()
+                forceFreezeMemTable(it)
             }
-            action()
-        } finally {
-            writeLock.unlock()
+            action(it)
         }
     }
 
-    fun forceFreezeMemTable() {
-        val lock = stateLock.writeLock()
-        lock.lock()
-        try {
-            state.freezeMemtable()
-        } finally {
-            lock.unlock()
-        }
+    // requires external locking
+    fun forceFreezeMemTable(state: LsmStorageState) {
+        state.freezeMemtable()
     }
 
     fun scan(lower: Bound, upper: Bound): FusedIterator {
         // memTable iterators
-        val memTableIters = listOf(state.memTable.iterator(lower, upper)) +
-                state.immutableMemTables.map { it.iterator(lower, upper) }
+        val snapshot = state.read()
+        val memTableIters = listOf(snapshot.memTable.iterator(lower, upper)) +
+                snapshot.immutableMemTables.map { it.iterator(lower, upper) }
         val memTableMergedIter = MergeIterator(memTableIters)
 
-        val tableIters = state.l0SsTables.mapNotNull { idx ->
-            val table = state.ssTables[idx]!!
+        val tableIters = snapshot.l0SsTables.mapNotNull { idx ->
+            val table = snapshot.ssTables[idx]!!
             if (rangeOverlap(lower, upper, table.firstKey, table.lastKey)) {
                 when (lower.flag) {
                     BoundFlag.INCLUDED -> SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.value))
@@ -123,50 +119,39 @@ class LsmStorageInner(
     }
 
     private fun shouldFreezeMemTable(): Boolean {
-        val lock = stateLock.readLock()
-        lock.lock()
-        try {
-            if (state.memTable.approximateSize() > options.targetSstSize) {
-                return true
+        return state.read().memTable.approximateSize() > options.targetSstSize
+    }
+
+    fun rangeOverlap(
+        userBegin: Bound,
+        userEnd: Bound,
+        tableBegin: TimestampedKey,
+        tableEnd: TimestampedKey
+    ): Boolean {
+        when (userEnd.flag) {
+            BoundFlag.EXCLUDED -> if (userEnd.value <= tableBegin.bytes) {
+                return false
             }
 
-        } finally {
-            lock.unlock()
+            BoundFlag.INCLUDED -> if (userEnd.value < tableBegin.bytes) {
+                return false
+            }
+
+            else -> {}
         }
 
-        return false
+        when (userBegin.flag) {
+            BoundFlag.EXCLUDED -> if (userBegin.value >= tableEnd.bytes) {
+                return false
+            }
+
+            BoundFlag.INCLUDED -> if (userBegin.value > tableEnd.bytes) {
+                return false
+            }
+
+            else -> {}
+        }
+
+        return true
     }
-}
-
-fun rangeOverlap(
-    userBegin: Bound,
-    userEnd: Bound,
-    tableBegin: TimestampedKey,
-    tableEnd: TimestampedKey
-): Boolean {
-    when (userEnd.flag) {
-        BoundFlag.EXCLUDED -> if (userEnd.value <= tableBegin.bytes) {
-            return false
-        }
-
-        BoundFlag.INCLUDED -> if (userEnd.value < tableBegin.bytes) {
-            return false
-        }
-
-        else -> {}
-    }
-
-    when (userBegin.flag) {
-        BoundFlag.EXCLUDED -> if (userBegin.value >= tableEnd.bytes) {
-            return false
-        }
-
-        BoundFlag.INCLUDED -> if (userBegin.value > tableEnd.bytes) {
-            return false
-        }
-
-        else -> {}
-    }
-
-    return true
 }

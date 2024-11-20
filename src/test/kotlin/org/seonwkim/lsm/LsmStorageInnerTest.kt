@@ -52,7 +52,7 @@ class LsmStorageInnerTest {
         // freeze and then
         storage.put("i".toComparableByteArray(), "ii".toComparableByteArray())
 
-        assertEquals(8, storage.state.immutableMemTables.size)
+        assertEquals(8, storage.state.read().immutableMemTables.size)
     }
 
     @Test
@@ -88,6 +88,6 @@ class LsmStorageInnerTest {
         tasks.forEach { it.get() } // Wait for all tasks to complete
 
         executors.forEach { it.shutdown() }
-        assertEquals(8, storage.state.immutableMemTables.size)
+        assertEquals(8, storage.state.read().immutableMemTables.size)
     }
 }

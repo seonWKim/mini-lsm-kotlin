@@ -9,7 +9,7 @@ interface RwLock {
 }
 
 class DefaultRwLock : RwLock {
-    val lock = ReentrantReadWriteLock()
+    private val lock = ReentrantReadWriteLock()
 
     override fun readLock(): Lock {
         return lock.readLock()

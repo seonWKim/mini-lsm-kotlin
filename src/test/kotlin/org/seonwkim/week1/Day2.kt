@@ -268,13 +268,13 @@ class Day2 {
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.forceFreezeMemTable()
+        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
 
         storage.delete("1".toComparableByteArray())
         storage.delete("2".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("4".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.forceFreezeMemTable()
+        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
 
         storage.put("1".toComparableByteArray(), "233333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "233333".toComparableByteArray())
