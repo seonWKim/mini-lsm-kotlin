@@ -3,7 +3,7 @@ package org.seonwkim.common
 // TODO: rename the class appropriately
 class TimestampedKey(
     bytes: ComparableByteArray,
-    private var timestamp: Long = 0
+    private var timestamp: Long = TS_DEFAULT
 ) : Comparable<TimestampedKey> {
     var bytes: ComparableByteArray = bytes
         private set

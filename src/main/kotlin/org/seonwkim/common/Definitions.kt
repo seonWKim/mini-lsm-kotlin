@@ -5,3 +5,5 @@ package org.seonwkim.common
 const val SIZE_OF_U16_IN_BYTE: Int = 2
 const val SIZE_OF_U32_IN_BYTE: Int = 4
 const val SIZE_OF_U64_IN_BYTE: Int = 8
+
+const val TS_DEFAULT: Long = 0L

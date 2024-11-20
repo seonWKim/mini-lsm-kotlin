@@ -3,8 +3,8 @@ package org.seonwkim.lsm.iterator
 import org.seonwkim.common.Bound
 import org.seonwkim.common.BoundFlag
 import org.seonwkim.common.ComparableByteArray
+import org.seonwkim.common.TimestampedKey
 import org.seonwkim.lsm.memtable.MemTable
-import org.seonwkim.lsm.memtable.MemTableKey
 import org.seonwkim.lsm.memtable.MemtableValue
 import org.seonwkim.lsm.memtable.isDeleted
 
@@ -14,8 +14,8 @@ class MemTableIterator(
     upper: Bound
 ) : StorageIterator {
 
-    private var current: Map.Entry<MemTableKey, MemtableValue>? = null
-    private val iter: Iterator<Map.Entry<MemTableKey, MemtableValue>>
+    private var current: Map.Entry<TimestampedKey, MemtableValue>? = null
+    private val iter: Iterator<Map.Entry<TimestampedKey, MemtableValue>>
     private val lower: Bound
     private val upper: Bound
 
@@ -28,10 +28,10 @@ class MemTableIterator(
                 }
 
                 if (lower.flag == BoundFlag.INCLUDED) {
-                    return@firstOrNull it.key >= lower.value
+                    return@firstOrNull it.key.bytes >= lower.value
                 }
 
-                it.key > lower.value
+                it.key.bytes > lower.value
             }
         this.iter = iter
         this.lower = lower
@@ -39,7 +39,7 @@ class MemTableIterator(
     }
 
     override fun key(): ComparableByteArray {
-        return current?.key
+        return current?.key?.bytes
             ?: throw Error("Use isValid() function before calling this function")
     }
 
@@ -61,8 +61,8 @@ class MemTableIterator(
 
         if (current != null && upper.flag != BoundFlag.UNBOUNDED) {
             when {
-                current!!.key > upper.value -> current = null
-                current!!.key == upper.value && upper.flag == BoundFlag.EXCLUDED -> current = null
+                current!!.key.bytes > upper.value -> current = null
+                current!!.key.bytes == upper.value && upper.flag == BoundFlag.EXCLUDED -> current = null
             }
         }
     }

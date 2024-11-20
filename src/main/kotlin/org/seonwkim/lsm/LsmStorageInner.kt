@@ -7,6 +7,7 @@ import org.seonwkim.lsm.memtable.MemtableValue
 import org.seonwkim.lsm.memtable.isDeleted
 import org.seonwkim.lsm.memtable.isValid
 import org.seonwkim.lsm.sstable.BlockCache
+import org.seonwkim.lsm.sstable.SsTableBuilder
 import java.nio.file.Path
 
 class LsmStorageInner(
@@ -94,9 +95,27 @@ class LsmStorageInner(
         }
     }
 
+    private fun shouldFreezeMemTable(): Boolean {
+        return state.read().memTable.approximateSize() > options.targetSstSize
+    }
+
     // requires external locking
     fun forceFreezeMemTable(state: LsmStorageState) {
         state.freezeMemtable()
+    }
+
+    /**
+     * Force flush the earliest created immutable memTable to disk
+     */
+    fun forceFlushNextImmMemTable() {
+        lateinit var flushMemTable: MemTable
+        state.withReadLock {
+            flushMemTable = it.immutableMemTables.lastOrNull()
+                ?: throw IllegalStateException("No immutable memTables exist!")
+        }
+
+        val builder = SsTableBuilder(options.blockSize)
+
     }
 
     fun scan(lower: Bound, upper: Bound): FusedIterator {
@@ -128,10 +147,6 @@ class LsmStorageInner(
         return FusedIterator(
             iter = TwoMergeIterator.create(first = memTableMergedIter, second = tableMergedIter)
         )
-    }
-
-    private fun shouldFreezeMemTable(): Boolean {
-        return state.read().memTable.approximateSize() > options.targetSstSize
     }
 
     fun rangeOverlap(
@@ -167,10 +182,4 @@ class LsmStorageInner(
         return true
     }
 
-    /**
-     * Force flush the earliest created immutable memTable to disk
-     */
-    fun forceFlushNextImmMemTable() {
-
-    }
 }

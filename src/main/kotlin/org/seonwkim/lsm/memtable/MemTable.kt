@@ -2,15 +2,15 @@ package org.seonwkim.lsm.memtable
 
 import org.seonwkim.common.Bound
 import org.seonwkim.common.ComparableByteArray
+import org.seonwkim.common.TimestampedKey
 import org.seonwkim.lsm.Wal
 import org.seonwkim.lsm.iterator.MemTableIterator
+import org.seonwkim.lsm.sstable.SsTableBuilder
 import java.util.concurrent.ConcurrentSkipListMap
 import java.util.concurrent.atomic.AtomicInteger
 
-typealias MemTableKey = ComparableByteArray
-
 class MemTable(
-    val map: ConcurrentSkipListMap<MemTableKey, MemtableValue>,
+    val map: ConcurrentSkipListMap<TimestampedKey, MemtableValue>,
     val wal: Wal?,
     val id: Int,
 ) {
@@ -27,11 +27,19 @@ class MemTable(
     private val approximateSize: AtomicInteger = AtomicInteger(0)
 
     fun get(key: ComparableByteArray): MemtableValue? {
+        return get(TimestampedKey(key))
+    }
+
+    fun get(key: TimestampedKey): MemtableValue? {
         return map[key]
     }
 
     fun put(key: ComparableByteArray, value: MemtableValue) {
-        if (key.array.isEmpty()) {
+        put(TimestampedKey(key), value)
+    }
+
+    fun put(key: TimestampedKey, value: MemtableValue) {
+        if (key.isEmpty()) {
             throw IllegalArgumentException("key should not be empty")
         }
 
@@ -45,11 +53,11 @@ class MemTable(
     }
 
     fun forTestingGetSlice(key: ComparableByteArray): MemtableValue? {
-        return map[key]
+        return get(TimestampedKey(key))
     }
 
     fun forTestingPutSlice(key: ComparableByteArray, value: ComparableByteArray) {
-        map[key] = MemtableValue(value)
+        put(TimestampedKey(key), MemtableValue(value))
     }
 
     fun forTestingScanSlice(lower: Bound, upper: Bound): MemTableIterator {
@@ -62,5 +70,11 @@ class MemTable(
 
     fun countEntries(): Int {
         return map.size
+    }
+
+    fun flush(builder: SsTableBuilder) {
+        for ((key, value) in map.entries) {
+            builder.add(key, value.value)
+        }
     }
 }
