@@ -69,22 +69,6 @@ class LsmStorageInner(
         }
     }
 
-    /**
-     * | Thread1                                | Thread2                                |
-     * |----------------------------------------|----------------------------------------|
-     * | [checkShouldFreezeMemTableWithLock]    | [checkShouldFreezeMemTableWithLock]    |
-     * | -> acquire/release read lock           | -> acquire/release read lock           |
-     * | [stateLock.writeLock]                  | [stateLock.writeLock]                  |
-     * | -> acquire write lock                  |                                        |
-     * |                                        | -> wait to acquire write lock          |
-     * | [shouldFreezeMemTable]                 |                                        |
-     * |                                        |                                        |
-     * | [forceFreezeMemTable]                  |                                        |
-     * |                                        |                                        |
-     * | Release write lock                     | acquire write lock                     |
-     * |                                        | [shouldFreezeMemTable]                 |
-     * |                                        | -> memTable frozen by thread 1, skip   |
-     */
     private fun updateMemTable(action: () -> Unit) {
         val writeLock = stateLock.writeLock()
         writeLock.lock()
