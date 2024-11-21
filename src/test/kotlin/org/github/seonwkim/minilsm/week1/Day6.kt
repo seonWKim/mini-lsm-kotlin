@@ -111,6 +111,12 @@ class Day6 {
         assertEquals(storage.get("555".toComparableByteArray()), null)
     }
 
+    @Test
+    fun `test task2 auto flush`() {
+        val dir = createTempDirectory("test_task2_auto_flush")
+
+    }
+
     private fun sync(storage: LsmStorageInner) {
         storage.state.withWriteLock {
             storage.forceFreezeMemTable(it)
