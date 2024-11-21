@@ -15,11 +15,11 @@ class SsTableFile( // original file name was FileObject
     val size: Long
 ) {
     companion object {
-        fun create(path: Path, data: ComparableByteArray): org.github.seonwkim.lsm.sstable.SsTableFile {
+        fun create(path: Path, data: ComparableByteArray): SsTableFile {
             val file = path.toFile()
             Files.write(path, data.getByteArray())
             val size = Files.size(path)
-            return org.github.seonwkim.lsm.sstable.SsTableFile(file, size)
+            return SsTableFile(file, size)
         }
     }
 
@@ -35,4 +35,8 @@ class SsTableFile( // original file name was FileObject
         buffer.get(byteArray)
         return ComparableByteArray(byteArray.toList())
     }
+}
+
+fun sstPath(path: Path, id: Int): Path {
+    return path.resolve("%05d.sst".format(id))
 }

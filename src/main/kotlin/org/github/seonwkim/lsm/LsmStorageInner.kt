@@ -8,7 +8,12 @@ import org.github.seonwkim.lsm.memtable.isDeleted
 import org.github.seonwkim.lsm.memtable.isValid
 import org.github.seonwkim.lsm.sstable.BlockCache
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
+import org.github.seonwkim.lsm.sstable.sstPath
+import java.nio.channels.FileChannel
+import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.io.path.exists
 
 class LsmStorageInner(
     val path: Path,
@@ -16,15 +21,25 @@ class LsmStorageInner(
     val blockCache: BlockCache,
     val state: RwLock<LsmStorageState>,
     // val stateLock: RwLock<Unit> = MutexLock(Unit) TODO: do we need this?
+    private val nextSstId: AtomicInteger = AtomicInteger(1)
 ) {
 
     companion object {
+        private val log = mu.KotlinLogging.logger { }
+
         fun open(path: Path, options: LsmStorageOptions): LsmStorageInner {
+            val state = DefaultRwLock(LsmStorageState.create(options))
+            val blockCache = BlockCache(1 shl 20)
+            if (!path.exists()) {
+                log.info { "Creating directories $path" }
+                Files.createDirectories(path)
+            }
+
             return LsmStorageInner(
                 path = path,
                 options = options,
-                state = DefaultRwLock(LsmStorageState(memTable = MemTable.create(0))),
-                blockCache = BlockCache()
+                state = state,
+                blockCache = blockCache
             )
         }
     }
@@ -105,7 +120,15 @@ class LsmStorageInner(
      * Requires external locking.
      */
     fun forceFreezeMemTable(state: LsmStorageState) {
-        state.freezeMemtable()
+        val memtableId = nextSstId.get()
+        val memTable = if (options.enableWal) {
+            TODO("should be implemented after WAL is supported")
+        } else {
+            MemTable.create(memtableId)
+        }
+
+        state.immutableMemTables.addFirst(state.memTable)
+        state.memTable = memTable
     }
 
     /**
@@ -119,7 +142,33 @@ class LsmStorageInner(
         }
 
         val builder = SsTableBuilder(options.blockSize)
+        flushMemTable.flush(builder)
+        val sstId = flushMemTable.id
+        val sst = builder.build(
+            id = sstId,
+            blockCache = blockCache.copy(),
+            path = sstPath(path, sstId)
+        )
 
+        state.withWriteLock { snapshot ->
+            // remove the memTable
+            val immutableMemTable = snapshot.immutableMemTables.pop()
+            if (immutableMemTable.id != sstId) {
+                throw IllegalStateException("Sst id($sstId) and immutable memTable id(${immutableMemTable.id} mismatch")
+            }
+
+            // TODO: this is only for no compaction strategy, will require additional logic when we support for diverse compaction algorithms
+            snapshot.l0SsTables.addFirst(sstId)
+            log.info { "Flushed $sstId.sst with size ${sst.file.size}" }
+            snapshot.ssTables[sstId] = sst
+        }
+
+        if (options.enableWal) {
+            TODO("remove wal file")
+        }
+
+        // Is there more sufficient way to sync all OS-internal file content and metadata to disk?
+        FileChannel.open(path).use { it.force(true) }
     }
 
     fun scan(lower: Bound, upper: Bound): FusedIterator {
@@ -185,5 +234,4 @@ class LsmStorageInner(
 
         return true
     }
-
 }

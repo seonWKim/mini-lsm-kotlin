@@ -11,14 +11,16 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class MemTable(
     val map: ConcurrentSkipListMap<TimestampedKey, MemtableValue>,
-    val wal: org.github.seonwkim.lsm.Wal?,
+    val wal: Wal?,
+
+    // memTable id, used as SSTable id as well
     val id: Int,
 ) {
     companion object {
         fun create(id: Int): MemTable {
             return MemTable(
                 map = ConcurrentSkipListMap(),
-                wal = org.github.seonwkim.lsm.Wal.default(),
+                wal = Wal.default(),
                 id = id
             )
         }

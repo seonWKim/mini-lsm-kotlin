@@ -8,5 +8,8 @@ data class LsmStorageOptions(
     val targetSstSize: Int,
 
     // maximum number of memtables in memory, flush to L0 when exceeding this limit
-    val numMemTableLimit: Int
+    val numMemTableLimit: Int,
+
+    // whether wal is enabled
+    val enableWal: Boolean = false,
 )
