@@ -1,8 +1,8 @@
-package org.github.seonwkim.util
+package org.github.seonwkim.lsm.iterator.util
 
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedKey
-import org.github.seonwkim.lsm.LsmStorageOptions
+import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.sstable.BlockCache
 import org.github.seonwkim.lsm.sstable.SsTable
 import org.github.seonwkim.lsm.sstable.SsTableBuilder

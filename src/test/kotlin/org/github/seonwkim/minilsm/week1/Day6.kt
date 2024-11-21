@@ -4,9 +4,9 @@ import org.github.seonwkim.common.Bound
 import org.github.seonwkim.common.BoundFlag
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.toComparableByteArray
-import org.github.seonwkim.lsm.LsmStorageInner
+import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.iterator.StorageIterator
-import org.github.seonwkim.util.lsmStorageOptionForTest
+import org.github.seonwkim.lsm.iterator.util.lsmStorageOptionForTest
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals

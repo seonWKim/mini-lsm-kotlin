@@ -1,4 +1,4 @@
-package org.github.seonwkim.lsm
+package org.github.seonwkim.lsm.storage
 
 data class LsmStorageOptions(
     // block size in bytes

@@ -1,4 +1,4 @@
-package org.github.seonwkim.lsm
+package org.github.seonwkim.lsm.iterator.storage
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -6,6 +6,9 @@ import org.github.seonwkim.common.SimulatedRwLock
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.sstable.BlockCache
+import org.github.seonwkim.lsm.storage.LsmStorageInner
+import org.github.seonwkim.lsm.storage.LsmStorageOptions
+import org.github.seonwkim.lsm.storage.LsmStorageState
 import java.util.concurrent.Executors
 import kotlin.io.path.createTempDirectory
 

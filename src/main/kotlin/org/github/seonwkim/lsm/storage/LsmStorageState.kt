@@ -1,4 +1,4 @@
-package org.github.seonwkim.lsm
+package org.github.seonwkim.lsm.storage
 
 import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.sstable.SsTable

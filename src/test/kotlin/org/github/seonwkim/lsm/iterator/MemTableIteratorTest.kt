@@ -1,4 +1,4 @@
-package org.github.seonwkim.iterator
+package org.github.seonwkim.lsm.iterator
 
 import org.github.seonwkim.common.Bound
 import org.github.seonwkim.common.BoundFlag
