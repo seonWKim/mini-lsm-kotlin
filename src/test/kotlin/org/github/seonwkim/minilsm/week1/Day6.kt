@@ -75,6 +75,42 @@ class Day6 {
         )
     }
 
+    @Test
+    fun `test task1 storage get`() {
+        val dir = createTempDirectory("test_task1_storage_get")
+        val storage = LsmStorageInner.open(dir, lsmStorageOptionForTest())
+        storage.put("0".toComparableByteArray(), "2333333".toComparableByteArray())
+        storage.put("00".toComparableByteArray(), "2333333".toComparableByteArray())
+        storage.put("4".toComparableByteArray(), "23".toComparableByteArray())
+        sync(storage)
+
+        storage.delete("4".toComparableByteArray())
+        sync(storage)
+
+        storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
+        storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
+        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
+
+        storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
+        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
+
+        storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
+        storage.delete("1".toComparableByteArray())
+
+        storage.state.withReadLock {
+            assertEquals(it.l0SsTables.size, 2)
+            assertEquals(it.immutableMemTables.size, 2)
+        }
+
+        assertEquals(storage.get("0".toComparableByteArray()), "2333333".toComparableByteArray())
+        assertEquals(storage.get("00".toComparableByteArray()), "2333".toComparableByteArray())
+        assertEquals(storage.get("2".toComparableByteArray()), "2333".toComparableByteArray())
+        assertEquals(storage.get("3".toComparableByteArray()), "23333".toComparableByteArray())
+        assertEquals(storage.get("4".toComparableByteArray()), null)
+        assertEquals(storage.get("--".toComparableByteArray()), null)
+        assertEquals(storage.get("555".toComparableByteArray()), null)
+    }
+
     private fun sync(storage: LsmStorageInner) {
         storage.state.withWriteLock {
             storage.forceFreezeMemTable(it)
