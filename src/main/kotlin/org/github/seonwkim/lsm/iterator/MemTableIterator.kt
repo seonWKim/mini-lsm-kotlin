@@ -1,6 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
-import org.github.seonwkim.common.BoundV2
+import org.github.seonwkim.common.Bound
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.lsm.memtable.MemTable
@@ -9,23 +9,23 @@ import org.github.seonwkim.lsm.memtable.isDeleted
 
 class MemTableIterator(
     private val memTable: MemTable,
-    lower: BoundV2,
-    upper: BoundV2
+    lower: Bound,
+    upper: Bound
 ) : StorageIterator {
 
     private var current: Map.Entry<TimestampedKey, MemtableValue>? = null
     private val iter: Iterator<Map.Entry<TimestampedKey, MemtableValue>>
-    private val lower: BoundV2
-    private val upper: BoundV2
+    private val lower: Bound
+    private val upper: Bound
 
     init {
         val iter = memTable.map.iterator()
         current = iter.asSequence()
             .firstOrNull {
                 when (lower) {
-                    is BoundV2.Unbounded -> true
-                    is BoundV2.Included -> it.key.bytes >= lower.value
-                    is BoundV2.Excluded -> it.key.bytes > lower.value
+                    is Bound.Unbounded -> true
+                    is Bound.Included -> it.key.bytes >= lower.value
+                    is Bound.Excluded -> it.key.bytes > lower.value
                 }
             }
         this.iter = iter
@@ -56,13 +56,13 @@ class MemTableIterator(
 
         if (current != null) {
             when (upper) {
-                is BoundV2.Included -> {
+                is Bound.Included -> {
                     if (current!!.key.bytes > upper.value) current = null
                 }
-                is BoundV2.Excluded -> {
+                is Bound.Excluded -> {
                     if (current!!.key.bytes >= upper.value) current = null
                 }
-                BoundV2.Unbounded -> {}
+                Bound.Unbounded -> {}
             }
         }
     }

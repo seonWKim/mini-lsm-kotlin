@@ -185,7 +185,7 @@ class LsmStorageInner(
         }
     }
 
-    fun scan(lower: BoundV2, upper: BoundV2): FusedIterator {
+    fun scan(lower: Bound, upper: Bound): FusedIterator {
         // memTable iterators
         val snapshot = state.read()
         val memTableIters = listOf(snapshot.memTable.iterator(lower, upper)) +
@@ -196,8 +196,8 @@ class LsmStorageInner(
             val table = snapshot.ssTables[idx]!!
             if (rangeOverlap(lower, upper, table.firstKey, table.lastKey)) {
                 when (lower) {
-                    is BoundV2.Included -> SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.value))
-                    is BoundV2.Excluded -> {
+                    is Bound.Included -> SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.value))
+                    is Bound.Excluded -> {
                         val iter = SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.value))
                         if (iter.isValid() && iter.key() == lower.value) {
                             iter.next()
@@ -205,7 +205,7 @@ class LsmStorageInner(
                         iter
                     }
 
-                    is BoundV2.Unbounded -> SsTableIterator.createAndSeekToFirst(table)
+                    is Bound.Unbounded -> SsTableIterator.createAndSeekToFirst(table)
                 }
             } else null
         }
@@ -217,17 +217,17 @@ class LsmStorageInner(
     }
 
     fun rangeOverlap(
-        userBegin: BoundV2,
-        userEnd: BoundV2,
+        userBegin: Bound,
+        userEnd: Bound,
         tableBegin: TimestampedKey,
         tableEnd: TimestampedKey
     ): Boolean {
         when (userEnd) {
-            is BoundV2.Excluded -> if (userEnd.value <= tableBegin.bytes) {
+            is Bound.Excluded -> if (userEnd.value <= tableBegin.bytes) {
                 return false
             }
 
-            is BoundV2.Included -> if (userEnd.value < tableBegin.bytes) {
+            is Bound.Included -> if (userEnd.value < tableBegin.bytes) {
                 return false
             }
 
@@ -235,11 +235,11 @@ class LsmStorageInner(
         }
 
         when (userBegin) {
-            is BoundV2.Excluded -> if (userBegin.value >= tableEnd.bytes) {
+            is Bound.Excluded -> if (userBegin.value >= tableEnd.bytes) {
                 return false
             }
 
-            is BoundV2.Included -> if (userBegin.value > tableEnd.bytes) {
+            is Bound.Included -> if (userBegin.value > tableEnd.bytes) {
                 return false
             }
 

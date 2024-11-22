@@ -1,7 +1,7 @@
 package org.github.seonwkim.common
 
-sealed interface BoundV2 {
-    data object Unbounded : BoundV2
-    data class Included(val value: ComparableByteArray) : BoundV2
-    data class Excluded(val value: ComparableByteArray) : BoundV2
+sealed interface Bound {
+    data object Unbounded : Bound
+    data class Included(val value: ComparableByteArray) : Bound
+    data class Excluded(val value: ComparableByteArray) : Bound
 }

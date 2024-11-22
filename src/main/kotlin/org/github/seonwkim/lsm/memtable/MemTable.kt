@@ -1,6 +1,6 @@
 package org.github.seonwkim.lsm.memtable
 
-import org.github.seonwkim.common.BoundV2
+import org.github.seonwkim.common.Bound
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.lsm.storage.Wal
@@ -50,7 +50,7 @@ class MemTable(
         map[key] = value
     }
 
-    fun iterator(lower: BoundV2, upper: BoundV2): MemTableIterator {
+    fun iterator(lower: Bound, upper: Bound): MemTableIterator {
         return MemTableIterator(this, lower, upper)
     }
 
@@ -62,7 +62,7 @@ class MemTable(
         put(TimestampedKey(key), MemtableValue(value))
     }
 
-    fun forTestingScanSlice(lower: BoundV2, upper: BoundV2): MemTableIterator {
+    fun forTestingScanSlice(lower: Bound, upper: Bound): MemTableIterator {
         return MemTableIterator(this, lower, upper)
     }
 

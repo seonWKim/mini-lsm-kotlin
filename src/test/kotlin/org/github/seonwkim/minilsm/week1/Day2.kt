@@ -1,6 +1,6 @@
 package org.github.seonwkim.minilsm.week1
 
-import org.github.seonwkim.common.BoundV2
+import org.github.seonwkim.common.Bound
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.iterator.*
@@ -23,7 +23,7 @@ class Day2 {
         memTable.forTestingPutSlice("key2".toComparableByteArray(), "value2".toComparableByteArray())
         memTable.forTestingPutSlice("key3".toComparableByteArray(), "value3".toComparableByteArray())
 
-        memTable.forTestingScanSlice(BoundV2.Unbounded, BoundV2.Unbounded).run {
+        memTable.forTestingScanSlice(Bound.Unbounded, Bound.Unbounded).run {
             assertTrue(isValid())
             assertEquals("key1".toComparableByteArray(), key())
             assertEquals("value1".toComparableByteArray(), value())
@@ -43,8 +43,8 @@ class Day2 {
         }
 
         memTable.forTestingScanSlice(
-            BoundV2.Included("key1".toComparableByteArray()),
-            BoundV2.Included("key2".toComparableByteArray())
+            Bound.Included("key1".toComparableByteArray()),
+            Bound.Included("key2".toComparableByteArray())
         ).run {
             assertTrue(isValid())
             assertEquals("key1".toComparableByteArray(), key())
@@ -60,8 +60,8 @@ class Day2 {
         }
 
         memTable.forTestingScanSlice(
-            BoundV2.Excluded("key1".toComparableByteArray()),
-            BoundV2.Excluded("key3".toComparableByteArray())
+            Bound.Excluded("key1".toComparableByteArray()),
+            Bound.Excluded("key3".toComparableByteArray())
         ).run {
             assertTrue(isValid())
             assertEquals("key2".toComparableByteArray(), key())
@@ -77,22 +77,22 @@ class Day2 {
         val memtable = MemTable.create(0)
 
         memtable.forTestingScanSlice(
-            BoundV2.Excluded("key1".toComparableByteArray()),
-            BoundV2.Excluded("key3".toComparableByteArray())
+            Bound.Excluded("key1".toComparableByteArray()),
+            Bound.Excluded("key3".toComparableByteArray())
         ).run {
             assertFalse { isValid() }
         }
 
         memtable.forTestingScanSlice(
-            BoundV2.Included("key1".toComparableByteArray()),
-            BoundV2.Included("key2".toComparableByteArray())
+            Bound.Included("key1".toComparableByteArray()),
+            Bound.Included("key2".toComparableByteArray())
         ).run {
             assertFalse { isValid() }
         }
 
         memtable.forTestingScanSlice(
-            BoundV2.Unbounded,
-            BoundV2.Unbounded
+            Bound.Unbounded,
+            Bound.Unbounded
         ).run {
             assertFalse { isValid() }
         }
@@ -277,7 +277,7 @@ class Day2 {
         storage.put("1".toComparableByteArray(), "233333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "233333".toComparableByteArray())
 
-        storage.scan(BoundV2.Unbounded, BoundV2.Unbounded).let { iter ->
+        storage.scan(Bound.Unbounded, Bound.Unbounded).let { iter ->
             assertIterator(
                 iter = iter,
                 values = listOf(
@@ -294,8 +294,8 @@ class Day2 {
         }
 
         storage.scan(
-            BoundV2.Included("2".toComparableByteArray()),
-            BoundV2.Included("3".toComparableByteArray())
+            Bound.Included("2".toComparableByteArray()),
+            Bound.Included("3".toComparableByteArray())
         ).let { iter ->
             assertIterator(
                 iter = iter,

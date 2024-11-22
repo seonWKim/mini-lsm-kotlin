@@ -1,6 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
-import org.github.seonwkim.common.BoundV2
+import org.github.seonwkim.common.Bound
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.memtable.MemtableValue
@@ -19,8 +19,8 @@ class MemTableIteratorTest {
 
         val memTableIterator = MemTableIterator(
             memTable = memTable,
-            lower = BoundV2.Unbounded,
-            upper = BoundV2.Unbounded
+            lower = Bound.Unbounded,
+            upper = Bound.Unbounded
         )
 
         assertEquals(memTableIterator.key(), "a".toComparableByteArray())
@@ -41,8 +41,8 @@ class MemTableIteratorTest {
 
         val memTableIterator = MemTableIterator(
             memTable = memTable,
-            lower = BoundV2.Included("b".toComparableByteArray()),
-            upper = BoundV2.Unbounded
+            lower = Bound.Included("b".toComparableByteArray()),
+            upper = Bound.Unbounded
         )
 
         assertEquals(memTableIterator.key(), "b".toComparableByteArray())
@@ -61,8 +61,8 @@ class MemTableIteratorTest {
 
         val memTableIterator = MemTableIterator(
             memTable = memTable,
-            lower = BoundV2.Excluded("b".toComparableByteArray()),
-            upper = BoundV2.Unbounded
+            lower = Bound.Excluded("b".toComparableByteArray()),
+            upper = Bound.Unbounded
         )
 
         assertEquals(memTableIterator.key(), "c".toComparableByteArray())
@@ -79,8 +79,8 @@ class MemTableIteratorTest {
 
         val memTableIterator = MemTableIterator(
             memTable = memTable,
-            lower = BoundV2.Excluded("d".toComparableByteArray()),
-            upper = BoundV2.Unbounded
+            lower = Bound.Excluded("d".toComparableByteArray()),
+            upper = Bound.Unbounded
         )
 
         assertFalse { memTableIterator.isValid() }
@@ -95,8 +95,8 @@ class MemTableIteratorTest {
 
         val memTableIterator = MemTableIterator(
             memTable = memTable,
-            lower = BoundV2.Unbounded,
-            upper = BoundV2.Included("b".toComparableByteArray())
+            lower = Bound.Unbounded,
+            upper = Bound.Included("b".toComparableByteArray())
         )
 
         assertEquals(memTableIterator.key(), "a".toComparableByteArray())
@@ -115,8 +115,8 @@ class MemTableIteratorTest {
 
         val memTableIterator = MemTableIterator(
             memTable = memTable,
-            lower = BoundV2.Unbounded,
-            upper = BoundV2.Excluded("b".toComparableByteArray())
+            lower = Bound.Unbounded,
+            upper = Bound.Excluded("b".toComparableByteArray())
         )
 
         assertEquals(memTableIterator.key(), "a".toComparableByteArray())
