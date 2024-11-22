@@ -1,7 +1,5 @@
 package org.github.seonwkim.common
 
-import com.google.common.hash.Hashing
-
 fun Int.toU16ByteArray(): ComparableByteArray {
     val highByte = (this shr 8).toByte()
     val lowByte = this.toByte()
@@ -59,16 +57,4 @@ fun ComparableByteArray.toU64Long(): Long {
             (this[5].toLong() and 0xFF shl 16) or
             (this[6].toLong() and 0xFF shl 8) or
             (this[7].toLong() and 0xFF)
-}
-
-fun crcHash(buf: ComparableByteArray): Int {
-    return crcHash(buf.getByteArray())
-}
-
-fun crcHash(buf: ByteArray): Int {
-    return Hashing.crc32().hashBytes(buf).asInt()
-}
-
-fun murmurHash(buf: ComparableByteArray): Int {
-    return Hashing.murmur3_32_fixed().newHasher().putBytes(buf.getByteArray()).hash().asInt()
 }
