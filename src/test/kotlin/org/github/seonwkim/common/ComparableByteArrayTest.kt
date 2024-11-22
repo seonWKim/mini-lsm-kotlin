@@ -31,4 +31,15 @@ class ComparableByteArrayTest {
         assertEquals(sortedList[1], arr1)
         assertEquals(sortedList[2], arr3)
     }
+
+    @Test
+    fun `test`() {
+        val array = arrayOf(1, 2, 3)
+        val listView = array.asList()
+
+        println(listView) // Output: [1, 2, 3]
+
+        array[0] = 10
+        println(listView) // Output: [10, 2, 3]
+    }
 }
