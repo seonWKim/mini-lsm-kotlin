@@ -33,10 +33,10 @@ class LsmStorageInnerTest {
             state = SimulatedRwLock(
                 value = LsmStorageState(MemTable.create(0)),
                 afterReadLockAcquireBehavior = {
-                    log.info("Trying to acquire read lock from ${Thread.currentThread()}")
+                    log.info { "Trying to acquire read lock from ${Thread.currentThread()}" }
                 },
                 afterWriteLockAcquireBehavior = {
-                    log.info("Trying to acquire write lock from ${Thread.currentThread()}")
+                    log.info { "Trying to acquire write lock from ${Thread.currentThread()}" }
                 }
             )
         )
@@ -114,7 +114,7 @@ class LsmStorageInnerTest {
                 value = LsmStorageState(MemTable.create(0)),
                 afterWriteLockAcquireBehavior = {
                     Thread.sleep(500)
-                    log.info("Trying to acquire write lock from ${Thread.currentThread()}")
+                    log.info { "Trying to acquire write lock from ${Thread.currentThread()}" }
                 }
             )
         )
