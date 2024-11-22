@@ -151,8 +151,8 @@ class LsmStorageInner(
         )
 
         state.withWriteLock { snapshot ->
-            // remove the memTable
-            val immutableMemTable = snapshot.immutableMemTables.pop()
+            // flush the oldest memTable first
+            val immutableMemTable = snapshot.immutableMemTables.pollLast()
             if (immutableMemTable.id != sstId) {
                 throw IllegalStateException("Sst id($sstId) and immutable memTable id(${immutableMemTable.id} mismatch")
             }
@@ -169,6 +169,20 @@ class LsmStorageInner(
 
         // Is there more sufficient way to sync all OS-internal file content and metadata to disk?
         FileChannel.open(path).use { it.force(true) }
+    }
+
+    /**
+     * Trigger flush operation when number of immutable memTables exceeds limit.
+     */
+    fun triggerFlush() {
+        val shouldFlush = state.withReadLock {
+            it.immutableMemTables.size >= options.numMemTableLimit
+        }
+
+        if (shouldFlush) {
+            println("triggering flush operation")
+            forceFlushNextImmMemTable()
+        }
     }
 
     fun scan(lower: Bound, upper: Bound): FusedIterator {

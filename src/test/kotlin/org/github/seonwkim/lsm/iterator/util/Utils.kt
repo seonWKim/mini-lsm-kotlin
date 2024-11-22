@@ -25,9 +25,3 @@ fun generateSst(
         path = path
     )
 }
-
-fun lsmStorageOptionForTest(): LsmStorageOptions = LsmStorageOptions(
-    blockSize = 4096,
-    targetSstSize = 2 shl 20,
-    numMemTableLimit = 10
-)

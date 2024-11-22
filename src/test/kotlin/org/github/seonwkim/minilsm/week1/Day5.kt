@@ -10,7 +10,7 @@ import org.github.seonwkim.lsm.iterator.MockIteratorData
 import org.github.seonwkim.lsm.iterator.StorageIterator
 import org.github.seonwkim.lsm.iterator.TwoMergeIterator
 import org.github.seonwkim.lsm.iterator.util.generateSst
-import org.github.seonwkim.lsm.iterator.util.lsmStorageOptionForTest
+import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -294,4 +294,10 @@ class Day5 {
             actual.next()
         }
     }
+
+    private fun lsmStorageOptionForTest(): LsmStorageOptions = LsmStorageOptions(
+        blockSize = 4096,
+        targetSstSize = 2 shl 20,
+        numMemTableLimit = 10
+    )
 }

@@ -1,11 +1,10 @@
 package org.github.seonwkim.minilsm.week1
 
-import org.junit.jupiter.api.assertDoesNotThrow
 import org.github.seonwkim.common.toComparableByteArray
+import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
-import org.github.seonwkim.lsm.memtable.MemTable
-import org.github.seonwkim.lsm.iterator.util.lsmStorageOptionForTest
+import org.junit.jupiter.api.assertDoesNotThrow
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -134,4 +133,10 @@ class Day1 {
         assertEquals(storage.get("3".toComparableByteArray()), "233333".toComparableByteArray())
         assertEquals(storage.get("4".toComparableByteArray()), "23333".toComparableByteArray())
     }
+
+    private fun lsmStorageOptionForTest(): LsmStorageOptions = LsmStorageOptions(
+        blockSize = 4096,
+        targetSstSize = 2 shl 20,
+        numMemTableLimit = 10
+    )
 }

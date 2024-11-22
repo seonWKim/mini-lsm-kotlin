@@ -4,9 +4,11 @@ import org.github.seonwkim.common.Bound
 import org.github.seonwkim.common.BoundFlag
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.toComparableByteArray
-import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.iterator.StorageIterator
-import org.github.seonwkim.lsm.iterator.util.lsmStorageOptionForTest
+import org.github.seonwkim.lsm.storage.CompactionOptions
+import org.github.seonwkim.lsm.storage.LsmStorageInner
+import org.github.seonwkim.lsm.storage.LsmStorageOptions
+import org.github.seonwkim.lsm.storage.MiniLsm
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -114,7 +116,17 @@ class Day6 {
     @Test
     fun `test task2 auto flush`() {
         val dir = createTempDirectory("test_task2_auto_flush")
+        val storage = MiniLsm.open(dir, lsmStorageOptionForTest())
 
+        val oneKBData = "1".repeat(1024).toComparableByteArray()
+
+        // approximately 6MB
+        repeat(6_000) {
+            storage.put("$it".toComparableByteArray(), oneKBData)
+        }
+
+        Thread.sleep(500)
+        assertTrue { storage.inner.state.read().l0SsTables.isNotEmpty() }
     }
 
     private fun sync(storage: LsmStorageInner) {
@@ -135,4 +147,12 @@ class Day6 {
             actual.next()
         }
     }
+
+    private fun lsmStorageOptionForTest(): LsmStorageOptions = LsmStorageOptions(
+        blockSize = 4096,
+        targetSstSize = 2 shl 20,
+        compactionOptions = CompactionOptions.NoCompaction,
+        enableWal = false,
+        numMemTableLimit = 2
+    )
 }

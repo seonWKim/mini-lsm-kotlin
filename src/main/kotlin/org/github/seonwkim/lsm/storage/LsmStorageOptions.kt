@@ -12,4 +12,12 @@ data class LsmStorageOptions(
 
     // whether wal is enabled
     val enableWal: Boolean = false,
+
+    val compactionOptions: CompactionOptions = CompactionOptions.NoCompaction,
+
+    // flush delay in millisecond
+    val flushDelayMillis: Long = 50,
+
+    // flush interval in millisecond
+    val flushIntervalMillis: Long = 50
 )
