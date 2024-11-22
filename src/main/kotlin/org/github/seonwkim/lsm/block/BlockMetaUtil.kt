@@ -35,9 +35,9 @@ object BlockMetaUtil {
         // retrieve number of blocks
         val numberOfBlocks = buf.slice(currentOffset, currentOffset + SIZE_OF_U32_IN_BYTE).toU32Int()
 
-        // to check hash value
         currentOffset += SIZE_OF_U32_IN_BYTE
-        val checksum = crcHash(buf.slice(currentOffset..<buf.size()))
+        // to check hash value, we minus SIZE_OF_U32_IN_BYTES to exclude checksum
+        val checksum = crcHash(buf.slice(currentOffset..<buf.size() - SIZE_OF_U32_IN_BYTE))
 
         // decode blockMetas
         for (i in 0 until numberOfBlocks) {

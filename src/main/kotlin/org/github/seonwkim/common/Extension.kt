@@ -1,7 +1,6 @@
 package org.github.seonwkim.common
 
 import com.google.common.hash.Hashing
-import java.util.zip.CRC32
 
 fun Int.toU16ByteArray(): ComparableByteArray {
     val highByte = (this shr 8).toByte()
@@ -67,14 +66,9 @@ fun crcHash(buf: ComparableByteArray): Int {
 }
 
 fun crcHash(buf: ByteArray): Int {
-    val crc = CRC32().run {
-        this.update(buf)
-    }
-    return crc.hashCode()
+    return Hashing.crc32().hashBytes(buf).asInt()
 }
 
 fun murmurHash(buf: ComparableByteArray): Int {
-    val hasher = Hashing.murmur3_32_fixed().newHasher()
-    hasher.putBytes(buf.getByteArray())
-    return hasher.hash().asInt()
+    return Hashing.murmur3_32_fixed().newHasher().putBytes(buf.getByteArray()).hash().asInt()
 }
