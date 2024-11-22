@@ -41,8 +41,10 @@ class DefaultRwLock<T>(
 
 class SimulatedRwLock<T>(
     val value: T,
+    val beforeReadLockAcquireBehavior: () -> Unit = {},
     val afterReadLockAcquireBehavior: () -> Unit = {},
-    val afterWriteLockAcquireBehavior: () -> Unit = {}
+    val beforeWriteLockAcquireBehavior: () -> Unit = {},
+    val afterWriteLockAcquireBehavior: () -> Unit = {},
 ) : RwLock<T> {
     private val lock = ReentrantReadWriteLock()
 
@@ -51,6 +53,7 @@ class SimulatedRwLock<T>(
     }
 
     override fun <R> withReadLock(action: (T) -> R): R {
+        beforeReadLockAcquireBehavior()
         val readLock = lock.readLock()
         readLock.lock()
         try {
@@ -62,6 +65,7 @@ class SimulatedRwLock<T>(
     }
 
     override fun <R> withWriteLock(action: (T) -> R): R {
+        beforeWriteLockAcquireBehavior()
         val writeLock = lock.writeLock()
         writeLock.lock()
         try {

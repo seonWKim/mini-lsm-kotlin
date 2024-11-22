@@ -15,7 +15,7 @@ import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.exists
 
-class LsmStorageInner(
+class LsmStorageInner private constructor(
     val path: Path,
     val options: LsmStorageOptions,
     val blockCache: BlockCache,
@@ -30,6 +30,25 @@ class LsmStorageInner(
         fun open(path: Path, options: LsmStorageOptions): LsmStorageInner {
             val state = DefaultRwLock(LsmStorageState.create(options))
             val blockCache = BlockCache(1 shl 20)
+            if (!path.exists()) {
+                log.info { "Creating directories $path" }
+                Files.createDirectories(path)
+            }
+
+            return LsmStorageInner(
+                path = path,
+                options = options,
+                state = state,
+                blockCache = blockCache
+            )
+        }
+
+        fun open(
+            path: Path,
+            options: LsmStorageOptions,
+            blockCache: BlockCache,
+            state: RwLock<LsmStorageState>,
+        ): LsmStorageInner {
             if (!path.exists()) {
                 log.info { "Creating directories $path" }
                 Files.createDirectories(path)
@@ -151,10 +170,14 @@ class LsmStorageInner(
         )
 
         state.withWriteLock { snapshot ->
-            // flush the oldest memTable first
-            val immutableMemTable = snapshot.immutableMemTables.pollLast()
-            if (immutableMemTable.id != sstId) {
-                throw IllegalStateException("Sst id($sstId) and immutable memTable id(${immutableMemTable.id} mismatch")
+            val immutableMemTable: MemTable? = snapshot.immutableMemTables.peekLast()
+            if (immutableMemTable?.id != sstId) {
+                // in case where forceFlushNextImmMemTable() is called concurrently, it can enter this block
+                log.info { "Sst id($sstId) and immutable memTable id(${immutableMemTable?.id}) mismatch. There might be concurrent calls to flush immMemTable" }
+                return@withWriteLock
+            } else {
+                // we can safely remove the oldest immutableMemTable
+                snapshot.immutableMemTables.pollLast()
             }
 
             // TODO: this is only for no compaction strategy, will require additional logic when we support for diverse compaction algorithms
@@ -180,7 +203,6 @@ class LsmStorageInner(
         }
 
         if (shouldFlush) {
-            println("triggering flush operation")
             forceFlushNextImmMemTable()
         }
     }
@@ -216,7 +238,7 @@ class LsmStorageInner(
         )
     }
 
-    fun rangeOverlap(
+    private fun rangeOverlap(
         userBegin: Bound,
         userEnd: Bound,
         tableBegin: TimestampedKey,

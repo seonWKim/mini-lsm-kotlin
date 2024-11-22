@@ -4,7 +4,7 @@ data class LsmStorageOptions(
     // block size in bytes
     val blockSize: Int,
 
-    // SST size in bytes, the approximate memtable capacity limit
+    // SST size in bytes, the approximate memTable capacity limit
     val targetSstSize: Int,
 
     // maximum number of memtables in memory, flush to L0 when exceeding this limit
