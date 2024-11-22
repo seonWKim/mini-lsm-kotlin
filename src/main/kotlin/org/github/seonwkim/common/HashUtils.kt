@@ -10,8 +10,10 @@ fun crcHash(key: ByteArray): Int {
     return Hashing.crc32().hashBytes(key).asInt()
 }
 
-fun murmurHash(key: ComparableByteArray): Int {
-    return Hashing.murmur3_32_fixed().newHasher().putBytes(key.getByteArray()).hash().asInt()
+fun murmurHash(key: ComparableByteArray): UInt {
+    return Hashing.murmur3_32_fixed().newHasher()
+        .putBytes(key.getByteArray())
+        .hash().asInt().toUInt()
 }
 
 fun farmHashFingerPrintU32(key: ComparableByteArray): UInt {

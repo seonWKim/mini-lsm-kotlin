@@ -2,6 +2,8 @@ package org.github.seonwkim.lsm.sstable
 
 import org.github.seonwkim.common.*
 import org.github.seonwkim.lsm.block.*
+import org.github.seonwkim.lsm.bloom.Bloom
+import org.github.seonwkim.lsm.bloom.BloomUtil
 import java.nio.file.Path
 
 class SsTableBuilder(
@@ -13,7 +15,7 @@ class SsTableBuilder(
     private val data: ComparableByteArray
 
     val meta: MutableList<BlockMeta>
-    private val keyHashes: MutableList<Int>
+    private val keyHashes: MutableList<UInt>
     private var maxTimestamp: Long
 
     init {
@@ -83,8 +85,14 @@ class SsTableBuilder(
         BlockMetaUtil.encodeBlockMeta(meta, maxTimestamp, buf)
         buf += metaOffset.toU32ByteArray()
 
-        // TODO: we will add bloom filter at the end of the Sstable
-        val file = org.github.seonwkim.lsm.sstable.SsTableFile.create(path, buf)
+        val bloom = Bloom.fromKeyHashes(
+            keys = keyHashes,
+            bitsPerKey = BloomUtil.bloomBitsPerKey(keyHashes.size, 0.01)
+        )
+        val bloomOffset = buf.size()
+        BloomUtil.encode(buf, bloom)
+        buf += bloomOffset.toU32ByteArray()
+        val file = SsTableFile.create(path, buf)
 
         return SsTable(
             file = file,
@@ -94,6 +102,7 @@ class SsTableBuilder(
             blockCache = blockCache,
             firstKey = meta.first().firstKey,
             lastKey = meta.last().lastKey,
+            bloom = bloom,
             maxTs = 0
         )
     }

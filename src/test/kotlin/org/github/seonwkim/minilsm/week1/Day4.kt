@@ -3,7 +3,7 @@ package org.github.seonwkim.minilsm.week1
 import org.junit.jupiter.api.Test
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.common.TimestampedKey
-import org.github.seonwkim.common.toBlockKey
+import org.github.seonwkim.common.toTimestampedKey
 import org.github.seonwkim.lsm.iterator.SsTableIterator
 import org.github.seonwkim.lsm.sstable.SsTable
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
@@ -21,7 +21,7 @@ class Day4 {
     @Test
     fun `test sst build single key`() {
         val builder = SsTableBuilder(16)
-        builder.add("233".toBlockKey(), "233333".toComparableByteArray())
+        builder.add("233".toTimestampedKey(), "233333".toComparableByteArray())
         val dir = createTempDirectory("test_Sst_build_single_key")
         builder.buildForTest(dir.resolve("1.sst"))
     }
@@ -29,12 +29,12 @@ class Day4 {
     @Test
     fun `test sst build two blocks`() {
         val builder = SsTableBuilder(16)
-        builder.add("11".toBlockKey(), "11".toComparableByteArray())
-        builder.add("22".toBlockKey(), "22".toComparableByteArray())
-        builder.add("33".toBlockKey(), "11".toComparableByteArray())
-        builder.add("44".toBlockKey(), "22".toComparableByteArray())
-        builder.add("55".toBlockKey(), "11".toComparableByteArray())
-        builder.add("66".toBlockKey(), "22".toComparableByteArray())
+        builder.add("11".toTimestampedKey(), "11".toComparableByteArray())
+        builder.add("22".toTimestampedKey(), "22".toComparableByteArray())
+        builder.add("33".toTimestampedKey(), "11".toComparableByteArray())
+        builder.add("44".toTimestampedKey(), "22".toComparableByteArray())
+        builder.add("55".toTimestampedKey(), "11".toComparableByteArray())
+        builder.add("66".toTimestampedKey(), "22".toComparableByteArray())
         assertTrue { builder.meta.size >= 2 }
         val dir = createTempDirectory("test_set_build_two_blocks")
         builder.buildForTest(dir.resolve("1.sst"))
@@ -86,7 +86,7 @@ class Day4 {
     @Test
     fun `test sst seek key`() {
         val (_, sst) = generateSst()
-        val iter = SsTableIterator.createAndSeekToKey(sst, createKey(0).toBlockKey())
+        val iter = SsTableIterator.createAndSeekToKey(sst, createKey(0).toTimestampedKey())
         for (offset in 1..5) {
             for (i in 0 until NUMBER_OF_KEYS) {
                 val key = iter.key()
@@ -97,10 +97,10 @@ class Day4 {
                 val expectedValue = createValue(i).toComparableByteArray()
                 assertTrue("expected: $expectedValue, actual: $value") { value.compareTo(expectedValue) == 0 }
 
-                iter.seekToKey("key_%03d".format(i * 5 + offset).toBlockKey())
+                iter.seekToKey("key_%03d".format(i * 5 + offset).toTimestampedKey())
             }
 
-            iter.seekToKey("k".toBlockKey())
+            iter.seekToKey("k".toTimestampedKey())
         }
     }
 

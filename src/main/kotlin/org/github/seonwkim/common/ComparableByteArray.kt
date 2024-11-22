@@ -36,6 +36,10 @@ class ComparableByteArray(
         return i
     }
 
+    fun append(bytes: ComparableByteArray) {
+        array.addAll(bytes.array)
+    }
+
     fun append(bytes: List<Byte>) {
         array.addAll(bytes)
     }

@@ -8,6 +8,10 @@ fun Int.clamp(min: Int, max: Int): Int {
     }
 }
 
+fun Int.toU8ByteArray(): ComparableByteArray {
+    return ComparableByteArray(listOf(this.toByte()))
+}
+
 fun Int.toU16ByteArray(): ComparableByteArray {
     val highByte = (this shr 8).toByte()
     val lowByte = this.toByte()

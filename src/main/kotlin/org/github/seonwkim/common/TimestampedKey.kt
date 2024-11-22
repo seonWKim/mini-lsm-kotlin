@@ -86,6 +86,6 @@ class TimestampedKey(
     }
 }
 
-fun String.toBlockKey(): TimestampedKey {
+fun String.toTimestampedKey(): TimestampedKey {
     return TimestampedKey(this.toComparableByteArray())
 }

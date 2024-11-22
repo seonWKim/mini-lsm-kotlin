@@ -15,6 +15,11 @@ class SsTableFile( // original file name was FileObject
     val size: Long
 ) {
     companion object {
+        fun open(path: Path): SsTableFile {
+            val file = path.toFile()
+            return SsTableFile(file, file.length())
+        }
+
         fun create(path: Path, data: ComparableByteArray): SsTableFile {
             val file = path.toFile()
             Files.write(path, data.getByteArray())

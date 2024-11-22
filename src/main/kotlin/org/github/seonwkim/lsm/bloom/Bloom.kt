@@ -1,7 +1,9 @@
 package org.github.seonwkim.lsm.bloom
 
-import org.github.seonwkim.common.*
-
+import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.clamp
+import org.github.seonwkim.common.isBitSet
+import org.github.seonwkim.common.setBit
 import kotlin.math.ceil
 import kotlin.math.ln
 import kotlin.math.pow
@@ -9,7 +11,7 @@ import kotlin.math.pow
 /**
  * Bloom filter implementation.
  */
-class Bloom private constructor(
+class Bloom(
     // data of filter in bits
     val filter: ComparableByteArray,
 
@@ -21,18 +23,7 @@ class Bloom private constructor(
 ) {
 
     companion object {
-        private val LN_2_POW_2 = ln(2.0).pow(2)
         private const val ROTATE_BIT_COUNT = 15
-
-        /**
-         * Get bloom filter bits per key from [numberOfEntries] and [falsePositiveRate].
-         */
-        fun bloomBitsPerKey(numberOfEntries: Int, falsePositiveRate: Double): Int {
-            val entriesDouble = numberOfEntries.toDouble()
-            val size = -1.0 * entriesDouble * ln(falsePositiveRate) / LN_2_POW_2
-            val locs = ceil((size / entriesDouble))
-            return locs.toInt()
-        }
 
         fun fromKeyHashes(keys: List<UInt>, bitsPerKey: Int): Bloom {
             val hashFunctionsCount = (bitsPerKey * 0.69).toInt().clamp(1, 30)

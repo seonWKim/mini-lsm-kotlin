@@ -5,6 +5,8 @@ import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.common.crcHash
 import org.github.seonwkim.common.toU32Int
 import org.github.seonwkim.lsm.block.*
+import org.github.seonwkim.lsm.bloom.Bloom
+import org.github.seonwkim.lsm.bloom.BloomUtil
 
 class SsTable(
     val file: SsTableFile,
@@ -14,7 +16,7 @@ class SsTable(
     val blockCache: BlockCache?,
     val firstKey: TimestampedKey,
     val lastKey: TimestampedKey,
-    // private val bloom: Bloom?,
+    val bloom: Bloom?,
     val maxTs: Long
 ) {
 
@@ -25,10 +27,13 @@ class SsTable(
 
         fun open(id: Int, blockCache: BlockCache?, file: SsTableFile): SsTable {
             val len = file.size
-            // TODO: we will have to decode bloom filter when bloom filter is supported
-            val rawMetaOffset = file.read(len - 4, 4)
+            val rawBloomOffset = file.read(len - SIZE_OF_U32_IN_BYTE, SIZE_OF_U32_IN_BYTE)
+            val bloomOffset = rawBloomOffset.toU32Int().toLong()
+            val rawBloom = file.read(bloomOffset, (len - 4 - bloomOffset).toInt())
+            val bloom = BloomUtil.decode(rawBloom)
+            val rawMetaOffset = file.read(bloomOffset - 4, SIZE_OF_U32_IN_BYTE)
             val blockMetaOffset = rawMetaOffset.toU32Int().toLong()
-            val rawMeta = file.read(blockMetaOffset, (len - 4 - blockMetaOffset).toInt())
+            val rawMeta = file.read(blockMetaOffset, (bloomOffset - 4 - blockMetaOffset).toInt())
             val (blockMeta, maxTs) = BlockMetaUtil.decodeBlockMeta(rawMeta)
             return SsTable(
                 file = file,
@@ -38,6 +43,7 @@ class SsTable(
                 blockCache = blockCache,
                 firstKey = blockMeta.first().firstKey,
                 lastKey = blockMeta.last().lastKey,
+                bloom = bloom,
                 maxTs = maxTs
             )
         }
@@ -71,7 +77,7 @@ class SsTable(
      */
     fun findBlockIdx(key: TimestampedKey): Int {
         return blockMeta.indexOfFirst { it.firstKey > key }
-            .let { if (it == -1) blockMeta.size else it  }
+            .let { if (it == -1) blockMeta.size else it }
             .minus(1)
             .coerceAtLeast(0)
     }
