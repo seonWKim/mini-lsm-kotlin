@@ -1,14 +1,13 @@
 package org.github.seonwkim.minilsm.week1
 
-import org.junit.jupiter.api.assertThrows
-import org.github.seonwkim.common.Bound
-import org.github.seonwkim.common.BoundFlag
+import org.github.seonwkim.common.BoundV2
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.toComparableByteArray
-import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.iterator.*
 import org.github.seonwkim.lsm.memtable.MemTable
+import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
+import org.junit.jupiter.api.assertThrows
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -24,7 +23,7 @@ class Day2 {
         memTable.forTestingPutSlice("key2".toComparableByteArray(), "value2".toComparableByteArray())
         memTable.forTestingPutSlice("key3".toComparableByteArray(), "value3".toComparableByteArray())
 
-        memTable.forTestingScanSlice(Bound.unbounded(), Bound.unbounded()).run {
+        memTable.forTestingScanSlice(BoundV2.Unbounded, BoundV2.Unbounded).run {
             assertTrue(isValid())
             assertEquals("key1".toComparableByteArray(), key())
             assertEquals("value1".toComparableByteArray(), value())
@@ -44,8 +43,8 @@ class Day2 {
         }
 
         memTable.forTestingScanSlice(
-            Bound("key1".toComparableByteArray(), BoundFlag.INCLUDED),
-            Bound("key2".toComparableByteArray(), BoundFlag.INCLUDED)
+            BoundV2.Included("key1".toComparableByteArray()),
+            BoundV2.Included("key2".toComparableByteArray())
         ).run {
             assertTrue(isValid())
             assertEquals("key1".toComparableByteArray(), key())
@@ -61,8 +60,8 @@ class Day2 {
         }
 
         memTable.forTestingScanSlice(
-            Bound("key1".toComparableByteArray(), BoundFlag.EXCLUDED),
-            Bound("key3".toComparableByteArray(), BoundFlag.EXCLUDED)
+            BoundV2.Excluded("key1".toComparableByteArray()),
+            BoundV2.Excluded("key3".toComparableByteArray())
         ).run {
             assertTrue(isValid())
             assertEquals("key2".toComparableByteArray(), key())
@@ -78,22 +77,22 @@ class Day2 {
         val memtable = MemTable.create(0)
 
         memtable.forTestingScanSlice(
-            Bound("key1".toComparableByteArray(), BoundFlag.EXCLUDED),
-            Bound("key3".toComparableByteArray(), BoundFlag.EXCLUDED)
+            BoundV2.Excluded("key1".toComparableByteArray()),
+            BoundV2.Excluded("key3".toComparableByteArray())
         ).run {
             assertFalse { isValid() }
         }
 
         memtable.forTestingScanSlice(
-            Bound("key1".toComparableByteArray(), BoundFlag.INCLUDED),
-            Bound("key2".toComparableByteArray(), BoundFlag.INCLUDED)
+            BoundV2.Included("key1".toComparableByteArray()),
+            BoundV2.Included("key2".toComparableByteArray())
         ).run {
             assertFalse { isValid() }
         }
 
         memtable.forTestingScanSlice(
-            Bound.unbounded(),
-            Bound.unbounded()
+            BoundV2.Unbounded,
+            BoundV2.Unbounded
         ).run {
             assertFalse { isValid() }
         }
@@ -278,7 +277,7 @@ class Day2 {
         storage.put("1".toComparableByteArray(), "233333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "233333".toComparableByteArray())
 
-        storage.scan(Bound.unbounded(), Bound.unbounded()).let { iter ->
+        storage.scan(BoundV2.Unbounded, BoundV2.Unbounded).let { iter ->
             assertIterator(
                 iter = iter,
                 values = listOf(
@@ -295,8 +294,8 @@ class Day2 {
         }
 
         storage.scan(
-            Bound("2".toComparableByteArray(), BoundFlag.INCLUDED),
-            Bound("3".toComparableByteArray(), BoundFlag.INCLUDED)
+            BoundV2.Included("2".toComparableByteArray()),
+            BoundV2.Included("3".toComparableByteArray())
         ).let { iter ->
             assertIterator(
                 iter = iter,

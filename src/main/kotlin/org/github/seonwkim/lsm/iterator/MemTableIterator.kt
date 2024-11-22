@@ -1,7 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
-import org.github.seonwkim.common.Bound
-import org.github.seonwkim.common.BoundFlag
+import org.github.seonwkim.common.BoundV2
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.lsm.memtable.MemTable
@@ -10,28 +9,24 @@ import org.github.seonwkim.lsm.memtable.isDeleted
 
 class MemTableIterator(
     private val memTable: MemTable,
-    lower: Bound,
-    upper: Bound
+    lower: BoundV2,
+    upper: BoundV2
 ) : StorageIterator {
 
     private var current: Map.Entry<TimestampedKey, MemtableValue>? = null
     private val iter: Iterator<Map.Entry<TimestampedKey, MemtableValue>>
-    private val lower: Bound
-    private val upper: Bound
+    private val lower: BoundV2
+    private val upper: BoundV2
 
     init {
         val iter = memTable.map.iterator()
         current = iter.asSequence()
             .firstOrNull {
-                if (lower.flag == BoundFlag.UNBOUNDED) {
-                    return@firstOrNull true
+                when (lower) {
+                    is BoundV2.Unbounded -> true
+                    is BoundV2.Included -> it.key.bytes >= lower.value
+                    is BoundV2.Excluded -> it.key.bytes > lower.value
                 }
-
-                if (lower.flag == BoundFlag.INCLUDED) {
-                    return@firstOrNull it.key.bytes >= lower.value
-                }
-
-                it.key.bytes > lower.value
             }
         this.iter = iter
         this.lower = lower
@@ -59,10 +54,15 @@ class MemTableIterator(
     override fun next() {
         current = if (iter.hasNext()) iter.next() else null
 
-        if (current != null && upper.flag != BoundFlag.UNBOUNDED) {
-            when {
-                current!!.key.bytes > upper.value -> current = null
-                current!!.key.bytes == upper.value && upper.flag == BoundFlag.EXCLUDED -> current = null
+        if (current != null) {
+            when (upper) {
+                is BoundV2.Included -> {
+                    if (current!!.key.bytes > upper.value) current = null
+                }
+                is BoundV2.Excluded -> {
+                    if (current!!.key.bytes >= upper.value) current = null
+                }
+                BoundV2.Unbounded -> {}
             }
         }
     }

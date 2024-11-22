@@ -1,7 +1,6 @@
 package org.github.seonwkim.minilsm.week1
 
-import org.github.seonwkim.common.Bound
-import org.github.seonwkim.common.BoundFlag
+import org.github.seonwkim.common.BoundV2
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.iterator.StorageIterator
@@ -9,7 +8,6 @@ import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.storage.MiniLsm
 import kotlin.io.path.createTempDirectory
-import kotlin.math.min
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -51,7 +49,7 @@ class Day6 {
         }
 
         checkIterator(
-            storage.scan(Bound.unbounded(), Bound.unbounded()),
+            storage.scan(BoundV2.Unbounded, BoundV2.Unbounded),
             listOf(
                 Pair("0".toComparableByteArray(), "2333333".toComparableByteArray()),
                 Pair("00".toComparableByteArray(), "2333".toComparableByteArray()),
@@ -62,8 +60,8 @@ class Day6 {
 
         checkIterator(
             storage.scan(
-                Bound("1".toComparableByteArray(), BoundFlag.INCLUDED),
-                Bound("2".toComparableByteArray(), BoundFlag.INCLUDED)
+                BoundV2.Included("1".toComparableByteArray()),
+                BoundV2.Included("2".toComparableByteArray())
             ),
             listOf(
                 Pair("2".toComparableByteArray(), "2333".toComparableByteArray()),
@@ -72,8 +70,8 @@ class Day6 {
 
         checkIterator(
             storage.scan(
-                Bound("1".toComparableByteArray(), BoundFlag.EXCLUDED),
-                Bound("3".toComparableByteArray(), BoundFlag.EXCLUDED)
+                BoundV2.Excluded("1".toComparableByteArray()),
+                BoundV2.Excluded("3".toComparableByteArray())
             ),
             listOf(
                 Pair("2".toComparableByteArray(), "2333".toComparableByteArray()),
@@ -166,38 +164,38 @@ class Day6 {
             storage.put("%05d".format(i).toComparableByteArray(), "2333333".toComparableByteArray())
         }
 
-        val iter1 = storage.scan(Bound.unbounded(), Bound.unbounded())
+        val iter1 = storage.scan(BoundV2.Unbounded, BoundV2.Unbounded)
         assertTrue { iter1.numActiveIterators() >= 10 }
 
         val maxNum = iter1.numActiveIterators()
         val iter2 = storage.scan(
-            lower = Bound("%05d".format(10000).toComparableByteArray(), BoundFlag.EXCLUDED),
-            upper = Bound.unbounded()
+            lower = BoundV2.Excluded("%05d".format(10000).toComparableByteArray()),
+            upper = BoundV2.Unbounded
         )
         assertTrue { iter2.numActiveIterators() < maxNum }
 
         val minNum = iter2.numActiveIterators()
         val iter3 = storage.scan(
-            lower = Bound.unbounded(),
-            upper = Bound("%05d".format(1).toComparableByteArray(), BoundFlag.EXCLUDED)
+            lower = BoundV2.Unbounded,
+            upper = BoundV2.Excluded("%05d".format(1).toComparableByteArray())
         )
         assertTrue { iter3.numActiveIterators() == minNum }
 
         val iter4 = storage.scan(
-            lower = Bound.unbounded(),
-            upper = Bound("%05d".format(0).toComparableByteArray(), BoundFlag.INCLUDED)
+            lower = BoundV2.Unbounded,
+            upper = BoundV2.Included("%05d".format(0).toComparableByteArray())
         )
         assertTrue { iter4.numActiveIterators() == minNum }
 
         val iter5 = storage.scan(
-            lower = Bound("%05d".format(10001).toComparableByteArray(), BoundFlag.INCLUDED),
-            upper = Bound.unbounded()
+            lower = BoundV2.Included("%05d".format(10001).toComparableByteArray()),
+            upper = BoundV2.Unbounded
         )
         assertTrue { iter5.numActiveIterators() == minNum }
 
         val iter6 = storage.scan(
-            lower = Bound("%05d".format(5000).toComparableByteArray(), BoundFlag.INCLUDED),
-            upper = Bound("%05d".format(6000).toComparableByteArray(), BoundFlag.EXCLUDED)
+            lower = BoundV2.Included("%05d".format(5000).toComparableByteArray()),
+            upper = BoundV2.Excluded("%05d".format(6000).toComparableByteArray())
         )
         assertTrue { iter6.numActiveIterators() in minNum..<maxNum }
     }

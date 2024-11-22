@@ -185,7 +185,7 @@ class LsmStorageInner(
         }
     }
 
-    fun scan(lower: Bound, upper: Bound): FusedIterator {
+    fun scan(lower: BoundV2, upper: BoundV2): FusedIterator {
         // memTable iterators
         val snapshot = state.read()
         val memTableIters = listOf(snapshot.memTable.iterator(lower, upper)) +
@@ -195,9 +195,9 @@ class LsmStorageInner(
         val tableIters = snapshot.l0SsTables.mapNotNull { idx ->
             val table = snapshot.ssTables[idx]!!
             if (rangeOverlap(lower, upper, table.firstKey, table.lastKey)) {
-                when (lower.flag) {
-                    BoundFlag.INCLUDED -> SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.value))
-                    BoundFlag.EXCLUDED -> {
+                when (lower) {
+                    is BoundV2.Included -> SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.value))
+                    is BoundV2.Excluded -> {
                         val iter = SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.value))
                         if (iter.isValid() && iter.key() == lower.value) {
                             iter.next()
@@ -205,7 +205,7 @@ class LsmStorageInner(
                         iter
                     }
 
-                    BoundFlag.UNBOUNDED -> SsTableIterator.createAndSeekToFirst(table)
+                    is BoundV2.Unbounded -> SsTableIterator.createAndSeekToFirst(table)
                 }
             } else null
         }
@@ -217,29 +217,29 @@ class LsmStorageInner(
     }
 
     fun rangeOverlap(
-        userBegin: Bound,
-        userEnd: Bound,
+        userBegin: BoundV2,
+        userEnd: BoundV2,
         tableBegin: TimestampedKey,
         tableEnd: TimestampedKey
     ): Boolean {
-        when (userEnd.flag) {
-            BoundFlag.EXCLUDED -> if (userEnd.value <= tableBegin.bytes) {
+        when (userEnd) {
+            is BoundV2.Excluded -> if (userEnd.value <= tableBegin.bytes) {
                 return false
             }
 
-            BoundFlag.INCLUDED -> if (userEnd.value < tableBegin.bytes) {
+            is BoundV2.Included -> if (userEnd.value < tableBegin.bytes) {
                 return false
             }
 
             else -> {}
         }
 
-        when (userBegin.flag) {
-            BoundFlag.EXCLUDED -> if (userBegin.value >= tableEnd.bytes) {
+        when (userBegin) {
+            is BoundV2.Excluded -> if (userBegin.value >= tableEnd.bytes) {
                 return false
             }
 
-            BoundFlag.INCLUDED -> if (userBegin.value > tableEnd.bytes) {
+            is BoundV2.Included -> if (userBegin.value > tableEnd.bytes) {
                 return false
             }
 
