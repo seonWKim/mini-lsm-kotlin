@@ -1,6 +1,5 @@
 package org.github.seonwkim.common
 
-// TODO: rename the class appropriately
 class TimestampedKey(
     bytes: ComparableByteArray,
     private var timestamp: Long = TS_DEFAULT
