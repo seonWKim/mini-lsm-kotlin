@@ -80,4 +80,8 @@ class TwoMergeIterator(
     override fun copy(): StorageIterator {
         throw Error("not implemented")
     }
+
+    override fun numActiveIterators(): Int {
+        return first.numActiveIterators() + second.numActiveIterators()
+    }
 }

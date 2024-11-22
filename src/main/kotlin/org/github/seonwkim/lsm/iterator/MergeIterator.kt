@@ -76,4 +76,8 @@ class MergeIterator(
     override fun copy(): StorageIterator {
         return MergeIterator(iterators = iterators.map { it.copy() })
     }
+
+    override fun numActiveIterators(): Int {
+        return iterators.sumOf { it.numActiveIterators() }
+    }
 }

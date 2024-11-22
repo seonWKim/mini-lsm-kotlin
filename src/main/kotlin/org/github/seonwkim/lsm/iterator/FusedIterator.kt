@@ -50,4 +50,8 @@ class FusedIterator(
     override fun copy(): StorageIterator {
         return FusedIterator(iter.copy())
     }
+
+    override fun numActiveIterators(): Int {
+        return iter.numActiveIterators()
+    }
 }

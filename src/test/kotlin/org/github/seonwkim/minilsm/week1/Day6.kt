@@ -5,11 +5,11 @@ import org.github.seonwkim.common.BoundFlag
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.iterator.StorageIterator
-import org.github.seonwkim.lsm.storage.CompactionOptions
 import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.storage.MiniLsm
 import kotlin.io.path.createTempDirectory
+import kotlin.math.min
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -145,6 +145,61 @@ class Day6 {
 
         Thread.sleep(500)
         assertTrue { storage.inner.state.read().l0SsTables.isNotEmpty() }
+    }
+
+    @Test
+    fun `test task3 sst filter`() {
+        val dir = createTempDirectory("test_task3_sst_filter")
+        val storage = LsmStorageInner.open(
+            path = dir,
+            options = LsmStorageOptions(
+                blockSize = 4096,
+                targetSstSize = 2 shl 20,
+                numMemTableLimit = 50
+            )
+        )
+
+        for (i in 1..10_000) {
+            if (i % 1000 == 0) {
+                sync(storage)
+            }
+            storage.put("%05d".format(i).toComparableByteArray(), "2333333".toComparableByteArray())
+        }
+
+        val iter1 = storage.scan(Bound.unbounded(), Bound.unbounded())
+        assertTrue { iter1.numActiveIterators() >= 10 }
+
+        val maxNum = iter1.numActiveIterators()
+        val iter2 = storage.scan(
+            lower = Bound("%05d".format(10000).toComparableByteArray(), BoundFlag.EXCLUDED),
+            upper = Bound.unbounded()
+        )
+        assertTrue { iter2.numActiveIterators() < maxNum }
+
+        val minNum = iter2.numActiveIterators()
+        val iter3 = storage.scan(
+            lower = Bound.unbounded(),
+            upper = Bound("%05d".format(1).toComparableByteArray(), BoundFlag.EXCLUDED)
+        )
+        assertTrue { iter3.numActiveIterators() == minNum }
+
+        val iter4 = storage.scan(
+            lower = Bound.unbounded(),
+            upper = Bound("%05d".format(0).toComparableByteArray(), BoundFlag.INCLUDED)
+        )
+        assertTrue { iter4.numActiveIterators() == minNum }
+
+        val iter5 = storage.scan(
+            lower = Bound("%05d".format(10001).toComparableByteArray(), BoundFlag.INCLUDED),
+            upper = Bound.unbounded()
+        )
+        assertTrue { iter5.numActiveIterators() == minNum }
+
+        val iter6 = storage.scan(
+            lower = Bound("%05d".format(5000).toComparableByteArray(), BoundFlag.INCLUDED),
+            upper = Bound("%05d".format(6000).toComparableByteArray(), BoundFlag.EXCLUDED)
+        )
+        assertTrue { iter6.numActiveIterators() in minNum..<maxNum }
     }
 
     private fun sync(storage: LsmStorageInner) {
