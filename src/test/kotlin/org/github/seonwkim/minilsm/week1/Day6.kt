@@ -21,7 +21,11 @@ class Day6 {
         val dir = createTempDirectory("test_task1_storage_scan")
         val storage = LsmStorageInner.open(
             path = dir,
-            options = lsmStorageOptionForTest()
+            options = LsmStorageOptions(
+                blockSize = 4096,
+                targetSstSize = 2 shl 20,
+                numMemTableLimit = 50
+            )
         )
         storage.put("0".toComparableByteArray(), "2333333".toComparableByteArray())
         storage.put("00".toComparableByteArray(), "2333333".toComparableByteArray())
@@ -80,7 +84,14 @@ class Day6 {
     @Test
     fun `test task1 storage get`() {
         val dir = createTempDirectory("test_task1_storage_get")
-        val storage = LsmStorageInner.open(dir, lsmStorageOptionForTest())
+        val storage = LsmStorageInner.open(
+            path = dir,
+            options = LsmStorageOptions(
+                blockSize = 4096,
+                targetSstSize = 2 shl 20,
+                numMemTableLimit = 50
+            )
+        )
         storage.put("0".toComparableByteArray(), "2333333".toComparableByteArray())
         storage.put("00".toComparableByteArray(), "2333333".toComparableByteArray())
         storage.put("4".toComparableByteArray(), "23".toComparableByteArray())
@@ -116,7 +127,14 @@ class Day6 {
     @Test
     fun `test task2 auto flush`() {
         val dir = createTempDirectory("test_task2_auto_flush")
-        val storage = MiniLsm.open(dir, lsmStorageOptionForTest())
+        val storage = MiniLsm.open(
+            path = dir,
+            options = LsmStorageOptions(
+                blockSize = 4096,
+                targetSstSize = 2 shl 20,
+                numMemTableLimit = 2
+            )
+        )
 
         val oneKBData = "1".repeat(1024).toComparableByteArray()
 
@@ -147,12 +165,4 @@ class Day6 {
             actual.next()
         }
     }
-
-    private fun lsmStorageOptionForTest(): LsmStorageOptions = LsmStorageOptions(
-        blockSize = 4096,
-        targetSstSize = 2 shl 20,
-        compactionOptions = CompactionOptions.NoCompaction,
-        enableWal = false,
-        numMemTableLimit = 2
-    )
 }
