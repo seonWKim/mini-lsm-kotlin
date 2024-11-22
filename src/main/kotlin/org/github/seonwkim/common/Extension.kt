@@ -1,5 +1,19 @@
 package org.github.seonwkim.common
 
+fun Int.clamp(min: Int, max: Int): Int {
+    return when {
+        this < min -> min
+        this > max -> max
+        else -> this
+    }
+}
+
+fun Int.rotateLeft(bits: Int): Int {
+    val size = Int.SIZE_BITS
+    val shift = bits % size
+    return (this shl shift) or (this ushr (size - shift))
+}
+
 fun Int.toU16ByteArray(): ComparableByteArray {
     val highByte = (this shr 8).toByte()
     val lowByte = this.toByte()
