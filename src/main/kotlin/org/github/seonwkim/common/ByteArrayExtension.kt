@@ -3,7 +3,7 @@ package org.github.seonwkim.common
 import kotlin.experimental.and
 import kotlin.experimental.or
 
-fun ByteArray.setBit(idx: UInt, setBit: Boolean) {
+fun ComparableByteArray.setBit(idx: UInt, setBit: Boolean) {
     val pos = (idx / 8u).toInt()
     val offset = (idx % 8u).toInt()
     if (setBit) {
@@ -11,6 +11,13 @@ fun ByteArray.setBit(idx: UInt, setBit: Boolean) {
     } else {
         this[pos] = this[pos] and (1 shl offset).inv().toByte()
     }
+}
+
+fun ComparableByteArray.isBitSet(idx: UInt): Boolean {
+    val pos = (idx / 8u).toInt()
+    val offset = (idx % 8u).toInt()
+
+    return (this[pos] and (1 shl offset).toByte()) != 0.toByte()
 }
 
 fun ComparableByteArray.toU16Int(): Int {
