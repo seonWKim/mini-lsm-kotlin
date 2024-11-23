@@ -27,12 +27,60 @@ class LsmStorageInner private constructor(
     companion object {
         private val log = mu.KotlinLogging.logger { }
 
-        fun open(path: Path, options: LsmStorageOptions): LsmStorageInner {
-            val state = DefaultRwLock(LsmStorageState.create(options))
-            val blockCache = BlockCache(1 shl 20)
+        fun open(
+            path: Path,
+            options: LsmStorageOptions
+        ): LsmStorageInner {
             if (!path.exists()) {
                 log.info { "Creating directories $path" }
-                Files.createDirectories(path)
+                try {
+                    Files.createDirectories(path)
+                } catch (e: Exception) {
+                    log.warn { "Errors creating DB dir: $e" }
+                    throw e
+                }
+            }
+            val state = DefaultRwLock(LsmStorageState.create(options))
+            val blockCache = BlockCache(1 shl 20)
+
+            val compactionOptions = options.compactionOptions
+            val compactionController: CompactionController = when (compactionOptions) {
+                is CompactionOptions.Leveled -> {
+                    CompactionController.LeveledCompactionController(compactionOptions.options)
+                }
+
+                is CompactionOptions.Tiered -> {
+                    CompactionController.TieredCompactionController(compactionOptions.options)
+                }
+
+                is CompactionOptions.Simple -> {
+                    CompactionController.Simple(compactionOptions.options)
+                }
+
+                is CompactionOptions.NoCompaction -> {
+                    CompactionController.NoCompaction
+                }
+            }
+
+            val manifestPath = path.resolve("MANIFEST")
+            lateinit var manifest: Manifest
+            var lastCommitTs = 0
+            if (!manifestPath.exists()) {
+                if (options.enableWal) {
+                    // TODO("create with WAL")
+                }
+                manifest = try {
+                    Manifest.create(manifestPath)
+                } catch (e: Exception) {
+                    throw Error("Failed to create manifest file: $e")
+                }
+
+            } else {
+                // TODO:
+                //  1. read from manifest record
+                //  2. modify memtable, l0Sstables, levels according to the record
+                //  3.
+
             }
 
             return LsmStorageInner(
