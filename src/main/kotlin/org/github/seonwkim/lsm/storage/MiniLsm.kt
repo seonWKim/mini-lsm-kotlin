@@ -44,13 +44,13 @@ class MiniLsm private constructor(val inner: LsmStorageInner) {
 
     fun scheduleCompaction() {
         when (inner.options.compactionOptions) {
-            is CompactionOptions.Simple,
-            is CompactionOptions.Leveled,
-            is CompactionOptions.Tiered -> {
+            is Simple,
+            is Leveled,
+            is Tiered -> {
                 // TODO
             }
 
-            is CompactionOptions.NoCompaction -> {
+            is NoCompaction -> {
                 // do nothing
             }
         }

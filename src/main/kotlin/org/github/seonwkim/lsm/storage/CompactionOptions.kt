@@ -1,11 +1,10 @@
 package org.github.seonwkim.lsm.storage
 
-sealed interface CompactionOptions {
-    data object NoCompaction : CompactionOptions
-    data class Simple(val options: SimpleLeveledCompactionOptions) : CompactionOptions
-    data class Leveled(val options: LeveledCompactionOptions) : CompactionOptions
-    data class Tiered(val options: TieredCompactionOptions) : CompactionOptions
-}
+sealed interface CompactionOptions
+data object NoCompaction : CompactionOptions
+data class Simple(val options: SimpleLeveledCompactionOptions) : CompactionOptions
+data class Leveled(val options: LeveledCompactionOptions) : CompactionOptions
+data class Tiered(val options: TieredCompactionOptions) : CompactionOptions
 
 /**
  * Simple leveled compaction

@@ -12,7 +12,7 @@ class LsmStorageState(
     var immutableMemTables: LinkedList<MemTable> = LinkedList(),
     // L0 SSTs, from latest to earliest
     val l0SsTables: LinkedList<Int> = LinkedList(),
-    val levels: List<SstLevel> = LinkedList(),
+    val levels: LinkedList<SstLevel> = LinkedList(),
     // sst id, SSTable
     val ssTables: ConcurrentHashMap<Int, SsTable> = ConcurrentHashMap()
 ) {
@@ -21,24 +21,25 @@ class LsmStorageState(
     companion object {
         fun create(options: LsmStorageOptions): LsmStorageState {
             val levels = when (options.compactionOptions) {
-                is CompactionOptions.Leveled -> {
+                is Leveled -> {
                     (1..options.compactionOptions.options.maxLevel)
                         .map { SstLevel(level = it, tables = mutableListOf()) }
                 }
 
-                is CompactionOptions.Simple -> {
+                is Simple -> {
                     (1..options.compactionOptions.options.maxLevels)
                         .map { SstLevel(level = it, tables = mutableListOf()) }
                 }
 
-                is CompactionOptions.Tiered -> {
+                is Tiered -> {
                     mutableListOf()
                 }
 
-                is CompactionOptions.NoCompaction -> {
+                is NoCompaction -> {
                     mutableListOf(SstLevel(level = 1, tables = mutableListOf()))
                 }
-            }
+            }.toCollection(LinkedList())
+
             return LsmStorageState(
                 memTable = MemTable.create(0),
                 levels = levels

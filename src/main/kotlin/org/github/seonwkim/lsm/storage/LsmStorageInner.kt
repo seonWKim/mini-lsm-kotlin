@@ -6,9 +6,7 @@ import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.memtable.MemtableValue
 import org.github.seonwkim.lsm.memtable.isDeleted
 import org.github.seonwkim.lsm.memtable.isValid
-import org.github.seonwkim.lsm.sstable.BlockCache
-import org.github.seonwkim.lsm.sstable.SsTableBuilder
-import org.github.seonwkim.lsm.sstable.sstPath
+import org.github.seonwkim.lsm.sstable.*
 import java.nio.channels.FileChannel
 import java.nio.file.Files
 import java.nio.file.Path
@@ -21,7 +19,9 @@ class LsmStorageInner private constructor(
     val blockCache: BlockCache,
     val state: RwLock<LsmStorageState>,
     // val stateLock: RwLock<Unit> = MutexLock(Unit) TODO: do we need this?
-    private val nextSstId: AtomicInteger = AtomicInteger(1)
+    private val nextSstId: AtomicInteger = AtomicInteger(1),
+    private val compactionController: CompactionController,
+    private val manifest: Manifest?,
 ) {
 
     companion object {
@@ -45,26 +45,27 @@ class LsmStorageInner private constructor(
 
             val compactionOptions = options.compactionOptions
             val compactionController: CompactionController = when (compactionOptions) {
-                is CompactionOptions.Leveled -> {
-                    CompactionController.LeveledCompactionController(compactionOptions.options)
+                is Leveled -> {
+                    LeveledCompactionController(compactionOptions.options)
                 }
 
-                is CompactionOptions.Tiered -> {
-                    CompactionController.TieredCompactionController(compactionOptions.options)
+                is Tiered -> {
+                    TieredCompactionController(compactionOptions.options)
                 }
 
-                is CompactionOptions.Simple -> {
-                    CompactionController.Simple(compactionOptions.options)
+                is Simple -> {
+                    SimpleCompactionController(compactionOptions.options)
                 }
 
-                is CompactionOptions.NoCompaction -> {
-                    CompactionController.NoCompaction
+                is NoCompaction -> {
+                    NoCompactionController
                 }
             }
 
             val manifestPath = path.resolve("MANIFEST")
             lateinit var manifest: Manifest
-            var lastCommitTs = 0
+            var lastCommitTs = 0L
+            var nextSstId = 1
             if (!manifestPath.exists()) {
                 if (options.enableWal) {
                     // TODO("create with WAL")
@@ -74,20 +75,82 @@ class LsmStorageInner private constructor(
                 } catch (e: Exception) {
                     throw Error("Failed to create manifest file: $e")
                 }
-
+                manifest.addRecordWhenInit(NewMemTable(state.read().memTable.id))
             } else {
-                // TODO:
-                //  1. read from manifest record
-                //  2. modify memtable, l0Sstables, levels according to the record
-                //  3.
+                val (m, records) = Manifest.recover(path)
+                val memTables = mutableSetOf<Int>()
+                for (record in records) {
+                    when (record) {
+                        is Flush -> {
+                            val sstId = record.sstId
+                            val removed = memTables.remove(sstId)
+                            if (!removed) {
+                                throw Error("memtable of id $sstId not exists")
+                            }
+                            if (compactionController.flushTol0()) {
+                                state.read().l0SsTables.addFirst(sstId)
+                            } else {
+                                state.read().levels.addFirst(SstLevel(sstId, mutableListOf(sstId)))
+                            }
+                            nextSstId = maxOf(nextSstId, sstId)
+                        }
 
+                        is NewMemTable -> {
+                            nextSstId = maxOf(nextSstId, record.memTableId)
+                            memTables.add(nextSstId)
+                        }
+
+                        is Compaction -> {
+                            TODO()
+                        }
+                    }
+                }
+
+                var sstCount = 0
+                val tableIds = state.read().l0SsTables + state.read().levels.flatMap { it.tables }
+                for (tableId in tableIds) {
+                    val sst = SsTable.open(
+                        id = tableId,
+                        blockCache = blockCache.copy(),
+                        file = SsTableFile.open(sstPath(path, tableId))
+                    )
+                    lastCommitTs = maxOf(lastCommitTs, sst.maxTs)
+                    state.read().ssTables[tableId] = sst
+                    sstCount += 1
+                }
+                log.info { "$sstCount SSTs opened" }
+
+                nextSstId += 1
+
+                // For leveled compaction, sort SSTs on each level
+                if (compactionController is LeveledCompactionController) {
+                    val ssTables = state.read().ssTables
+                    for ((_, ssts) in state.read().levels) {
+                        ssts.sortWith { t1, t2 ->
+                            ssTables[t1]!!.firstKey.compareTo(ssTables[t2]!!.firstKey)
+                        }
+                    }
+                }
+
+                // Recover memTables
+                if (options.enableWal) {
+                    TODO()
+                } else {
+                    state.read().memTable = MemTable.create(nextSstId)
+                }
+                m.addRecordWhenInit(NewMemTable(state.read().memTable.id))
+                nextSstId += 1
+                manifest = m
             }
 
             return LsmStorageInner(
                 path = path,
                 options = options,
+                blockCache = blockCache,
                 state = state,
-                blockCache = blockCache
+                nextSstId = AtomicInteger(nextSstId),
+                compactionController = compactionController,
+                manifest = manifest,
             )
         }
 
@@ -105,8 +168,11 @@ class LsmStorageInner private constructor(
             return LsmStorageInner(
                 path = path,
                 options = options,
+                blockCache = blockCache,
                 state = state,
-                blockCache = blockCache
+                nextSstId = AtomicInteger(1),
+                compactionController = NoCompactionController,
+                manifest = null
             )
         }
     }
