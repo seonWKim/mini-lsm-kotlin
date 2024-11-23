@@ -3,7 +3,6 @@ package org.github.seonwkim.lsm.sstable
 import com.github.benmanes.caffeine.cache.Caffeine
 import org.github.seonwkim.lsm.block.Block
 import java.time.Duration
-import java.util.concurrent.ConcurrentHashMap
 
 class BlockCache(
     val size: Long = 1000,

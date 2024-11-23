@@ -3,27 +3,35 @@ plugins {
 }
 
 group = "org.github.seonwkim"
-version = "1.0-SNAPSHOT"
+version = "0.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation("com.google.guava:guava:33.3.1-jre")
-    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
+subprojects {
+    apply(plugin = "org.jetbrains.kotlin.jvm")
 
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.1")
-    implementation("ch.qos.logback:logback-classic:1.5.12")
-    implementation("io.github.microutils:kotlin-logging:2.0.4")
+    repositories {
+        mavenCentral()
+    }
 
-    testImplementation(kotlin("test"))
-    testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
-}
+    dependencies {
+        implementation("com.google.guava:guava:33.3.1-jre")
+        implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
-tasks.test {
-    useJUnitPlatform()
-}
-kotlin {
-    jvmToolchain(21)
+        implementation("com.fasterxml.jackson.core:jackson-databind:2.18.1")
+        implementation("ch.qos.logback:logback-classic:1.5.12")
+        implementation("io.github.microutils:kotlin-logging:2.0.4")
+
+        testImplementation(kotlin("test"))
+    }
+
+    tasks.test {
+        useJUnitPlatform()
+    }
+
+    kotlin {
+        jvmToolchain(21)
+    }
 }

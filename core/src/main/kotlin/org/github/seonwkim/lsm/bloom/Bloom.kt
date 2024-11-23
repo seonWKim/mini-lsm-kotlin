@@ -4,9 +4,6 @@ import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.clamp
 import org.github.seonwkim.common.isBitSet
 import org.github.seonwkim.common.setBit
-import kotlin.math.ceil
-import kotlin.math.ln
-import kotlin.math.pow
 
 /**
  * Bloom filter implementation.
