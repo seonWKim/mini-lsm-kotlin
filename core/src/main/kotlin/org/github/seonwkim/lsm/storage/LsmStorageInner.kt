@@ -77,7 +77,7 @@ class LsmStorageInner private constructor(
                 }
                 manifest.addRecord(NewMemTable(state.read().memTable.id))
             } else {
-                val (m, records) = Manifest.recover(path)
+                val (m, records) = Manifest.recover(manifestPath)
                 val memTables = mutableSetOf<Int>()
                 for (record in records) {
                     when (record) {
