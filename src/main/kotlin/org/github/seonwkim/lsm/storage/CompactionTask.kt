@@ -1,53 +1,75 @@
 package org.github.seonwkim.lsm.storage
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "type"
+)
+@JsonSubTypes(
+    JsonSubTypes.Type(value = LeveledTask::class, name = "LeveledTask"),
+    JsonSubTypes.Type(value = TieredTask::class, name = "TieredTask"),
+    JsonSubTypes.Type(value = SimpleTask::class, name = "SimpleTask"),
+    JsonSubTypes.Type(value = ForceFullCompaction::class, name = "ForceFullCompaction")
+)
 sealed interface CompactionTask {
-    data class Leveled(private val task: LeveledCompactionTask) : CompactionTask {
-        override fun compactToBottomLevel(): Boolean {
-            return task.isLowerLevelBottomLevel
-        }
-    }
-
-    data class Tiered(private val task: TieredCompactionTask) : CompactionTask {
-        override fun compactToBottomLevel(): Boolean {
-            return task.bottomTierIncluded
-        }
-    }
-
-    data class Simple(private val task: SimpleLeveledCompactionTask) : CompactionTask {
-        override fun compactToBottomLevel(): Boolean {
-            return task.isLowerLevelBottomLevel
-        }
-    }
-
-    data class ForceFullCompaction(
-        private val l0SsTables: List<Int>,
-        private val l1SsTables: List<Int>
-    ) : CompactionTask {
-        override fun compactToBottomLevel(): Boolean {
-            return true
-        }
-    }
-
     fun compactToBottomLevel(): Boolean
 }
 
-data class LeveledCompactionTask(
-    val upperLevel: Int,
-    val upperLevelSstIds: List<Int>,
-    val lowerLevel: Int,
-    val lowerLevelSstIds: List<Int>,
-    val isLowerLevelBottomLevel: Boolean
+data class LeveledTask @JsonCreator constructor(
+    @JsonProperty("meta") val meta: LeveledCompactionTaskMeta
+) : CompactionTask {
+    override fun compactToBottomLevel(): Boolean {
+        return meta.lowerLevelBottomLevel
+    }
+}
+
+data class TieredTask @JsonCreator constructor(
+    @JsonProperty("meta") val meta: TieredCompactionTaskMeta
+) : CompactionTask {
+    override fun compactToBottomLevel(): Boolean {
+        return meta.bottomTierIncluded
+    }
+}
+
+data class SimpleTask @JsonCreator constructor(
+    @JsonProperty("meta") val meta: SimpleLeveledCompactionTaskMeta
+) : CompactionTask {
+    override fun compactToBottomLevel(): Boolean {
+        return meta.lowerLevelBottomLevel
+    }
+}
+
+data class ForceFullCompaction @JsonCreator constructor(
+    @JsonProperty("l0SsTables") val l0SsTables: List<Int>,
+    @JsonProperty("l1SsTables") val l1SsTables: List<Int>
+) : CompactionTask {
+    override fun compactToBottomLevel(): Boolean {
+        return true
+    }
+}
+
+data class LeveledCompactionTaskMeta @JsonCreator constructor(
+    @JsonProperty("upperLevel") val upperLevel: Int,
+    @JsonProperty("upperLevelSstIds") val upperLevelSstIds: List<Int>,
+    @JsonProperty("lowerLevel") val lowerLevel: Int,
+    @JsonProperty("lowerLevelSstIds") val lowerLevelSstIds: List<Int>,
+    @JsonProperty("lowerLevelBottomLevel") val lowerLevelBottomLevel: Boolean
 )
 
-data class TieredCompactionTask(
-    val tiers: List<Pair<Int, List<Int>>>,
-    val bottomTierIncluded: Boolean
+data class TieredCompactionTaskMeta @JsonCreator constructor(
+    @JsonProperty("tiers") val tiers: List<Pair<Int, List<Int>>>,
+    @JsonProperty("bottomTierIncluded") val bottomTierIncluded: Boolean
 )
 
-data class SimpleLeveledCompactionTask(
-    val upperLevel: Int,
-    val upperLevelSstIds: List<Int>,
-    val lowerLevel: Int,
-    val lowerLevelSstIds: List<Int>,
-    val isLowerLevelBottomLevel: Boolean
+data class SimpleLeveledCompactionTaskMeta @JsonCreator constructor(
+    @JsonProperty("upperLevel") val upperLevel: Int,
+    @JsonProperty("upperLevelSstIds") val upperLevelSstIds: List<Int>,
+    @JsonProperty("lowerLevel") val lowerLevel: Int,
+    @JsonProperty("lowerLevelSstIds") val lowerLevelSstIds: List<Int>,
+    @JsonProperty("lowerLevelBottomLevel") val lowerLevelBottomLevel: Boolean
 )

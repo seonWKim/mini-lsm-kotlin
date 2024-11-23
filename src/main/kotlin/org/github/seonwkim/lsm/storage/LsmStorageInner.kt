@@ -75,7 +75,7 @@ class LsmStorageInner private constructor(
                 } catch (e: Exception) {
                     throw Error("Failed to create manifest file: $e")
                 }
-                manifest.addRecordWhenInit(NewMemTable(state.read().memTable.id))
+                manifest.addRecord(NewMemTable(state.read().memTable.id))
             } else {
                 val (m, records) = Manifest.recover(path)
                 val memTables = mutableSetOf<Int>()
@@ -138,7 +138,7 @@ class LsmStorageInner private constructor(
                 } else {
                     state.read().memTable = MemTable.create(nextSstId)
                 }
-                m.addRecordWhenInit(NewMemTable(state.read().memTable.id))
+                m.addRecord(NewMemTable(state.read().memTable.id))
                 nextSstId += 1
                 manifest = m
             }
