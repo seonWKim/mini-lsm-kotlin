@@ -1,9 +1,11 @@
 package org.github.seonwkim.minilsm.week2
 
+import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.Configuration
 import org.github.seonwkim.lsm.iterator.MergeIterator
 import org.github.seonwkim.lsm.iterator.SsTableIterator
+import org.github.seonwkim.lsm.iterator.StorageIterator
 import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.storage.LsmStorageState
@@ -11,6 +13,7 @@ import org.github.seonwkim.lsm.storage.NoCompaction
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class Day1 {
 
@@ -45,8 +48,32 @@ class Day1 {
         val iter = constructMergeIteratorOverStorage(storage.state.read())
 
         if (Configuration.TS_ENABLED) {
-
+            checkIterator(
+                actual = iter,
+                expected = listOf(
+                    Pair("0".toComparableByteArray(), "".toComparableByteArray()),
+                    Pair("0".toComparableByteArray(), "v2".toComparableByteArray()),
+                    Pair("0".toComparableByteArray(), "v1".toComparableByteArray()),
+                    Pair("1".toComparableByteArray(), "v2".toComparableByteArray()),
+                    Pair("2".toComparableByteArray(), "".toComparableByteArray()),
+                    Pair("2".toComparableByteArray(), "v2".toComparableByteArray()),
+                )
+            )
+        } else {
+            checkIterator(
+                actual = iter,
+                expected = listOf(
+                    Pair("1".toComparableByteArray(), "v2".toComparableByteArray())
+                )
+            )
         }
+        storage.put("0".toComparableByteArray(), "v3".toComparableByteArray())
+        storage.put("2".toComparableByteArray(), "v3".toComparableByteArray())
+        sync(storage)
+        storage.delete("1".toComparableByteArray())
+        sync(storage)
+
+        val iter2 = constructMergeIteratorOverStorage(storage.state.read())
     }
 
     private fun sync(storage: LsmStorageInner) {
@@ -71,5 +98,18 @@ class Day1 {
         }
 
         return MergeIterator(iters)
+    }
+
+    private fun checkIterator(
+        actual: StorageIterator,
+        expected: List<Pair<ComparableByteArray, ComparableByteArray>>
+    ) {
+        for (e in expected) {
+            assertTrue { actual.isValid() }
+            assertEquals(actual.key(), e.first)
+            assertEquals(actual.value(), e.second)
+            actual.next()
+        }
+        assertTrue { !actual.isValid() }
     }
 }
