@@ -3,19 +3,19 @@ package org.github.seonwkim.lsm.iterator
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.lsm.block.BlockIterator
 import org.github.seonwkim.common.TimestampedKey
-import org.github.seonwkim.lsm.sstable.SsTable
+import org.github.seonwkim.lsm.sstable.Sstable
 
 class SsTableIterator(
-    private val table: SsTable,
+    private val table: Sstable,
     private var blockIter: BlockIterator,
     private var blockIdx: Int
 ) : StorageIterator {
     companion object {
-        fun seekToFirstInner(table: SsTable): Pair<Int, BlockIterator> {
+        fun seekToFirstInner(table: Sstable): Pair<Int, BlockIterator> {
             return Pair(0, BlockIterator.createAndSeekToFirst(table.readBlockCached(0)))
         }
 
-        fun createAndSeekToFirst(table: SsTable): SsTableIterator {
+        fun createAndSeekToFirst(table: Sstable): SsTableIterator {
             val (blockIdx, blockIter) = seekToFirstInner(table)
             return SsTableIterator(
                 table = table,
@@ -24,7 +24,7 @@ class SsTableIterator(
             )
         }
 
-        fun seekToKeyInner(table: SsTable, key: TimestampedKey): Pair<Int, BlockIterator> {
+        fun seekToKeyInner(table: Sstable, key: TimestampedKey): Pair<Int, BlockIterator> {
             var blockIdx = table.findBlockIdx(key)
             var blockIter = BlockIterator.createAndSeekToKey(table.readBlockCached(blockIdx), key)
             if (!blockIter.isValid()) {
@@ -36,7 +36,7 @@ class SsTableIterator(
             return Pair(blockIdx, blockIter)
         }
 
-        fun createAndSeekToKey(table: SsTable, key: TimestampedKey): SsTableIterator {
+        fun createAndSeekToKey(table: Sstable, key: TimestampedKey): SsTableIterator {
             val (blockIdx, blockIter) = seekToKeyInner(table, key)
             return SsTableIterator(
                 table = table,

@@ -78,7 +78,7 @@ class SsTableBuilder(
         id: Int,
         blockCache: BlockCache?,
         path: Path
-    ): SsTable {
+    ): Sstable {
         finishBlock()
         val buf = data
         val metaOffset = buf.size()
@@ -94,7 +94,7 @@ class SsTableBuilder(
         buf += bloomOffset.toU32ByteArray()
         val file = SsTableFile.create(path, buf)
 
-        return SsTable(
+        return Sstable(
             file = file,
             blockMeta = meta,
             blockMetaOffset = metaOffset,
@@ -107,7 +107,7 @@ class SsTableBuilder(
         )
     }
 
-    fun buildForTest(path: Path): SsTable {
+    fun buildForTest(path: Path): Sstable {
         return build(0, null, path)
     }
 }

@@ -61,12 +61,12 @@ class Day1 {
     ): MergeIterator<SsTableIterator> {
         val iters = mutableListOf<SsTableIterator>()
         state.l0SsTables.forEach {
-            iters.add(SsTableIterator.createAndSeekToFirst(state.ssTables[it]!!))
+            iters.add(SsTableIterator.createAndSeekToFirst(state.sstables[it]!!))
         }
 
         state.levels.forEach { level ->
-            level.tables.forEach {
-                iters.add(SsTableIterator.createAndSeekToFirst(state.ssTables[it]!!))
+            level.sstIds.forEach {
+                iters.add(SsTableIterator.createAndSeekToFirst(state.sstables[it]!!))
             }
         }
 

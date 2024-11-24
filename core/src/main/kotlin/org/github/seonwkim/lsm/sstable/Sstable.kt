@@ -8,7 +8,7 @@ import org.github.seonwkim.lsm.block.*
 import org.github.seonwkim.lsm.bloom.Bloom
 import org.github.seonwkim.lsm.bloom.BloomUtil
 
-class SsTable(
+class Sstable(
     val file: SsTableFile,
     val blockMeta: List<BlockMeta>,
     val blockMetaOffset: Int,
@@ -21,11 +21,11 @@ class SsTable(
 ) {
 
     companion object {
-        fun openForTest(file: SsTableFile): SsTable {
+        fun openForTest(file: SsTableFile): Sstable {
             return open(0, null, file)
         }
 
-        fun open(id: Int, blockCache: BlockCache?, file: SsTableFile): SsTable {
+        fun open(id: Int, blockCache: BlockCache?, file: SsTableFile): Sstable {
             val len = file.size
             val rawBloomOffset = file.read(len - SIZE_OF_U32_IN_BYTE, SIZE_OF_U32_IN_BYTE)
             val bloomOffset = rawBloomOffset.toU32Int().toLong()
@@ -35,7 +35,7 @@ class SsTable(
             val blockMetaOffset = rawMetaOffset.toU32Int().toLong()
             val rawMeta = file.read(blockMetaOffset, (bloomOffset - 4 - blockMetaOffset).toInt())
             val (blockMeta, maxTs) = BlockMetaUtil.decodeBlockMeta(rawMeta)
-            return SsTable(
+            return Sstable(
                 file = file,
                 blockMeta = blockMeta,
                 blockMetaOffset = blockMetaOffset.toInt(),

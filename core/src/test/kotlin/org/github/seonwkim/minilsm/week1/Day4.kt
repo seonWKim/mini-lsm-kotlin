@@ -5,7 +5,7 @@ import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.common.toTimestampedKey
 import org.github.seonwkim.lsm.iterator.SsTableIterator
-import org.github.seonwkim.lsm.sstable.SsTable
+import org.github.seonwkim.lsm.sstable.Sstable
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
 import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
@@ -15,7 +15,7 @@ import kotlin.test.assertTrue
 class Day4 {
 
     companion object {
-        private val NUMBER_OF_KEYS = 100
+        private const val NUMBER_OF_KEYS = 100
     }
 
     @Test
@@ -54,7 +54,7 @@ class Day4 {
     fun `test sst decode`() {
         val (_, sst) = generateSst()
         val meta = sst.blockMeta
-        val newSst = SsTable.openForTest(sst.file)
+        val newSst = Sstable.openForTest(sst.file)
         assertEquals(newSst.blockMeta, meta)
         assertBlockKeyEqualsContent(newSst.firstKey, TimestampedKey(createKey(0).toComparableByteArray()))
         assertBlockKeyEqualsContent(
@@ -104,7 +104,7 @@ class Day4 {
         }
     }
 
-    private fun generateSst(): Pair<Path, SsTable> {
+    private fun generateSst(): Pair<Path, Sstable> {
         val builder = SsTableBuilder(128)
         for (idx in 0 until NUMBER_OF_KEYS) {
             val key = createKey(idx)

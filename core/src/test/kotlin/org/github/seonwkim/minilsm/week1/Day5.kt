@@ -178,8 +178,8 @@ class Day5 {
         val snapshot = storage.state.read()
         snapshot.l0SsTables.add(sst2.id)
         snapshot.l0SsTables.add(sst1.id)
-        snapshot.ssTables[sst2.id] = sst2
-        snapshot.ssTables[sst1.id] = sst1
+        snapshot.sstables[sst2.id] = sst2
+        snapshot.sstables[sst1.id] = sst1
 
         checkIterator(
             storage.scan(Bound.Unbounded, Bound.Unbounded),
@@ -203,8 +203,8 @@ class Day5 {
 
         checkIterator(
             storage.scan(
-                Bound.Included("1".toComparableByteArray()),
-                Bound.Included("3".toComparableByteArray())
+                Bound.Excluded("1".toComparableByteArray()),
+                Bound.Excluded("3".toComparableByteArray())
             ),
             listOf(
                 Pair("2".toComparableByteArray(), "2333".toComparableByteArray())
@@ -269,8 +269,8 @@ class Day5 {
         storage.state.withReadLock {
             it.l0SsTables.add(sst2.id)
             it.l0SsTables.add(sst1.id)
-            it.ssTables[sst2.id] = sst2
-            it.ssTables[sst1.id] = sst1
+            it.sstables[sst2.id] = sst2
+            it.sstables[sst1.id] = sst1
         }
 
         assertEquals(storage.get("0".toComparableByteArray()), "2333333".toComparableByteArray())
@@ -292,6 +292,7 @@ class Day5 {
             assertEquals(actual.value(), e.second)
             actual.next()
         }
+        assertTrue { !actual.isValid() }
     }
 
     private fun lsmStorageOptionForTest(): LsmStorageOptions = LsmStorageOptions(

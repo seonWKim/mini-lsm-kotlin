@@ -6,7 +6,7 @@ import org.github.seonwkim.common.farmHashFingerPrintU32
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.bloom.Bloom
 import org.github.seonwkim.lsm.bloom.BloomUtil
-import org.github.seonwkim.lsm.sstable.SsTable
+import org.github.seonwkim.lsm.sstable.Sstable
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
 import org.github.seonwkim.lsm.sstable.SsTableFile
 import kotlin.io.path.createTempDirectory
@@ -62,7 +62,7 @@ class Day7 {
         val dir = createTempDirectory("test_task2_sst_decode")
         val path = dir.resolve("1.sst")
         val sst1 = builder.buildForTest(path)
-        val sst2 = SsTable.open(
+        val sst2 = Sstable.open(
             id = 0,
             blockCache = null,
             file = SsTableFile.open(path)

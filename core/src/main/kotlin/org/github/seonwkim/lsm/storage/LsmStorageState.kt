@@ -1,7 +1,7 @@
 package org.github.seonwkim.lsm.storage
 
 import org.github.seonwkim.lsm.memtable.MemTable
-import org.github.seonwkim.lsm.sstable.SsTable
+import org.github.seonwkim.lsm.sstable.Sstable
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -14,7 +14,7 @@ class LsmStorageState(
     val l0SsTables: LinkedList<Int> = LinkedList(),
     val levels: LinkedList<SstLevel> = LinkedList(),
     // sst id, SSTable
-    val ssTables: ConcurrentHashMap<Int, SsTable> = ConcurrentHashMap()
+    val sstables: ConcurrentHashMap<Int, Sstable> = ConcurrentHashMap()
 ) {
 
 
@@ -23,12 +23,12 @@ class LsmStorageState(
             val levels = when (options.compactionOptions) {
                 is Leveled -> {
                     (1..options.compactionOptions.options.maxLevel)
-                        .map { SstLevel(level = it, tables = mutableListOf()) }
+                        .map { SstLevel(level = it, sstIds = mutableListOf()) }
                 }
 
                 is Simple -> {
                     (1..options.compactionOptions.options.maxLevels)
-                        .map { SstLevel(level = it, tables = mutableListOf()) }
+                        .map { SstLevel(level = it, sstIds = mutableListOf()) }
                 }
 
                 is Tiered -> {
@@ -36,7 +36,7 @@ class LsmStorageState(
                 }
 
                 is NoCompaction -> {
-                    mutableListOf(SstLevel(level = 1, tables = mutableListOf()))
+                    mutableListOf(SstLevel(level = 1, sstIds = mutableListOf()))
                 }
             }.toCollection(LinkedList())
 
@@ -54,5 +54,5 @@ class LsmStorageState(
  */
 data class SstLevel(
     val level: Int,
-    val tables: MutableList<Int>
+    val sstIds: MutableList<Int>
 )

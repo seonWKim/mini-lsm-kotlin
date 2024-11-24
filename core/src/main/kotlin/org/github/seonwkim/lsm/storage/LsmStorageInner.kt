@@ -107,15 +107,15 @@ class LsmStorageInner private constructor(
                 }
 
                 var sstCount = 0
-                val tableIds = state.read().l0SsTables + state.read().levels.flatMap { it.tables }
+                val tableIds = state.read().l0SsTables + state.read().levels.flatMap { it.sstIds }
                 for (tableId in tableIds) {
-                    val sst = SsTable.open(
+                    val sst = Sstable.open(
                         id = tableId,
                         blockCache = blockCache.copy(),
                         file = SsTableFile.open(sstPath(path, tableId))
                     )
                     lastCommitTs = maxOf(lastCommitTs, sst.maxTs)
-                    state.read().ssTables[tableId] = sst
+                    state.read().sstables[tableId] = sst
                     sstCount += 1
                 }
                 log.info { "$sstCount SSTs opened" }
@@ -124,10 +124,10 @@ class LsmStorageInner private constructor(
 
                 // For leveled compaction, sort SSTs on each level
                 if (compactionController is LeveledCompactionController) {
-                    val ssTables = state.read().ssTables
+                    val sstables = state.read().sstables
                     for ((_, ssts) in state.read().levels) {
                         ssts.sortWith { t1, t2 ->
-                            ssTables[t1]!!.firstKey.compareTo(ssTables[t2]!!.firstKey)
+                            sstables[t1]!!.firstKey.compareTo(sstables[t2]!!.firstKey)
                         }
                     }
                 }
@@ -200,16 +200,16 @@ class LsmStorageInner private constructor(
             }
         }
 
-        val ssTableIters = mutableListOf<StorageIterator>()
+        val sstableIters = mutableListOf<StorageIterator>()
         for (tableIdx in snapshot.l0SsTables) {
-            val table = snapshot.ssTables[tableIdx]!!
+            val table = snapshot.sstables[tableIdx]!!
             // TODO: for now, we do not consider timestamp, so we set to 0
             val timestampedKey = TimestampedKey(key, 0)
             if (table.firstKey <= timestampedKey && timestampedKey <= table.lastKey) {
-                ssTableIters.add(SsTableIterator.createAndSeekToKey(table, timestampedKey))
+                sstableIters.add(SsTableIterator.createAndSeekToKey(table, timestampedKey))
             }
         }
-        val mergedIter = MergeIterator(ssTableIters)
+        val mergedIter = MergeIterator(sstableIters)
         if (!mergedIter.isValid()) return null
         if (mergedIter.key() == key) {
             return if (mergedIter.isDeleted()) null else mergedIter.value()
@@ -298,7 +298,7 @@ class LsmStorageInner private constructor(
             // TODO: this is only for no compaction strategy, will require additional logic when we support for diverse compaction algorithms
             snapshot.l0SsTables.addFirst(sstId)
             log.info { "Flushed $sstId.sst with size ${sst.file.size}" }
-            snapshot.ssTables[sstId] = sst
+            snapshot.sstables[sstId] = sst
         }
 
         if (options.enableWal) {
@@ -329,16 +329,16 @@ class LsmStorageInner private constructor(
         val snapshot = state.read()
         val memTableIters = listOf(snapshot.memTable.iterator(lower, upper)) +
                 snapshot.immutableMemTables.map { it.iterator(lower, upper) }
-        val memTableMergedIter = MergeIterator(memTableIters)
+        val memTableMergeIter = MergeIterator(memTableIters)
 
-        val tableIters = snapshot.l0SsTables.mapNotNull { idx ->
-            val table = snapshot.ssTables[idx]!!
+        val l0SstableIters = snapshot.l0SsTables.mapNotNull { idx ->
+            val table = snapshot.sstables[idx]!!
             if (rangeOverlap(lower, upper, table.firstKey, table.lastKey)) {
                 when (lower) {
-                    is Bound.Included -> SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.value))
+                    is Bound.Included -> SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.key))
                     is Bound.Excluded -> {
-                        val iter = SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.value))
-                        if (iter.isValid() && iter.key() == lower.value) {
+                        val iter = SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.key))
+                        if (iter.isValid() && iter.key() == lower.key) {
                             iter.next()
                         }
                         iter
@@ -348,10 +348,56 @@ class LsmStorageInner private constructor(
                 }
             } else null
         }
-        val tableMergedIter = MergeIterator(tableIters)
+        val l0MergeIter = MergeIterator(l0SstableIters)
+
+        val levelIters = snapshot.levels.map { level ->
+            val levelSsts = mutableListOf<Sstable>()
+            level.sstIds.forEach {
+                val sstable = snapshot.sstables[it]!!
+                if (rangeOverlap(
+                        userBegin = lower,
+                        userEnd = upper,
+                        tableBegin = sstable.firstKey,
+                        tableEnd = sstable.lastKey
+                    )
+                ) {
+                    levelSsts.add(sstable)
+                }
+            }
+
+            when (lower) {
+                is Bound.Included -> {
+                    SstConcatIterator.createAndSeekToKey(
+                        sstables = levelSsts,
+                        key = TimestampedKey(lower.key),
+                    )
+                }
+
+                is Bound.Excluded -> {
+                    val iter = SstConcatIterator.createAndSeekToKey(
+                        sstables = levelSsts,
+                        key = TimestampedKey(lower.key),
+                    )
+                    while (iter.isValid() && iter.key() == lower.key) {
+                        iter.next()
+                    }
+                    iter
+                }
+
+                is Bound.Unbounded -> {
+                    SstConcatIterator.createAndSeekToFirst(levelSsts)
+                }
+            }
+        }
+
+        val `memTableIter plus l0Iter` = TwoMergeIterator.create(memTableMergeIter, l0MergeIter)
+        val `levelIter added iter` = TwoMergeIterator.create(`memTableIter plus l0Iter`, MergeIterator(levelIters))
 
         return FusedIterator(
-            iter = TwoMergeIterator.create(first = memTableMergedIter, second = tableMergedIter)
+            iter = LsmIterator.new(
+                iter = `levelIter added iter`,
+                endBound = upper
+            )
         )
     }
 
@@ -362,11 +408,11 @@ class LsmStorageInner private constructor(
         tableEnd: TimestampedKey
     ): Boolean {
         when (userEnd) {
-            is Bound.Excluded -> if (userEnd.value <= tableBegin.bytes) {
+            is Bound.Excluded -> if (userEnd.key <= tableBegin.bytes) {
                 return false
             }
 
-            is Bound.Included -> if (userEnd.value < tableBegin.bytes) {
+            is Bound.Included -> if (userEnd.key < tableBegin.bytes) {
                 return false
             }
 
@@ -374,11 +420,11 @@ class LsmStorageInner private constructor(
         }
 
         when (userBegin) {
-            is Bound.Excluded -> if (userBegin.value >= tableEnd.bytes) {
+            is Bound.Excluded -> if (userBegin.key >= tableEnd.bytes) {
                 return false
             }
 
-            is Bound.Included -> if (userBegin.value > tableEnd.bytes) {
+            is Bound.Included -> if (userBegin.key > tableEnd.bytes) {
                 return false
             }
 

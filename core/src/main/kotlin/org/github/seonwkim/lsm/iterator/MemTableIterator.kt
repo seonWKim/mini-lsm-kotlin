@@ -24,8 +24,8 @@ class MemTableIterator(
             .firstOrNull {
                 when (lower) {
                     is Bound.Unbounded -> true
-                    is Bound.Included -> it.key.bytes >= lower.value
-                    is Bound.Excluded -> it.key.bytes > lower.value
+                    is Bound.Included -> it.key.bytes >= lower.key
+                    is Bound.Excluded -> it.key.bytes > lower.key
                 }
             }
         this.iter = iter
@@ -48,8 +48,8 @@ class MemTableIterator(
 
         return when (upper) {
             is Bound.Unbounded -> true
-            is Bound.Included -> current!!.key.bytes <= upper.value
-            is Bound.Excluded -> current!!.key.bytes < upper.value
+            is Bound.Included -> current!!.key.bytes <= upper.key
+            is Bound.Excluded -> current!!.key.bytes < upper.key
         }
     }
 
@@ -63,10 +63,10 @@ class MemTableIterator(
         if (current != null) {
             when (upper) {
                 is Bound.Included -> {
-                    if (current!!.key.bytes > upper.value) current = null
+                    if (current!!.key.bytes > upper.key) current = null
                 }
                 is Bound.Excluded -> {
-                    if (current!!.key.bytes >= upper.value) current = null
+                    if (current!!.key.bytes >= upper.key) current = null
                 }
                 Bound.Unbounded -> {}
             }
