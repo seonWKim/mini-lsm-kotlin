@@ -97,7 +97,7 @@ class LsmStorageInner private constructor(
 
                         is NewMemTable -> {
                             nextSstId = maxOf(nextSstId, record.memTableId)
-                            memTables.add(nextSstId)
+                            memTables.add(record.memTableId)
                         }
 
                         is Compaction -> {
@@ -292,6 +292,8 @@ class LsmStorageInner private constructor(
 
         state.immutableMemTables.addFirst(state.memTable)
         state.memTable = memTable
+
+        manifest?.addRecord(NewMemTable(memtableId))
     }
 
     /**
@@ -420,7 +422,8 @@ class LsmStorageInner private constructor(
         }
 
         val `memTableIter plus l0Iter` = TwoMergeIterator.create(memTableMergeIter, l0MergeIter)
-        val `levelIter added iter` = TwoMergeIterator.create(`memTableIter plus l0Iter`, MergeIterator(levelIters))
+        val `levelIter added iter` =
+            TwoMergeIterator.create(`memTableIter plus l0Iter`, MergeIterator(levelIters))
 
         return FusedIterator(
             iter = LsmIterator.new(

@@ -69,13 +69,7 @@ class Day1 {
                 )
             )
         }
-        storage.put("0".toComparableByteArray(), "v3".toComparableByteArray())
-        storage.put("2".toComparableByteArray(), "v3".toComparableByteArray())
-        sync(storage)
-        storage.delete("1".toComparableByteArray())
-        sync(storage)
 
-        val iter2 = constructMergeIteratorOverStorage(storage.state.read())
     }
 
     private fun sync(storage: LsmStorageInner) {
