@@ -6,8 +6,8 @@ import java.util.*
 /**
  * Merge iterators of same type
  */
-class MergeIterator(
-    private val iterators: List<StorageIterator>
+class MergeIterator<T: StorageIterator>(
+    private val iterators: List<T>
 ) : StorageIterator {
     data class PriorityQueueKey(
         val idx: Int,

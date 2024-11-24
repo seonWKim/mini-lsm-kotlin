@@ -58,7 +58,7 @@ class Day1 {
 
     private fun constructMergeIteratorOverStorage(
         state: LsmStorageState
-    ): MergeIterator {
+    ): MergeIterator<SsTableIterator> {
         val iters = mutableListOf<SsTableIterator>()
         state.l0SsTables.forEach {
             iters.add(SsTableIterator.createAndSeekToFirst(state.ssTables[it]!!))

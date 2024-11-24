@@ -5,13 +5,13 @@ import org.github.seonwkim.common.ComparableByteArray
 /**
  * Used to merge two iterators of different type.
  */
-class TwoMergeIterator(
-    private val first: StorageIterator,
-    private val second: StorageIterator,
+class TwoMergeIterator<A: StorageIterator, B: StorageIterator>(
+    private val first: A,
+    private val second: B,
     private var chooseFirst: Boolean
 ) : StorageIterator {
     companion object {
-        fun create(first: StorageIterator, second: StorageIterator): TwoMergeIterator {
+        fun <A: StorageIterator, B: StorageIterator> create(first: A, second: B): TwoMergeIterator<A, B> {
             val iter = TwoMergeIterator(
                 first = first,
                 second = second,
