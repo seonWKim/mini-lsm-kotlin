@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.0.21"
+    id("me.champeau.jmh") version "0.7.2" apply false
 }
 
 group = "org.github.seonwkim"
@@ -24,6 +25,8 @@ subprojects {
         implementation("ch.qos.logback:logback-classic:1.5.12")
         implementation("io.github.microutils:kotlin-logging:2.0.4")
 
+        testImplementation("org.openjdk.jmh:jmh-core:1.36")
+        testImplementation("org.openjdk.jmh:jmh-generator-annprocess:1.37")
         testImplementation(kotlin("test"))
     }
 
