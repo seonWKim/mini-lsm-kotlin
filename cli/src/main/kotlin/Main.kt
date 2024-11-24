@@ -2,12 +2,14 @@ package org.github.seonwkim
 
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
+import kotlinx.cli.ExperimentalCli
 import kotlinx.cli.Subcommand
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.storage.MiniLsm
 import org.github.seonwkim.lsm.storage.NoCompaction
 import java.nio.file.Paths
 
+@OptIn(ExperimentalCli::class)
 fun main() {
     val path = Paths.get("").toAbsolutePath().resolve("cli-output")
     val miniLsm = MiniLsm.open(
