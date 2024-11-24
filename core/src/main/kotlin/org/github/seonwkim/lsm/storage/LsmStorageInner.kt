@@ -252,6 +252,7 @@ class LsmStorageInner private constructor(
      * Force freeze the current memTable to an immutable memTable.
      * Requires external locking.
      */
+    // TODO: do we need state as an argument?
     fun forceFreezeMemTable(state: LsmStorageState) {
         val memtableId = nextSstId.get()
         val memTable = if (options.enableWal) {
@@ -303,6 +304,8 @@ class LsmStorageInner private constructor(
         if (options.enableWal) {
             TODO("remove wal file")
         }
+
+        manifest?.addRecord(Flush(sstId))
 
         // Is there more sufficient way to sync all OS-internal file content and metadata to disk?
         FileChannel.open(path).use { it.force(true) }

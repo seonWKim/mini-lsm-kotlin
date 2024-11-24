@@ -2,6 +2,7 @@ package org.github.seonwkim.lsm.storage
 
 import mu.KotlinLogging
 import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.toComparableByteArray
 import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -23,11 +24,27 @@ class MiniLsm private constructor(val inner: LsmStorageInner) {
         }
     }
 
+    fun get(key: String): String? {
+        return inner.get(key.toComparableByteArray())?.toString()
+    }
+
+    fun get(key: ComparableByteArray): ComparableByteArray? {
+        return inner.get(key)
+    }
+
+    fun put(key: String, value: String) {
+        inner.put(key.toComparableByteArray(), value.toComparableByteArray())
+    }
+
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
         inner.put(key, value)
     }
 
-    fun scheduleFlush() {
+    fun delete(key: String) {
+        inner.delete(key.toComparableByteArray())
+    }
+
+    private fun scheduleFlush() {
         flushScheduler.scheduleWithFixedDelay(
             {
                 try {
@@ -42,7 +59,7 @@ class MiniLsm private constructor(val inner: LsmStorageInner) {
         )
     }
 
-    fun scheduleCompaction() {
+    private fun scheduleCompaction() {
         when (inner.options.compactionOptions) {
             is Simple,
             is Leveled,
