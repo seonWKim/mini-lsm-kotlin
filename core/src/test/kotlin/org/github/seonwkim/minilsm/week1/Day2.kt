@@ -323,7 +323,7 @@ class Day2 {
         iter: StorageIterator
     ) {
         assertThrows<T> {
-            while (iter.isValid()) {
+            while (true) {
                 iter.next()
             }
         }

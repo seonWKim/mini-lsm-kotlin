@@ -1,14 +1,18 @@
 package org.github.seonwkim.lsm.iterator
 
+import mu.KotlinLogging
 import org.github.seonwkim.common.ComparableByteArray
 import java.util.*
 
 /**
  * Merge iterators of same type
  */
-class MergeIterator<T: StorageIterator>(
+class MergeIterator<T : StorageIterator>(
     private val iterators: List<T>
 ) : StorageIterator {
+
+    private val log = KotlinLogging.logger { }
+
     data class PriorityQueueKey(
         val idx: Int,
         val iterator: StorageIterator,
@@ -55,7 +59,11 @@ class MergeIterator<T: StorageIterator>(
         while (priorityQueue.isNotEmpty()) {
             if (currKey == priorityQueue.first().iterator.key()) {
                 val (nextIdx, nextIter) = priorityQueue.poll()
-                nextIter.next()
+                runCatching { nextIter.next() }
+                    .onFailure { e ->
+                        log.error { "error while calling next(): $e" }
+                        throw e
+                    }
                 if (nextIter.isValid()) {
                     priorityQueue.add(PriorityQueueKey(nextIdx, nextIter))
                 }
