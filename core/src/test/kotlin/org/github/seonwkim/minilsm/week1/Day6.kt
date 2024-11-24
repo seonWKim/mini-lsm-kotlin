@@ -33,16 +33,16 @@ class Day6 {
 
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
+        storage.stateManager.forceFreezeMemTable()
 
         storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
+        storage.stateManager.forceFreezeMemTable()
 
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toComparableByteArray())
 
-        storage.state.withReadLock {
-            assertEquals(it.l0SsTables.size, 2)
+        storage.stateManager.snapshot().state.let {
+            assertEquals(it.l0Sstables.size, 2)
             assertEquals(it.immutableMemTables.size, 2)
         }
 
@@ -98,16 +98,16 @@ class Day6 {
 
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
+        storage.stateManager.forceFreezeMemTable()
 
         storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
+        storage.stateManager.forceFreezeMemTable()
 
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toComparableByteArray())
 
-        storage.state.withReadLock {
-            assertEquals(it.l0SsTables.size, 2)
+        storage.stateManager.snapshot().state.let {
+            assertEquals(it.l0Sstables.size, 2)
             assertEquals(it.immutableMemTables.size, 2)
         }
 
@@ -140,7 +140,7 @@ class Day6 {
         }
 
         Thread.sleep(500)
-        assertTrue { storage.inner.state.read().l0SsTables.isNotEmpty() }
+        assertTrue { storage.inner.stateManager.snapshot().state.l0Sstables.isNotEmpty() }
     }
 
     @Test
@@ -199,9 +199,7 @@ class Day6 {
     }
 
     private fun sync(storage: LsmStorageInner) {
-        storage.state.withWriteLock {
-            storage.forceFreezeMemTable(it)
-        }
+        storage.stateManager.forceFreezeMemTable()
         storage.forceFlushNextImmMemTable()
     }
 

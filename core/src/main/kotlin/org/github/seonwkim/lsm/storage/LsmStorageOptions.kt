@@ -1,10 +1,12 @@
 package org.github.seonwkim.lsm.storage
 
+import org.github.seonwkim.common.DefaultRwLock
+import org.github.seonwkim.common.RwLock
+
 data class LsmStorageOptions(
     // block size in bytes
     val blockSize: Int,
 
-    // SST size in bytes, the approximate memTable capacity limit
     val targetSstSize: Int,
 
     // maximum number of memtables in memory, flush to L0 when exceeding this limit
@@ -22,5 +24,26 @@ data class LsmStorageOptions(
     val flushIntervalMillis: Long = 50,
 
     // TODO: add explanation
-    val serializable: Boolean = false
+    val serializable: Boolean = false,
+    val customizableMemTableLock: RwLock<Unit> = DefaultRwLock(Unit),
+    val customizableL0Lock: RwLock<Unit> = DefaultRwLock(Unit)
+) {
+//    fun toStateOptions(): LsmStorageStateOptions {
+//
+//    }
+}
+
+data class LsmStorageStateOptions(
+    // block size in bytes
+    val blockSize: Int,
+
+    val targetSstSize: Int,
+
+    // maximum number of memtables in memory, flush to L0 when exceeding this limit
+    val numMemTableLimit: Int,
+
+    // TODO: add explanation
+    val serializable: Boolean = false,
+    val customizableMemTableLock: RwLock<Unit> = DefaultRwLock(Unit),
+    val customizableL0Lock: RwLock<Unit> = DefaultRwLock(Unit)
 )

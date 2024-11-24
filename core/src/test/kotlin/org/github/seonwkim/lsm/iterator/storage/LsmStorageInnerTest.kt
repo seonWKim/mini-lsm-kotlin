@@ -3,11 +3,8 @@ package org.github.seonwkim.lsm.iterator.storage
 import mu.KotlinLogging
 import org.github.seonwkim.common.SimulatedRwLock
 import org.github.seonwkim.common.toComparableByteArray
-import org.github.seonwkim.lsm.memtable.MemTable
-import org.github.seonwkim.lsm.sstable.BlockCache
 import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
-import org.github.seonwkim.lsm.storage.LsmStorageState
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -23,22 +20,12 @@ class LsmStorageInnerTest {
         val options = LsmStorageOptions(
             blockSize = 2,
             targetSstSize = 2,
-            numMemTableLimit = 10
+            numMemTableLimit = 10,
         )
 
         val storage = LsmStorageInner.open(
             path = createTempDirectory("test_concurrency").resolve("1.sst"),
             options = options,
-            blockCache = BlockCache(),
-            state = SimulatedRwLock(
-                value = LsmStorageState(MemTable.create(0)),
-                afterReadLockAcquireBehavior = {
-                    log.info { "Trying to acquire read lock from ${Thread.currentThread()}" }
-                },
-                afterWriteLockAcquireBehavior = {
-                    log.info { "Trying to acquire write lock from ${Thread.currentThread()}" }
-                }
-            )
         )
 
         storage.put("a".toComparableByteArray(), "aa".toComparableByteArray())
@@ -59,7 +46,7 @@ class LsmStorageInnerTest {
         // freeze and then
         storage.put("i".toComparableByteArray(), "ii".toComparableByteArray())
 
-        assertEquals(8, storage.state.read().immutableMemTables.size)
+        assertEquals(8, storage.stateManager.snapshot().getImmutableMemTablesSize())
     }
 
     @Test
@@ -67,18 +54,16 @@ class LsmStorageInnerTest {
         val options = LsmStorageOptions(
             blockSize = 2,
             targetSstSize = 2,
-            numMemTableLimit = 10
+            numMemTableLimit = 10,
+            customizableMemTableLock = SimulatedRwLock(
+                value = Unit,
+                afterWriteLockAcquireBehavior = { Thread.sleep(100) }
+            )
         )
 
         val storage = LsmStorageInner.open(
             path = createTempDirectory("test_concurrency").resolve("1.sst"),
             options = options,
-            state = SimulatedRwLock(
-                value = LsmStorageState(MemTable.create(0)),
-                afterReadLockAcquireBehavior = {},
-                afterWriteLockAcquireBehavior = { Thread.sleep(100) }
-            ),
-            blockCache = BlockCache(),
         )
 
         val executors = List(3) { Executors.newVirtualThreadPerTaskExecutor() }
@@ -95,7 +80,7 @@ class LsmStorageInnerTest {
         tasks.forEach { it.get() } // Wait for all tasks to complete
 
         executors.forEach { it.shutdown() }
-        assertEquals(8, storage.state.read().immutableMemTables.size)
+        assertEquals(8, storage.stateManager.snapshot().getImmutableMemTablesSize())
     }
 
     @Test
@@ -103,15 +88,9 @@ class LsmStorageInnerTest {
         val options = LsmStorageOptions(
             blockSize = 2,
             targetSstSize = 2,
-            numMemTableLimit = 10
-        )
-
-        val storage = LsmStorageInner.open(
-            path = createTempDirectory("test_concurrency").resolve("1.sst"),
-            options = options,
-            blockCache = BlockCache(),
-            state = SimulatedRwLock(
-                value = LsmStorageState(MemTable.create(0)),
+            numMemTableLimit = 10,
+            customizableMemTableLock = SimulatedRwLock(
+                value = Unit ,
                 afterWriteLockAcquireBehavior = {
                     Thread.sleep(500)
                     log.info { "Trying to acquire write lock from ${Thread.currentThread()}" }
@@ -119,25 +98,28 @@ class LsmStorageInnerTest {
             )
         )
 
+        val storage = LsmStorageInner.open(
+            path = createTempDirectory("test_concurrency").resolve("1.sst"),
+            options = options,
+        )
+
         // flush memTable into immutableMemTables
         storage.put("a".toComparableByteArray(), "aa".toComparableByteArray())
         storage.put("b".toComparableByteArray(), "bb".toComparableByteArray())
-        storage.state.withWriteLock {
-            storage.forceFreezeMemTable(it)
-        }
-        assertTrue { storage.state.read().immutableMemTables.size == 2 }
+        storage.stateManager.forceFreezeMemTable()
+        assertTrue { storage.stateManager.snapshot().getImmutableMemTablesSize() == 2 }
 
         // call forceFlushNextImmMemTable in parallel, this will only flush single, the oldest immutableMemTable
         val executors = List(5) { Executors.newSingleThreadExecutor() }
         val tasks = executors.map { executor -> executor.submit { storage.forceFlushNextImmMemTable() } }
         tasks.forEach { it.get() }
-        assertEquals(1, storage.state.read().immutableMemTables.size)
-        assertEquals(1, storage.state.read().l0SsTables.size)
+        assertEquals(1, storage.stateManager.snapshot().getImmutableMemTablesSize())
+        assertEquals(1, storage.stateManager.snapshot().getL0SstablesSize())
 
         // this will flush remaining immutableMemTable
         storage.forceFlushNextImmMemTable()
-        assertEquals(0, storage.state.read().immutableMemTables.size)
-        assertEquals(2, storage.state.read().l0SsTables.size)
+        assertEquals(0, storage.stateManager.snapshot().getImmutableMemTablesSize())
+        assertEquals(2, storage.stateManager.snapshot().getL0SstablesSize())
 
         executors.forEach { it.shutdown() }
     }

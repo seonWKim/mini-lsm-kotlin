@@ -78,17 +78,17 @@ class Day1 {
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
-        assertEquals(storage.state.read().immutableMemTables.size, 1)
-        val previousApproximateSize = storage.state.read().immutableMemTables[0].approximateSize()
+        storage.stateManager.forceFreezeMemTable()
+        assertEquals(storage.stateManager.snapshot().getImmutableMemTablesSize(), 1)
+        val previousApproximateSize = storage.stateManager.snapshot().getImmutableMemTableApproximateSize(0)
         assertTrue("previousApproximate size should be greater than or equal to 15") { previousApproximateSize >= 15 }
         storage.put("1".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "23333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "233333".toComparableByteArray())
-        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
-        assertEquals(storage.state.read().immutableMemTables.size, 2)
-        assertTrue("Wrong order of memtables?") { storage.state.read().immutableMemTables[1].approximateSize() == previousApproximateSize }
-        assertTrue { storage.state.read().immutableMemTables[0].approximateSize() > previousApproximateSize }
+        storage.stateManager.forceFreezeMemTable()
+        assertEquals(storage.stateManager.snapshot().getImmutableMemTablesSize(), 2)
+        assertTrue("Wrong order of memtables?") { storage.stateManager.snapshot().getImmutableMemTableApproximateSize(1) == previousApproximateSize }
+        assertTrue { storage.stateManager.snapshot().getImmutableMemTableApproximateSize(0) > previousApproximateSize }
     }
 
     @Test
@@ -103,12 +103,12 @@ class Day1 {
         for (_unused in 0..1000) {
             storage.put("1".toComparableByteArray(), "2333".toComparableByteArray())
         }
-        val numImmMemtables = storage.state.read().immutableMemTables.size
+        val numImmMemtables = storage.stateManager.snapshot().getImmutableMemTablesSize()
         assertTrue("No memtables frozen?") { numImmMemtables >= 1 }
         for (_unused in 0..1000) {
             storage.delete("1".toComparableByteArray())
         }
-        assertTrue("No more memTable frozen?") { storage.state.read().immutableMemTables.size > numImmMemtables }
+        assertTrue("No more memTable frozen?") { storage.stateManager.snapshot().getImmutableMemTablesSize() > numImmMemtables }
     }
 
     @Test
@@ -119,15 +119,15 @@ class Day1 {
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
+        storage.stateManager.forceFreezeMemTable()
         storage.delete("1".toComparableByteArray())
         storage.delete("2".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("4".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.state.withWriteLock { storage.forceFreezeMemTable(it) }
+        storage.stateManager.forceFreezeMemTable()
         storage.put("1".toComparableByteArray(), "233333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "233333".toComparableByteArray())
-        assertEquals(storage.state.read().immutableMemTables.size, 2)
+        assertEquals(storage.stateManager.snapshot().getImmutableMemTablesSize(), 2)
         assertEquals(storage.get("1".toComparableByteArray()), "233333".toComparableByteArray())
         assertEquals(storage.get("2".toComparableByteArray()), null)
         assertEquals(storage.get("3".toComparableByteArray()), "233333".toComparableByteArray())

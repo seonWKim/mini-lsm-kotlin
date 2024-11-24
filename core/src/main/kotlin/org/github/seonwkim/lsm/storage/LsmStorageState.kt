@@ -4,16 +4,22 @@ import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.sstable.Sstable
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 
+/**
+ * Represents the state of the LSM storage.
+ *
+ * @property memTable The current memTable.
+ * @property immutableMemTables The immutable memTables from latest to earliest.
+ * @property l0Sstables The L0 SSTs, from latest to earliest.
+ * @property levels The levels of SSTables.
+ * @property sstables The map of SSTable IDs to SSTable instances.
+ */
 class LsmStorageState(
-    // current memTable
-    var memTable: MemTable,
-    // immutable memTables from latest to earliest earliest
+    var memTable: AtomicReference<MemTable>,
     var immutableMemTables: LinkedList<MemTable> = LinkedList(),
-    // L0 SSTs, from latest to earliest
-    val l0SsTables: LinkedList<Int> = LinkedList(),
+    val l0Sstables: LinkedList<Int> = LinkedList(),
     val levels: LinkedList<SstLevel> = LinkedList(),
-    // sst id, SSTable
     val sstables: ConcurrentHashMap<Int, Sstable> = ConcurrentHashMap()
 ) {
 
@@ -41,18 +47,9 @@ class LsmStorageState(
             }.toCollection(LinkedList())
 
             return LsmStorageState(
-                memTable = MemTable.create(0),
+                memTable = AtomicReference(MemTable.create(0)),
                 levels = levels
             )
         }
     }
 }
-
-/**
- * SsTables sorted by key range.
- * L1 ~ L_max for leveled compaction, or tiers for tiered compaction.
- */
-data class SstLevel(
-    val level: Int,
-    val sstIds: MutableList<Int>
-)

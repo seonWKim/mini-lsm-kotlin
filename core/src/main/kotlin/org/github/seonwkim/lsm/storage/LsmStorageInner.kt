@@ -7,7 +7,6 @@ import org.github.seonwkim.lsm.memtable.MemtableValue
 import org.github.seonwkim.lsm.memtable.isDeleted
 import org.github.seonwkim.lsm.memtable.isValid
 import org.github.seonwkim.lsm.sstable.*
-import java.nio.channels.FileChannel
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicInteger
@@ -16,10 +15,7 @@ import kotlin.io.path.exists
 class LsmStorageInner private constructor(
     val path: Path,
     val options: LsmStorageOptions,
-    val blockCache: BlockCache,
-    val state: RwLock<LsmStorageState>,
-    // val stateLock: RwLock<Unit> = MutexLock(Unit) TODO: do we need this?
-    private val nextSstId: AtomicInteger = AtomicInteger(1),
+    val stateManager: LsmStorageStateConcurrencyManager,
     private val compactionController: CompactionController,
     private val manifest: Manifest?,
 ) {
@@ -40,8 +36,13 @@ class LsmStorageInner private constructor(
                     throw e
                 }
             }
-            val state = DefaultRwLock(LsmStorageState.create(options))
-            val blockCache = BlockCache(1 shl 20)
+            val stateManager = LsmStorageStateConcurrencyManager(
+                path = path,
+                state = LsmStorageState.create(options),
+                options = options,
+                nextSstId = AtomicInteger(1),
+                blockCache = BlockCache(1 shl 20)
+            )
 
             val compactionOptions = options.compactionOptions
             val compactionController: CompactionController = when (compactionOptions) {
@@ -65,7 +66,6 @@ class LsmStorageInner private constructor(
             val manifestPath = path.resolve("MANIFEST")
             lateinit var manifest: Manifest
             var lastCommitTs = 0L
-            var nextSstId = 1
             if (!manifestPath.exists()) {
                 if (options.enableWal) {
                     // TODO("create with WAL")
@@ -75,7 +75,7 @@ class LsmStorageInner private constructor(
                 } catch (e: Exception) {
                     throw Error("Failed to create manifest file: $e")
                 }
-                manifest.addRecord(NewMemTable(state.read().memTable.id))
+                manifest.addRecord(NewMemTable(stateManager.memTableId()))
             } else {
                 val (m, records) = Manifest.recover(manifestPath)
                 val memTables = mutableSetOf<Int>()
@@ -88,15 +88,16 @@ class LsmStorageInner private constructor(
                                 throw Error("memtable of id $sstId not exists")
                             }
                             if (compactionController.flushTol0()) {
-                                state.read().l0SsTables.addFirst(sstId)
+                                stateManager.addNewL0SstableId(sstId)
                             } else {
-                                state.read().levels.addFirst(SstLevel(sstId, mutableListOf(sstId)))
+                                stateManager.addNewSstLevel(SstLevel(sstId, mutableListOf(sstId)))
                             }
-                            nextSstId = maxOf(nextSstId, sstId)
+
+                            stateManager.setNextSstId(maxOf(stateManager.memTableId(), sstId))
                         }
 
                         is NewMemTable -> {
-                            nextSstId = maxOf(nextSstId, record.memTableId)
+                            stateManager.setNextSstId(maxOf(stateManager.nextSstId(), record.memTableId))
                             memTables.add(record.memTableId)
                         }
 
@@ -107,48 +108,42 @@ class LsmStorageInner private constructor(
                 }
 
                 var sstCount = 0
-                val tableIds = state.read().l0SsTables + state.read().levels.flatMap { it.sstIds }
-                for (tableId in tableIds) {
+                val tableIds = stateManager.getTotalSstableIds()
+                for (sstableId in tableIds) {
                     val sst = Sstable.open(
-                        id = tableId,
-                        blockCache = blockCache.copy(),
-                        file = SsTableFile.open(sstPath(path, tableId))
+                        id = sstableId,
+                        blockCache = stateManager.blockCache.copy(),
+                        file = SsTableFile.open(sstPath(path, sstableId))
                     )
                     lastCommitTs = maxOf(lastCommitTs, sst.maxTs)
-                    state.read().sstables[tableId] = sst
+                    stateManager.setSstable(sstableId, sst)
                     sstCount += 1
                 }
                 log.info { "$sstCount SSTs opened" }
 
-                nextSstId += 1
+                stateManager.incrementNextSstId()
 
                 // For leveled compaction, sort SSTs on each level
                 if (compactionController is LeveledCompactionController) {
-                    val sstables = state.read().sstables
-                    for ((_, ssts) in state.read().levels) {
-                        ssts.sortWith { t1, t2 ->
-                            sstables[t1]!!.firstKey.compareTo(sstables[t2]!!.firstKey)
-                        }
-                    }
+                    stateManager.sortLevels()
                 }
 
                 // Recover memTables
                 if (options.enableWal) {
                     TODO()
                 } else {
-                    state.read().memTable = MemTable.create(nextSstId)
+                    stateManager.setMemTable(memTable = MemTable.create(stateManager.nextSstId()))
                 }
-                m.addRecord(NewMemTable(state.read().memTable.id))
-                nextSstId += 1
+                m.addRecord(NewMemTable(stateManager.memTableId()))
+                stateManager.incrementNextSstId()
                 manifest = m
             }
+            stateManager.setManifest(manifest)
 
             return LsmStorageInner(
                 path = path,
                 options = options,
-                blockCache = blockCache,
-                state = state,
-                nextSstId = AtomicInteger(nextSstId),
+                stateManager = stateManager,
                 compactionController = compactionController,
                 manifest = manifest,
             )
@@ -157,8 +152,7 @@ class LsmStorageInner private constructor(
         fun open(
             path: Path,
             options: LsmStorageOptions,
-            blockCache: BlockCache,
-            state: RwLock<LsmStorageState>,
+            stateManager: LsmStorageStateConcurrencyManager,
         ): LsmStorageInner {
             if (!path.exists()) {
                 log.info { "Creating directories $path" }
@@ -168,9 +162,7 @@ class LsmStorageInner private constructor(
             return LsmStorageInner(
                 path = path,
                 options = options,
-                blockCache = blockCache,
-                state = state,
-                nextSstId = AtomicInteger(1),
+                stateManager = stateManager,
                 compactionController = NoCompactionController,
                 manifest = null
             )
@@ -178,60 +170,33 @@ class LsmStorageInner private constructor(
     }
 
     fun get(key: ComparableByteArray): ComparableByteArray? {
-        val snapshot = state.read()
+        return get(TimestampedKey(key))
+    }
 
-        val memTableResult = snapshot.memTable.get(key)
-        if (memTableResult.isValid()) {
-            return memTableResult!!.value
-        }
+    fun get(key: TimestampedKey): ComparableByteArray? {
+        val snapshot = stateManager.snapshot(timestamp = 0L) // TODO: set timestamp accordingly
 
-        if (memTableResult.isDeleted()) {
-            return null
-        }
-
-        for (immMemTable in snapshot.immutableMemTables) {
-            val immMemTableResult = immMemTable.get(key)
-            if (immMemTableResult.isValid()) {
-                return immMemTableResult!!.value
-            }
-
-            if (immMemTableResult.isDeleted()) {
-                return null
-            }
-        }
-
-        val l0Iter = snapshot.l0SsTables.mapNotNull { l0SstableIdx ->
-            val table = snapshot.sstables[l0SstableIdx]!!
-            // TODO: for now, we do not consider timestamp, so we set to 0
-            val timestampedKey = TimestampedKey(key, 0)
-            if (table.firstKey <= timestampedKey && timestampedKey <= table.lastKey) {
-                SsTableIterator.createAndSeekToKey(table, timestampedKey)
-            } else {
-                null
-            }
-        }.let { MergeIterator(it) }
-
-        val levelIters = snapshot.levels.map { level ->
-            val validLevelSsts = mutableListOf<Sstable>()
-            level.sstIds.forEach { levelSstId ->
-                val table = snapshot.sstables[levelSstId]!!
-                if (keepTable(key, table)) {
-                    validLevelSsts.add(table)
+        snapshot.getFromMemTable(key).let {
+            when {
+                it.isValid() -> return it!!.value
+                it.isDeleted() -> return null
+                else -> {
+                    // find from immutable memTables
                 }
             }
-            SstConcatIterator.createAndSeekToKey(validLevelSsts, TimestampedKey(key))
         }
 
-        val totalMergedIter = TwoMergeIterator.create(
-            l0Iter,
-            MergeIterator(levelIters)
-        )
-
-        if (totalMergedIter.isValid() && totalMergedIter.key() == key && !totalMergedIter.value().isEmpty()) {
-            return totalMergedIter.value()
+        snapshot.getFromImmutableMemTables(key).let {
+            when {
+                it.isValid() -> return it!!.value
+                it.isDeleted() -> return null
+                else -> {
+                    // find from l0 sstables
+                }
+            }
         }
 
-        return null
+        return snapshot.getFromSstables(key)
     }
 
     private fun keepTable(key: ComparableByteArray, table: Sstable): Boolean {
@@ -247,180 +212,46 @@ class LsmStorageInner private constructor(
     }
 
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
-        updateMemTable {
-            it.memTable.put(
-                key = key,
-                value = MemtableValue(value)
-            )
-        }
+        stateManager.put(key, MemtableValue(value))
     }
 
     fun delete(key: ComparableByteArray) {
-        updateMemTable {
-            it.memTable.put(
-                key = key,
-                value = MemtableValue(ComparableByteArray.new())
-            )
-        }
+        stateManager.put(key, MemtableValue(ComparableByteArray.new()))
     }
 
-    private fun updateMemTable(action: (state: LsmStorageState) -> Unit) {
-        state.withWriteLock {
-            if (shouldFreezeMemTable()) {
-                forceFreezeMemTable(it)
-            }
-            action(it)
-        }
-    }
-
-    private fun shouldFreezeMemTable(): Boolean {
-        return state.read().memTable.approximateSize() > options.targetSstSize
-    }
-
-    /**
-     * Force freeze the current memTable to an immutable memTable.
-     * Requires external locking.
-     */
-    // TODO: do we need state as an argument?
-    fun forceFreezeMemTable(state: LsmStorageState) {
-        val memtableId = nextSstId.getAndIncrement()
-        val memTable = if (options.enableWal) {
-            TODO("should be implemented after WAL is supported")
-        } else {
-            MemTable.create(memtableId)
-        }
-
-        state.immutableMemTables.addFirst(state.memTable)
-        state.memTable = memTable
-
-        manifest?.addRecord(NewMemTable(memtableId))
+    fun forceFlushMemTable() {
+        val prevMemTableId = stateManager.forceFreezeMemTable()
+        manifest?.addRecord(NewMemTable(prevMemTableId))
     }
 
     /**
      * Force flush the earliest created immutable memTable to disk
      */
     fun forceFlushNextImmMemTable() {
-        lateinit var flushMemTable: MemTable
-        state.withReadLock {
-            flushMemTable = it.immutableMemTables.lastOrNull()
-                ?: throw IllegalStateException("No immutable memTables exist!")
-        }
-
-        val builder = SsTableBuilder(options.blockSize)
-        flushMemTable.flush(builder)
-        val sstId = flushMemTable.id
-        val sst = builder.build(
-            id = sstId,
-            blockCache = blockCache.copy(),
-            path = sstPath(path, sstId)
-        )
-
-        state.withWriteLock { snapshot ->
-            val immutableMemTable: MemTable? = snapshot.immutableMemTables.peekLast()
-            if (immutableMemTable?.id != sstId) {
-                // in case where forceFlushNextImmMemTable() is called concurrently, it can enter this block
-                log.info { "Sst id($sstId) and immutable memTable id(${immutableMemTable?.id}) mismatch. There might be concurrent calls to flush immMemTable" }
-                return@withWriteLock
-            } else {
-                // we can safely remove the oldest immutableMemTable
-                snapshot.immutableMemTables.pollLast()
-            }
-
-            // TODO: this is only for no compaction strategy, will require additional logic when we support for diverse compaction algorithms
-            snapshot.l0SsTables.addFirst(sstId)
-            log.info { "Flushed $sstId.sst with size ${sst.file.size}" }
-            snapshot.sstables[sstId] = sst
-        }
-
+        val previousMemtableId = stateManager.forceFlushNextImmutableMemTable()
         if (options.enableWal) {
             TODO("remove wal file")
         }
-
-        manifest?.addRecord(Flush(sstId))
-
-        // Is there more sufficient way to sync all OS-internal file content and metadata to disk?
-        FileChannel.open(path).use { it.force(true) }
+        manifest?.addRecord(Flush(previousMemtableId))
     }
 
     /**
      * Trigger flush operation when number of immutable memTables exceeds limit.
      */
     fun triggerFlush() {
-        val shouldFlush = state.withReadLock {
-            it.immutableMemTables.size >= options.numMemTableLimit
-        }
-
-        if (shouldFlush) {
+        if (stateManager.shouldFlush()) {
             forceFlushNextImmMemTable()
         }
     }
 
     fun scan(lower: Bound, upper: Bound): FusedIterator {
         // memTable iterators
-        val snapshot = state.read()
-        val memTableIters = listOf(snapshot.memTable.iterator(lower, upper)) +
-                snapshot.immutableMemTables.map { it.iterator(lower, upper) }
+        val snapshot = stateManager.snapshot()
+        val memTableIters = listOf(snapshot.getMemTableIterator(lower, upper)) +
+                snapshot.getImmutableMemTablesIterator(lower, upper)
         val memTableMergeIter = MergeIterator(memTableIters)
-
-        val l0SstableIters = snapshot.l0SsTables.mapNotNull { idx ->
-            val table = snapshot.sstables[idx]!!
-            if (rangeOverlap(lower, upper, table.firstKey, table.lastKey)) {
-                when (lower) {
-                    is Included -> SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.key))
-                    is Excluded -> {
-                        val iter = SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.key))
-                        if (iter.isValid() && iter.key() == lower.key) {
-                            iter.next()
-                        }
-                        iter
-                    }
-
-                    is Unbounded -> SsTableIterator.createAndSeekToFirst(table)
-                }
-            } else null
-        }
-        val l0MergeIter = MergeIterator(l0SstableIters)
-
-        val levelIters = snapshot.levels.map { level ->
-            val levelSsts = mutableListOf<Sstable>()
-            level.sstIds.forEach {
-                val sstable = snapshot.sstables[it]!!
-                if (rangeOverlap(
-                        userBegin = lower,
-                        userEnd = upper,
-                        tableBegin = sstable.firstKey,
-                        tableEnd = sstable.lastKey
-                    )
-                ) {
-                    levelSsts.add(sstable)
-                }
-            }
-
-            when (lower) {
-                is Included -> {
-                    SstConcatIterator.createAndSeekToKey(
-                        sstables = levelSsts,
-                        key = TimestampedKey(lower.key),
-                    )
-                }
-
-                is Excluded -> {
-                    val iter = SstConcatIterator.createAndSeekToKey(
-                        sstables = levelSsts,
-                        key = TimestampedKey(lower.key),
-                    )
-                    while (iter.isValid() && iter.key() == lower.key) {
-                        iter.next()
-                    }
-                    iter
-                }
-
-                is Unbounded -> {
-                    SstConcatIterator.createAndSeekToFirst(levelSsts)
-                }
-            }
-        }
-
+        val l0MergeIter = MergeIterator(snapshot.getL0SstablesIterator(lower, upper))
+        val levelIters = snapshot.getLevelIterators(lower, upper)
         val `memTableIter plus l0Iter` = TwoMergeIterator.create(memTableMergeIter, l0MergeIter)
         val `levelIter added iter` =
             TwoMergeIterator.create(`memTableIter plus l0Iter`, MergeIterator(levelIters))
@@ -431,38 +262,5 @@ class LsmStorageInner private constructor(
                 endBound = upper
             )
         )
-    }
-
-    private fun rangeOverlap(
-        userBegin: Bound,
-        userEnd: Bound,
-        tableBegin: TimestampedKey,
-        tableEnd: TimestampedKey
-    ): Boolean {
-        when (userEnd) {
-            is Excluded -> if (userEnd.key <= tableBegin.bytes) {
-                return false
-            }
-
-            is Included -> if (userEnd.key < tableBegin.bytes) {
-                return false
-            }
-
-            else -> {}
-        }
-
-        when (userBegin) {
-            is Excluded -> if (userBegin.key >= tableEnd.bytes) {
-                return false
-            }
-
-            is Included -> if (userBegin.key > tableEnd.bytes) {
-                return false
-            }
-
-            else -> {}
-        }
-
-        return true
     }
 }
