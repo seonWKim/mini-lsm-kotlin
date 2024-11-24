@@ -51,7 +51,6 @@ fun main() {
                 miniLsm.inner.forceFreezeMemTable(it)
             }
         }
-
     }
 
     class FlushCommand : Subcommand("flush", "Flush memTable") {
@@ -79,7 +78,7 @@ fun main() {
 
         print("Enter command: ")
         try {
-            val input = readLine() ?: break
+            val input = readlnOrNull() ?: break
             val inputArgs = input.split(" ").filter { it.isNotEmpty() }.toTypedArray()
             parser.parse(inputArgs)
         } catch (e: Exception) {
