@@ -1,5 +1,7 @@
 package org.github.seonwkim.common
 
+import org.github.seonwkim.lsm.Configuration.TS_DEFAULT
+
 class TimestampedKey(
     bytes: ComparableByteArray,
     private var timestamp: Long = TS_DEFAULT

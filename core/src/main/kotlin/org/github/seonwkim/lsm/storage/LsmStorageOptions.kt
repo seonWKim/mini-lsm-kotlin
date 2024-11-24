@@ -19,5 +19,8 @@ data class LsmStorageOptions(
     val flushDelayMillis: Long = 50,
 
     // flush interval in millisecond
-    val flushIntervalMillis: Long = 50
+    val flushIntervalMillis: Long = 50,
+
+    // TODO: add explanation
+    val serializable: Boolean = false
 )

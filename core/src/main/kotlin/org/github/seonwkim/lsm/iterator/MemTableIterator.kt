@@ -44,7 +44,13 @@ class MemTableIterator(
     }
 
     override fun isValid(): Boolean {
-        return current != null
+        if (current == null) return false
+
+        return when (upper) {
+            is Bound.Unbounded -> true
+            is Bound.Included -> current!!.key.bytes <= upper.value
+            is Bound.Excluded -> current!!.key.bytes < upper.value
+        }
     }
 
     override fun isDeleted(): Boolean {
