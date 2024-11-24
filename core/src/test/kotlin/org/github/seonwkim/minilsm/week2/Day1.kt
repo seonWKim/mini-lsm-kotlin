@@ -63,7 +63,9 @@ class Day1 {
             checkIterator(
                 actual = iter,
                 expected = listOf(
-                    Pair("1".toComparableByteArray(), "v2".toComparableByteArray())
+                    Pair("0".toComparableByteArray(), "".toComparableByteArray()),
+                    Pair("1".toComparableByteArray(), "v2".toComparableByteArray()),
+                    Pair("2".toComparableByteArray(), "".toComparableByteArray()),
                 )
             )
         }

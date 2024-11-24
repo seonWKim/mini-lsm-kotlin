@@ -34,10 +34,6 @@ class MergeIterator<T : StorageIterator>(
                 priorityQueue.add(PriorityQueueKey(idx, iter))
             }
         }
-
-        if (current()?.iterator?.isDeleted() == true) {
-            next()
-        }
     }
 
     override fun key(): ComparableByteArray {
@@ -70,10 +66,6 @@ class MergeIterator<T : StorageIterator>(
             } else {
                 break
             }
-        }
-
-        if (current()?.iterator?.isDeleted() == true) {
-            next()
         }
     }
 

@@ -200,21 +200,50 @@ class LsmStorageInner private constructor(
             }
         }
 
-        val sstableIters = mutableListOf<StorageIterator>()
-        for (tableIdx in snapshot.l0SsTables) {
-            val table = snapshot.sstables[tableIdx]!!
+        val l0Iter = snapshot.l0SsTables.mapNotNull { l0SstableIdx ->
+            val table = snapshot.sstables[l0SstableIdx]!!
             // TODO: for now, we do not consider timestamp, so we set to 0
             val timestampedKey = TimestampedKey(key, 0)
             if (table.firstKey <= timestampedKey && timestampedKey <= table.lastKey) {
-                sstableIters.add(SsTableIterator.createAndSeekToKey(table, timestampedKey))
+                SsTableIterator.createAndSeekToKey(table, timestampedKey)
+            } else {
+                null
             }
+        }.let { MergeIterator(it) }
+
+        val levelIters = snapshot.levels.map { level ->
+            val validLevelSsts = mutableListOf<Sstable>()
+            level.sstIds.forEach { levelSstId ->
+                val table = snapshot.sstables[levelSstId]!!
+                if (keepTable(key, table)) {
+                    validLevelSsts.add(table)
+                }
+            }
+            SstConcatIterator.createAndSeekToKey(validLevelSsts, TimestampedKey(key))
         }
-        val mergedIter = MergeIterator(sstableIters)
-        if (!mergedIter.isValid()) return null
-        if (mergedIter.key() == key) {
-            return if (mergedIter.isDeleted()) null else mergedIter.value()
+
+        val totalMergedIter = TwoMergeIterator.create(
+            l0Iter,
+            MergeIterator(levelIters)
+        )
+
+        if (totalMergedIter.isValid() && totalMergedIter.key() == key && !totalMergedIter.value().isEmpty()) {
+            return totalMergedIter.value()
         }
+
         return null
+    }
+
+    private fun keepTable(key: ComparableByteArray, table: Sstable): Boolean {
+        if (table.firstKey.bytes <= key && key <= table.lastKey.bytes) {
+            if (table.bloom?.mayContain(farmHashFingerPrintU32(key)) == true) {
+                return true
+            }
+        } else {
+            return true
+        }
+
+        return false
     }
 
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
@@ -254,7 +283,7 @@ class LsmStorageInner private constructor(
      */
     // TODO: do we need state as an argument?
     fun forceFreezeMemTable(state: LsmStorageState) {
-        val memtableId = nextSstId.get()
+        val memtableId = nextSstId.getAndIncrement()
         val memTable = if (options.enableWal) {
             TODO("should be implemented after WAL is supported")
         } else {
