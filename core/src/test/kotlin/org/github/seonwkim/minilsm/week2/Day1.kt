@@ -44,8 +44,8 @@ class Day1 {
         storage.delete("2".toComparableByteArray())
         sync(storage)
 
-        assertEquals(storage.stateManager.snapshot().getL0SstablesSize(), 3)
-        val iter = constructMergeIteratorOverStorage(storage.stateManager.snapshot().state)
+        assertEquals(storage.snapshot().getL0SstablesSize(), 3)
+        val iter = constructMergeIteratorOverStorage(storage.snapshot().state)
 
         if (Configuration.TS_ENABLED) {
             checkIterator(
@@ -73,7 +73,7 @@ class Day1 {
     }
 
     private fun sync(storage: LsmStorageInner) {
-        storage.stateManager.forceFreezeMemTable()
+        storage.forceFreezeMemTable()
         storage.forceFlushNextImmMemTable()
     }
 

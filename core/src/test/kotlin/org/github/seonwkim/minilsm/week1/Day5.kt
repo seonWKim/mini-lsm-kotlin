@@ -150,7 +150,7 @@ class Day5 {
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.stateManager.forceFreezeMemTable()
+        storage.forceFreezeMemTable()
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toComparableByteArray())
         val sst1 = generateSst(
@@ -161,7 +161,7 @@ class Day5 {
                 Pair("00".toComparableByteArray(), "2333333".toComparableByteArray()),
                 Pair("4".toComparableByteArray(), "23".toComparableByteArray()),
             ),
-            blockCache = storage.stateManager.blockCache.copy()
+            blockCache = storage.snapshot().blockCache.copy()
         )
 
         val sst2 = generateSst(
@@ -170,10 +170,10 @@ class Day5 {
             data = listOf(
                 Pair("4".toComparableByteArray(), "".toComparableByteArray()) // This is treated as deleted
             ),
-            blockCache = storage.stateManager.blockCache.copy()
+            blockCache = storage.snapshot().blockCache.copy()
         )
 
-        val snapshot = storage.stateManager.snapshot()
+        val snapshot = storage.snapshot()
         snapshot.state.l0Sstables.add(sst2.id)
         snapshot.state.l0Sstables.add(sst1.id)
         snapshot.state.sstables[sst2.id] = sst2
@@ -241,7 +241,7 @@ class Day5 {
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.stateManager.forceFreezeMemTable()
+        storage.forceFreezeMemTable()
 
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toComparableByteArray())
@@ -253,7 +253,7 @@ class Day5 {
                 Pair("00".toComparableByteArray(), "2333333".toComparableByteArray()),
                 Pair("4".toComparableByteArray(), "23".toComparableByteArray()),
             ),
-            blockCache = storage.stateManager.blockCache.copy()
+            blockCache = storage.snapshot().blockCache.copy()
         )
         val sst2 = generateSst(
             id = 11,
@@ -261,10 +261,10 @@ class Day5 {
             data = listOf(
                 Pair("4".toComparableByteArray(), "".toComparableByteArray()),
             ),
-            blockCache = storage.stateManager.blockCache.copy()
+            blockCache = storage.snapshot().blockCache.copy()
         )
 
-        storage.stateManager.snapshot().state.let {
+        storage.snapshot().state.let {
             it.l0Sstables.add(sst2.id)
             it.l0Sstables.add(sst1.id)
             it.sstables[sst2.id] = sst2

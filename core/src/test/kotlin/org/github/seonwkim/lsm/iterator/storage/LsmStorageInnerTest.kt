@@ -46,7 +46,7 @@ class LsmStorageInnerTest {
         // freeze and then
         storage.put("i".toComparableByteArray(), "ii".toComparableByteArray())
 
-        assertEquals(8, storage.stateManager.snapshot().getImmutableMemTablesSize())
+        assertEquals(8, storage.snapshot().getImmutableMemTablesSize())
     }
 
     @Test
@@ -80,7 +80,7 @@ class LsmStorageInnerTest {
         tasks.forEach { it.get() } // Wait for all tasks to complete
 
         executors.forEach { it.shutdown() }
-        assertEquals(8, storage.stateManager.snapshot().getImmutableMemTablesSize())
+        assertEquals(8, storage.snapshot().getImmutableMemTablesSize())
     }
 
     @Test
@@ -90,7 +90,7 @@ class LsmStorageInnerTest {
             targetSstSize = 2,
             numMemTableLimit = 10,
             customizableMemTableLock = SimulatedRwLock(
-                value = Unit ,
+                value = Unit,
                 afterWriteLockAcquireBehavior = {
                     Thread.sleep(500)
                     log.info { "Trying to acquire write lock from ${Thread.currentThread()}" }
@@ -106,20 +106,20 @@ class LsmStorageInnerTest {
         // flush memTable into immutableMemTables
         storage.put("a".toComparableByteArray(), "aa".toComparableByteArray())
         storage.put("b".toComparableByteArray(), "bb".toComparableByteArray())
-        storage.stateManager.forceFreezeMemTable()
-        assertTrue { storage.stateManager.snapshot().getImmutableMemTablesSize() == 2 }
+        storage.forceFreezeMemTable()
+        assertTrue { storage.snapshot().getImmutableMemTablesSize() == 2 }
 
         // call forceFlushNextImmMemTable in parallel, this will only flush single, the oldest immutableMemTable
         val executors = List(5) { Executors.newSingleThreadExecutor() }
         val tasks = executors.map { executor -> executor.submit { storage.forceFlushNextImmMemTable() } }
         tasks.forEach { it.get() }
-        assertEquals(1, storage.stateManager.snapshot().getImmutableMemTablesSize())
-        assertEquals(1, storage.stateManager.snapshot().getL0SstablesSize())
+        assertEquals(1, storage.snapshot().getImmutableMemTablesSize())
+        assertEquals(1, storage.snapshot().getL0SstablesSize())
 
         // this will flush remaining immutableMemTable
         storage.forceFlushNextImmMemTable()
-        assertEquals(0, storage.stateManager.snapshot().getImmutableMemTablesSize())
-        assertEquals(2, storage.stateManager.snapshot().getL0SstablesSize())
+        assertEquals(0, storage.snapshot().getImmutableMemTablesSize())
+        assertEquals(2, storage.snapshot().getL0SstablesSize())
 
         executors.forEach { it.shutdown() }
     }

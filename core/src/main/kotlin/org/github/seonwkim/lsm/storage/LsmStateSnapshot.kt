@@ -5,6 +5,7 @@ import org.github.seonwkim.lsm.iterator.*
 import org.github.seonwkim.lsm.memtable.MemtableValue
 import org.github.seonwkim.lsm.memtable.isDeleted
 import org.github.seonwkim.lsm.memtable.isValid
+import org.github.seonwkim.lsm.sstable.BlockCache
 import org.github.seonwkim.lsm.sstable.Sstable
 
 /**
@@ -13,8 +14,9 @@ import org.github.seonwkim.lsm.sstable.Sstable
  * @property state The current state of the LSM storage.
  * @property timestamp The timestamp when the snapshot was taken.
  */
-class LsmStorageStateSnapshot(
+class LsmStateSnapshot(
     val state: LsmStorageState,
+    val blockCache: BlockCache,
     val timestamp: Long
 ) {
     /**

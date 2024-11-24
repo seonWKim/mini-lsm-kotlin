@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class LsmStorageStateConcurrencyManager(
     private val path: Path,
     private val state: LsmStorageState,
-    private val options: LsmStorageOptions,
+    private val options: LsmStorageStateOptions,
     private val nextSstId: AtomicInteger,
     val blockCache: BlockCache,
     private var manifest: Manifest? = null,
@@ -97,9 +97,10 @@ class LsmStorageStateConcurrencyManager(
         }
     }
 
-    fun snapshot(timestamp: Long = 0L): LsmStorageStateSnapshot {
-        return LsmStorageStateSnapshot(
+    fun snapshot(timestamp: Long = 0L): LsmStateSnapshot {
+        return LsmStateSnapshot(
             state = state,
+            blockCache = blockCache,
             timestamp = timestamp
         )
     }
@@ -185,6 +186,10 @@ class LsmStorageStateConcurrencyManager(
             state.l0Sstables.addFirst(sstId)
             log.info { "Flushed $sstId.sst with size ${sst.file.size}" }
             state.sstables[sstId] = sst
+        }
+
+        if (options.enableWal) {
+            TODO("remove wal file")
         }
 
         return sstId

@@ -14,8 +14,7 @@ import kotlin.io.path.exists
 
 class LsmStorageInner private constructor(
     val path: Path,
-    val options: LsmStorageOptions,
-    val stateManager: LsmStorageStateConcurrencyManager,
+    private val stateManager: LsmStorageStateConcurrencyManager,
     private val compactionController: CompactionController,
     private val manifest: Manifest?,
 ) {
@@ -39,7 +38,7 @@ class LsmStorageInner private constructor(
             val stateManager = LsmStorageStateConcurrencyManager(
                 path = path,
                 state = LsmStorageState.create(options),
-                options = options,
+                options = options.toStateOptions(),
                 nextSstId = AtomicInteger(1),
                 blockCache = BlockCache(1 shl 20)
             )
@@ -142,7 +141,6 @@ class LsmStorageInner private constructor(
 
             return LsmStorageInner(
                 path = path,
-                options = options,
                 stateManager = stateManager,
                 compactionController = compactionController,
                 manifest = manifest,
@@ -161,12 +159,15 @@ class LsmStorageInner private constructor(
 
             return LsmStorageInner(
                 path = path,
-                options = options,
                 stateManager = stateManager,
                 compactionController = NoCompactionController,
                 manifest = null
             )
         }
+    }
+
+    fun snapshot(): LsmStateSnapshot {
+        return stateManager.snapshot()
     }
 
     fun get(key: ComparableByteArray): ComparableByteArray? {
@@ -199,24 +200,17 @@ class LsmStorageInner private constructor(
         return snapshot.getFromSstables(key)
     }
 
-    private fun keepTable(key: ComparableByteArray, table: Sstable): Boolean {
-        if (table.firstKey.bytes <= key && key <= table.lastKey.bytes) {
-            if (table.bloom?.mayContain(farmHashFingerPrintU32(key)) == true) {
-                return true
-            }
-        } else {
-            return true
-        }
-
-        return false
-    }
-
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
         stateManager.put(key, MemtableValue(value))
     }
 
     fun delete(key: ComparableByteArray) {
         stateManager.put(key, MemtableValue(ComparableByteArray.new()))
+    }
+
+    fun forceFreezeMemTable() {
+        val newMemTableId = stateManager.forceFreezeMemTable()
+        manifest?.addRecord(NewMemTable(newMemTableId))
     }
 
     fun forceFlushMemTable() {
@@ -229,9 +223,6 @@ class LsmStorageInner private constructor(
      */
     fun forceFlushNextImmMemTable() {
         val previousMemtableId = stateManager.forceFlushNextImmutableMemTable()
-        if (options.enableWal) {
-            TODO("remove wal file")
-        }
         manifest?.addRecord(Flush(previousMemtableId))
     }
 
