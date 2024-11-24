@@ -335,8 +335,8 @@ class LsmStorageInner private constructor(
             val table = snapshot.sstables[idx]!!
             if (rangeOverlap(lower, upper, table.firstKey, table.lastKey)) {
                 when (lower) {
-                    is Bound.Included -> SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.key))
-                    is Bound.Excluded -> {
+                    is Included -> SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.key))
+                    is Excluded -> {
                         val iter = SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.key))
                         if (iter.isValid() && iter.key() == lower.key) {
                             iter.next()
@@ -344,7 +344,7 @@ class LsmStorageInner private constructor(
                         iter
                     }
 
-                    is Bound.Unbounded -> SsTableIterator.createAndSeekToFirst(table)
+                    is Unbounded -> SsTableIterator.createAndSeekToFirst(table)
                 }
             } else null
         }
@@ -366,14 +366,14 @@ class LsmStorageInner private constructor(
             }
 
             when (lower) {
-                is Bound.Included -> {
+                is Included -> {
                     SstConcatIterator.createAndSeekToKey(
                         sstables = levelSsts,
                         key = TimestampedKey(lower.key),
                     )
                 }
 
-                is Bound.Excluded -> {
+                is Excluded -> {
                     val iter = SstConcatIterator.createAndSeekToKey(
                         sstables = levelSsts,
                         key = TimestampedKey(lower.key),
@@ -384,7 +384,7 @@ class LsmStorageInner private constructor(
                     iter
                 }
 
-                is Bound.Unbounded -> {
+                is Unbounded -> {
                     SstConcatIterator.createAndSeekToFirst(levelSsts)
                 }
             }
@@ -408,11 +408,11 @@ class LsmStorageInner private constructor(
         tableEnd: TimestampedKey
     ): Boolean {
         when (userEnd) {
-            is Bound.Excluded -> if (userEnd.key <= tableBegin.bytes) {
+            is Excluded -> if (userEnd.key <= tableBegin.bytes) {
                 return false
             }
 
-            is Bound.Included -> if (userEnd.key < tableBegin.bytes) {
+            is Included -> if (userEnd.key < tableBegin.bytes) {
                 return false
             }
 
@@ -420,11 +420,11 @@ class LsmStorageInner private constructor(
         }
 
         when (userBegin) {
-            is Bound.Excluded -> if (userBegin.key >= tableEnd.bytes) {
+            is Excluded -> if (userBegin.key >= tableEnd.bytes) {
                 return false
             }
 
-            is Bound.Included -> if (userBegin.key > tableEnd.bytes) {
+            is Included -> if (userBegin.key > tableEnd.bytes) {
                 return false
             }
 

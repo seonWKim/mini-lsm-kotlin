@@ -1,8 +1,6 @@
 package org.github.seonwkim.minilsm.week1
 
-import org.github.seonwkim.common.Bound
-import org.github.seonwkim.common.ComparableByteArray
-import org.github.seonwkim.common.toComparableByteArray
+import org.github.seonwkim.common.*
 import org.github.seonwkim.lsm.iterator.StorageIterator
 import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
@@ -49,7 +47,7 @@ class Day6 {
         }
 
         checkIterator(
-            storage.scan(Bound.Unbounded, Bound.Unbounded),
+            storage.scan(Unbounded, Unbounded),
             listOf(
                 Pair("0".toComparableByteArray(), "2333333".toComparableByteArray()),
                 Pair("00".toComparableByteArray(), "2333".toComparableByteArray()),
@@ -60,8 +58,8 @@ class Day6 {
 
         checkIterator(
             storage.scan(
-                Bound.Included("1".toComparableByteArray()),
-                Bound.Included("2".toComparableByteArray())
+                Included("1".toComparableByteArray()),
+                Included("2".toComparableByteArray())
             ),
             listOf(
                 Pair("2".toComparableByteArray(), "2333".toComparableByteArray()),
@@ -70,8 +68,8 @@ class Day6 {
 
         checkIterator(
             storage.scan(
-                Bound.Excluded("1".toComparableByteArray()),
-                Bound.Excluded("3".toComparableByteArray())
+                Excluded("1".toComparableByteArray()),
+                Excluded("3".toComparableByteArray())
             ),
             listOf(
                 Pair("2".toComparableByteArray(), "2333".toComparableByteArray()),
@@ -164,38 +162,38 @@ class Day6 {
             storage.put("%05d".format(i).toComparableByteArray(), "2333333".toComparableByteArray())
         }
 
-        val iter1 = storage.scan(Bound.Unbounded, Bound.Unbounded)
+        val iter1 = storage.scan(Unbounded, Unbounded)
         assertTrue { iter1.numActiveIterators() >= 10 }
 
         val maxNum = iter1.numActiveIterators()
         val iter2 = storage.scan(
-            lower = Bound.Excluded("%05d".format(10000).toComparableByteArray()),
-            upper = Bound.Unbounded
+            lower = Excluded("%05d".format(10000).toComparableByteArray()),
+            upper = Unbounded
         )
         assertTrue { iter2.numActiveIterators() < maxNum }
 
         val minNum = iter2.numActiveIterators()
         val iter3 = storage.scan(
-            lower = Bound.Unbounded,
-            upper = Bound.Excluded("%05d".format(1).toComparableByteArray())
+            lower = Unbounded,
+            upper = Excluded("%05d".format(1).toComparableByteArray())
         )
         assertTrue { iter3.numActiveIterators() == minNum }
 
         val iter4 = storage.scan(
-            lower = Bound.Unbounded,
-            upper = Bound.Included("%05d".format(0).toComparableByteArray())
+            lower = Unbounded,
+            upper = Included("%05d".format(0).toComparableByteArray())
         )
         assertTrue { iter4.numActiveIterators() == minNum }
 
         val iter5 = storage.scan(
-            lower = Bound.Included("%05d".format(10001).toComparableByteArray()),
-            upper = Bound.Unbounded
+            lower = Included("%05d".format(10001).toComparableByteArray()),
+            upper = Unbounded
         )
         assertTrue { iter5.numActiveIterators() == minNum }
 
         val iter6 = storage.scan(
-            lower = Bound.Included("%05d".format(5000).toComparableByteArray()),
-            upper = Bound.Excluded("%05d".format(6000).toComparableByteArray())
+            lower = Included("%05d".format(5000).toComparableByteArray()),
+            upper = Excluded("%05d".format(6000).toComparableByteArray())
         )
         assertTrue { iter6.numActiveIterators() in minNum..<maxNum }
     }

@@ -1,8 +1,6 @@
 package org.github.seonwkim.minilsm.week1
 
-import org.github.seonwkim.common.Bound
-import org.github.seonwkim.common.ComparableByteArray
-import org.github.seonwkim.common.toComparableByteArray
+import org.github.seonwkim.common.*
 import org.github.seonwkim.lsm.iterator.MockIterator
 import org.github.seonwkim.lsm.iterator.MockIteratorData
 import org.github.seonwkim.lsm.iterator.StorageIterator
@@ -182,7 +180,7 @@ class Day5 {
         snapshot.sstables[sst1.id] = sst1
 
         checkIterator(
-            storage.scan(Bound.Unbounded, Bound.Unbounded),
+            storage.scan(Unbounded, Unbounded),
             listOf(
                 Pair("0".toComparableByteArray(), "2333333".toComparableByteArray()),
                 Pair("00".toComparableByteArray(), "2333".toComparableByteArray()),
@@ -193,8 +191,8 @@ class Day5 {
 
         checkIterator(
             storage.scan(
-                Bound.Included("1".toComparableByteArray()),
-                Bound.Included("2".toComparableByteArray())
+                Included("1".toComparableByteArray()),
+                Included("2".toComparableByteArray())
             ),
             listOf(
                 Pair("2".toComparableByteArray(), "2333".toComparableByteArray())
@@ -203,8 +201,8 @@ class Day5 {
 
         checkIterator(
             storage.scan(
-                Bound.Excluded("1".toComparableByteArray()),
-                Bound.Excluded("3".toComparableByteArray())
+                Excluded("1".toComparableByteArray()),
+                Excluded("3".toComparableByteArray())
             ),
             listOf(
                 Pair("2".toComparableByteArray(), "2333".toComparableByteArray())
@@ -213,8 +211,8 @@ class Day5 {
 
         checkIterator(
             storage.scan(
-                Bound.Included("0".toComparableByteArray()),
-                Bound.Included("1".toComparableByteArray())
+                Included("0".toComparableByteArray()),
+                Included("1".toComparableByteArray())
             ),
             listOf(
                 Pair("0".toComparableByteArray(), "2333333".toComparableByteArray()),
@@ -224,8 +222,8 @@ class Day5 {
 
         checkIterator(
             storage.scan(
-                Bound.Excluded("0".toComparableByteArray()),
-                Bound.Included("1".toComparableByteArray())
+                Excluded("0".toComparableByteArray()),
+                Included("1".toComparableByteArray())
             ),
             listOf(
                 Pair("00".toComparableByteArray(), "2333".toComparableByteArray())

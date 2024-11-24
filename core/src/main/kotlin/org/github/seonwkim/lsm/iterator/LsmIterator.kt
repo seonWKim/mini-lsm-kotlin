@@ -1,7 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
-import org.github.seonwkim.common.Bound
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.*
 
 typealias LsmIteratorInner = TwoMergeIterator<
         TwoMergeIterator<MergeIterator<MemTableIterator>, MergeIterator<SsTableIterator>>,
@@ -32,9 +31,9 @@ class LsmIterator(
         }
 
         when (endBound) {
-            is Bound.Unbounded -> {}
-            is Bound.Included -> isValid = inner.key() <= endBound.key
-            is Bound.Excluded -> isValid = inner.key() < endBound.key
+            is Unbounded -> {}
+            is Included -> isValid = inner.key() <= endBound.key
+            is Excluded -> isValid = inner.key() < endBound.key
         }
     }
 
