@@ -1,18 +1,29 @@
 package org.github.seonwkim.lsm.storage
 
 sealed interface CompactionController {
-    fun flushTol0(): Boolean {
-        return when (this) {
-            is LeveledCompactionController,
-            is SimpleCompactionController,
-            is NoCompactionController -> true
+    fun flushTol0(): Boolean
+}
 
-            else -> false
-        }
+class LeveledCompactionController(options: LeveledCompactionOptions) : CompactionController {
+    override fun flushTol0(): Boolean {
+        return true
     }
 }
 
-class LeveledCompactionController(options: LeveledCompactionOptions) : CompactionController
-class TieredCompactionController(options: TieredCompactionOptions) : CompactionController
-class SimpleCompactionController(options: SimpleLeveledCompactionOptions) : CompactionController
-data object NoCompactionController : CompactionController
+class TieredCompactionController(options: TieredCompactionOptions) : CompactionController {
+    override fun flushTol0(): Boolean {
+        return true
+    }
+}
+
+class SimpleCompactionController(options: SimpleLeveledCompactionOptions) : CompactionController {
+    override fun flushTol0(): Boolean {
+        return true
+    }
+}
+
+data object NoCompactionController : CompactionController {
+    override fun flushTol0(): Boolean {
+        return false
+    }
+}

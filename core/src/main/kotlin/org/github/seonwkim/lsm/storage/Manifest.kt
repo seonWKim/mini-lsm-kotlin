@@ -22,6 +22,7 @@ import java.nio.file.StandardOpenOption
     JsonSubTypes.Type(value = Compaction::class, name = "Compaction")
 )
 sealed interface ManifestRecord
+
 data class Flush @JsonCreator constructor(
     @JsonProperty("sstId") val sstId: Int
 ) : ManifestRecord
