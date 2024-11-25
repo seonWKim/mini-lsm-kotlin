@@ -47,13 +47,13 @@ fun main() {
 
     class FreezeCommand : Subcommand("freeze", "Freeze memTable") {
         override fun execute() {
-            miniLsm.inner.stateManager.forceFreezeMemTable()
+            miniLsm.inner.forceFreezeMemTable()
         }
     }
 
     class FlushCommand : Subcommand("flush", "Flush memTable") {
         override fun execute() {
-            miniLsm.inner.stateManager.forceFlushNextImmutableMemTable()
+            miniLsm.inner.forceFlushNextImmMemTable()
         }
     }
 

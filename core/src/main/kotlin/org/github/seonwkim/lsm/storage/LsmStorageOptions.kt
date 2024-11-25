@@ -26,6 +26,7 @@ data class LsmStorageOptions(
     // TODO: add explanation
     val serializable: Boolean = false,
     val customizableMemTableLock: RwLock<Unit> = DefaultRwLock(Unit),
+    val customizableImmutableMemTableLock: RwLock<Unit> = DefaultRwLock(Unit)
 ) {
     fun toStateOptions() = LsmStorageStateOptions(
         blockSize = blockSize,
@@ -34,6 +35,7 @@ data class LsmStorageOptions(
         enableWal = enableWal,
         serializable = serializable,
         customizableMemTableLock = customizableMemTableLock,
+        customizableImmutableMemTableLock = customizableImmutableMemTableLock
     )
 
     fun toMiniLsmOptions() = MiniLsmOptions(
@@ -68,4 +70,6 @@ data class LsmStorageStateOptions(
     val serializable: Boolean,
 
     val customizableMemTableLock: RwLock<Unit>,
+
+    val customizableImmutableMemTableLock: RwLock<Unit>,
 )

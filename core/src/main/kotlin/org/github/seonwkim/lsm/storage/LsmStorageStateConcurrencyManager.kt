@@ -20,6 +20,7 @@ class LsmStorageStateConcurrencyManager(
     val blockCache: BlockCache,
     private var manifest: Manifest? = null,
     private val memTableLock: RwLock<Unit> = options.customizableMemTableLock,
+    private val immutableMemTableLock: RwLock<Unit> = options.customizableMemTableLock
 ) {
 
     private val log = KotlinLogging.logger { }
@@ -117,18 +118,36 @@ class LsmStorageStateConcurrencyManager(
         nextSstId.incrementAndGet()
     }
 
+    /**
+     * Inserts a key-value pair into the current memTable.
+     *
+     * If the current memTable exceeds the target size, it will be frozen and a new memTable will be created.
+     * This method ensures that the memTable freezing operation is synchronized to prevent race conditions.
+     * However, if acquiring the write lock takes too long, memTables that exceed the limit might be created.
+     *
+     * @param key The key to be inserted. It must be a `ComparableByteArray` to ensure proper ordering.
+     * @param value The value to be associated with the key. It must be a `MemtableValue` which can represent the actual data or a tombstone for deletions.
+     */
     fun put(key: ComparableByteArray, value: MemtableValue) {
-        memTableLock.withWriteLock {
-            if (shouldFreezeMemTable()) {
-                forceFreezeMemTable()
+        if (shouldFreezeMemTable()) {
+            memTableLock.withWriteLock {
+                if (shouldFreezeMemTable()) {
+                    forceFreezeMemTable()
+                }
             }
-
-            state.memTable.get().put(key, value)
         }
+
+        state.memTable.get().put(key, value)
     }
 
     /**
-     * Freeze memtable and return the previous memtable id.
+     * Freezes the current memTable and returns the ID of the previous memTable.
+     *
+     * This method increments the next SSTable ID and creates a new memTable.
+     * The current memTable is added to the head of immutable memTables.
+     * If Write-Ahead Logging (WAL) is enabled, the method will need to be implemented to support WAL.
+     *
+     * @return The ID of the previous memTable.
      */
     fun forceFreezeMemTable(): Int {
         val memtableId = nextSstId.getAndIncrement()
@@ -145,7 +164,9 @@ class LsmStorageStateConcurrencyManager(
     }
 
     private fun shouldFreezeMemTable(): Boolean {
-        return state.memTable.get().approximateSize() > options.targetSstSize
+        return memTableLock.withReadLock {
+            state.memTable.get().approximateSize() > options.targetSstSize
+        }
     }
 
     fun shouldFlush(): Boolean {
@@ -153,29 +174,32 @@ class LsmStorageStateConcurrencyManager(
     }
 
     /**
-     * Flush immutable memTable to disk and return flushed memTable ID.
+     * Force flushes the earliest created immutable memTable to disk and returns the flushed memTable ID.
+     *
+     * @return The ID of the flushed memTable.
+     * @throws IllegalStateException if no immutable memTables exist.
      */
     fun forceFlushNextImmutableMemTable(): Int {
         lateinit var flushMemTable: MemTable
-        memTableLock.withReadLock {
+        immutableMemTableLock.withReadLock {
             flushMemTable = state.immutableMemTables.lastOrNull()
                 ?: throw IllegalStateException("No immutable memTables exist!")
         }
 
         val builder = SsTableBuilder(options.blockSize)
         flushMemTable.flush(builder)
-        val sstId = flushMemTable.id
+        val flushedMemTableId = flushMemTable.id
         val sst = builder.build(
-            id = sstId,
+            id = flushedMemTableId,
             blockCache = blockCache.copy(),
-            path = sstPath(path, sstId)
+            path = sstPath(path, flushedMemTableId)
         )
 
-        memTableLock.withWriteLock {
+        immutableMemTableLock.withWriteLock {
             val immutableMemTable: MemTable? = state.immutableMemTables.peekLast()
-            if (immutableMemTable?.id != sstId) {
+            if (immutableMemTable?.id != flushedMemTableId) {
                 // in case where forceFlushNextImmMemTable() is called concurrently, it can enter this block
-                log.info { "Sst id($sstId) and immutable memTable id(${immutableMemTable?.id}) mismatch. There might be concurrent calls to flush immMemTable" }
+                log.info { "Sst id($flushedMemTableId) and immutable memTable id(${immutableMemTable?.id}) mismatch. There might be concurrent calls to flush immMemTable" }
                 return@withWriteLock
             } else {
                 // we can safely remove the oldest immutableMemTable
@@ -183,16 +207,16 @@ class LsmStorageStateConcurrencyManager(
             }
 
             // TODO: this is only for no compaction strategy, will require additional logic when we support for diverse compaction algorithms
-            state.l0Sstables.addFirst(sstId)
-            log.info { "Flushed $sstId.sst with size ${sst.file.size}" }
-            state.sstables[sstId] = sst
+            state.l0Sstables.addFirst(flushedMemTableId)
+            log.info { "Flushed $flushedMemTableId.sst with size ${sst.file.size}" }
+            state.sstables[flushedMemTableId] = sst
         }
 
         if (options.enableWal) {
             TODO("remove wal file")
         }
 
-        return sstId
+        return flushedMemTableId
     }
 
     fun setManifest(manifest: Manifest?) {

@@ -213,11 +213,6 @@ class LsmStorageInner private constructor(
         manifest?.addRecord(NewMemTable(newMemTableId))
     }
 
-    fun forceFlushMemTable() {
-        val prevMemTableId = stateManager.forceFreezeMemTable()
-        manifest?.addRecord(NewMemTable(prevMemTableId))
-    }
-
     /**
      * Force flush the earliest created immutable memTable to disk
      */
