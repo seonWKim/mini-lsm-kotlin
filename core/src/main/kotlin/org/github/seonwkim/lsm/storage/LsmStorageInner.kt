@@ -166,10 +166,30 @@ class LsmStorageInner private constructor(
         }
     }
 
+    /**
+     * Retrieves the value associated with the specified key from the storage.
+     *
+     * This method first attempts to retrieve the value from the current memTable.
+     * If the key is not found or is marked as deleted, it then checks the immutable memTables.
+     * If the key is still not found, it finally checks the SSTables.
+     *
+     * @param key The key to be retrieved. It must be a `ComparableByteArray`.
+     * @return The value associated with the key, or `null` if the key is not found or is marked as deleted.
+     */
     fun get(key: ComparableByteArray): ComparableByteArray? {
         return get(TimestampedKey(key))
     }
 
+    /**
+     * Retrieves the value associated with the specified timestamped key from the storage.
+     *
+     * This method first attempts to retrieve the value from the current memTable.
+     * If the key is not found or is marked as deleted, it then checks the immutable memTables.
+     * If the key is still not found, it finally checks the SSTables.
+     *
+     * @param key The timestamped key to be retrieved. It must be a `TimestampedKey`.
+     * @return The value associated with the key, or `null` if the key is not found or is marked as deleted.
+     */
     fun get(key: TimestampedKey): ComparableByteArray? {
         stateManager.getFromMemTable(key).let {
             when {
@@ -194,21 +214,47 @@ class LsmStorageInner private constructor(
         return stateManager.getFromSstables(key)
     }
 
+    /**
+     * Inserts a key-value pair into the current memTable.
+     *
+     * This method adds the specified key-value pair to the current memTable.
+     *
+     * @param key The key to be inserted. It must be a `ComparableByteArray` to ensure proper ordering.
+     * @param value The value to be associated with the key. It must be a `ComparableByteArray`.
+     */
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
         stateManager.put(key, MemtableValue(value))
     }
 
+    /**
+     * Deletes a key from the current memTable.
+     *
+     * This method marks the specified key as deleted in the current memTable.
+     *
+     * @param key The key to be deleted. It must be a `ComparableByteArray`.
+     */
     fun delete(key: ComparableByteArray) {
         stateManager.put(key, MemtableValue(ComparableByteArray.new()))
     }
 
+    /**
+     * Freezes the current memTable and creates a new one.
+     *
+     * This method forces the current memTable to be frozen and moved to the list of immutable memTables.
+     * A new memTable is then created and set as the current memTable.
+     */
     fun forceFreezeMemTable() {
         val newMemTableId = stateManager.forceFreezeMemTable()
         manifest?.addRecord(NewMemTable(newMemTableId))
     }
 
     /**
-     * Force flush the earliest created immutable memTable to disk
+     * Force flushes the earliest created immutable memTable to disk.
+     *
+     * This method flushes the oldest immutable memTable to disk, creating a new SSTable.
+     * The method updates the manifest with the flushed memTable ID.
+     *
+     * @throws IllegalStateException if no immutable memTables exist.
      */
     fun forceFlushNextImmMemTable() {
         val previousMemtableId = stateManager.forceFlushNextImmutableMemTable()
@@ -216,7 +262,17 @@ class LsmStorageInner private constructor(
     }
 
     /**
-     * Trigger flush operation when number of immutable memTables exceeds limit.
+     *
+     */
+    fun forceFullCompaction() {
+
+    }
+
+    /**
+     * Triggers a flush operation when the number of immutable memTables exceeds the configured limit.
+     *
+     * This method checks if the number of immutable memTables has exceeded the limit set in the configuration.
+     * If the limit is exceeded, it forces a flush of the earliest created immutable memTable to disk.
      */
     fun triggerFlush() {
         if (stateManager.shouldFlush()) {
@@ -224,6 +280,16 @@ class LsmStorageInner private constructor(
         }
     }
 
+    /**
+     * Scans the storage for key-value pairs within the specified bounds.
+     *
+     * This method creates iterators for the current memTable, immutable memTables, and SSTables at different levels.
+     * It then merges these iterators to provide a unified view of the key-value pairs within the specified bounds.
+     *
+     * @param lower The lower bound of the scan. It must be a `Bound`.
+     * @param upper The upper bound of the scan. It must be a `Bound`.
+     * @return A `FusedIterator` that iterates over the key-value pairs within the specified bounds.
+     */
     fun scan(lower: Bound, upper: Bound): FusedIterator {
         // memTable iterators
         val memTableIters = listOf(stateManager.getMemTableIterator(lower, upper)) +
