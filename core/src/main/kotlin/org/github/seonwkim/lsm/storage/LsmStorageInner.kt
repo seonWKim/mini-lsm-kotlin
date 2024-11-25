@@ -14,7 +14,7 @@ import kotlin.io.path.exists
 
 class LsmStorageInner private constructor(
     val path: Path,
-    private val stateManager: LsmStorageStateConcurrencyManager,
+    val stateManager: LsmStorageStateConcurrencyManager,
     private val compactionController: CompactionController,
     private val manifest: Manifest?,
 ) {
@@ -166,18 +166,12 @@ class LsmStorageInner private constructor(
         }
     }
 
-    fun snapshot(): LsmStateSnapshot {
-        return stateManager.snapshot()
-    }
-
     fun get(key: ComparableByteArray): ComparableByteArray? {
         return get(TimestampedKey(key))
     }
 
     fun get(key: TimestampedKey): ComparableByteArray? {
-        val snapshot = stateManager.snapshot(timestamp = 0L) // TODO: set timestamp accordingly
-
-        snapshot.getFromMemTable(key).let {
+        stateManager.getFromMemTable(key).let {
             when {
                 it.isValid() -> return it!!.value
                 it.isDeleted() -> return null
@@ -187,7 +181,7 @@ class LsmStorageInner private constructor(
             }
         }
 
-        snapshot.getFromImmutableMemTables(key).let {
+        stateManager.getFromImmutableMemTables(key).let {
             when {
                 it.isValid() -> return it!!.value
                 it.isDeleted() -> return null
@@ -197,7 +191,7 @@ class LsmStorageInner private constructor(
             }
         }
 
-        return snapshot.getFromSstables(key)
+        return stateManager.getFromSstables(key)
     }
 
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
@@ -232,12 +226,11 @@ class LsmStorageInner private constructor(
 
     fun scan(lower: Bound, upper: Bound): FusedIterator {
         // memTable iterators
-        val snapshot = stateManager.snapshot()
-        val memTableIters = listOf(snapshot.getMemTableIterator(lower, upper)) +
-                snapshot.getImmutableMemTablesIterator(lower, upper)
+        val memTableIters = listOf(stateManager.getMemTableIterator(lower, upper)) +
+                stateManager.getImmutableMemTablesIterator(lower, upper)
         val memTableMergeIter = MergeIterator(memTableIters)
-        val l0MergeIter = MergeIterator(snapshot.getL0SstablesIterator(lower, upper))
-        val levelIters = snapshot.getLevelIterators(lower, upper)
+        val l0MergeIter = MergeIterator(stateManager.getL0SstablesIterator(lower, upper))
+        val levelIters = stateManager.getLevelIterators(lower, upper)
         val `memTableIter plus l0Iter` = TwoMergeIterator.create(memTableMergeIter, l0MergeIter)
         val `levelIter added iter` =
             TwoMergeIterator.create(`memTableIter plus l0Iter`, MergeIterator(levelIters))

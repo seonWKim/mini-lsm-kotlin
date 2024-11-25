@@ -3,12 +3,9 @@ package org.github.seonwkim.minilsm.week2
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.Configuration
-import org.github.seonwkim.lsm.iterator.MergeIterator
-import org.github.seonwkim.lsm.iterator.SsTableIterator
 import org.github.seonwkim.lsm.iterator.StorageIterator
 import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
-import org.github.seonwkim.lsm.storage.LsmStorageState
 import org.github.seonwkim.lsm.storage.NoCompaction
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
@@ -44,8 +41,8 @@ class Day1 {
         storage.delete("2".toComparableByteArray())
         sync(storage)
 
-        assertEquals(storage.snapshot().getL0SstablesSize(), 3)
-        val iter = constructMergeIteratorOverStorage(storage.snapshot().state)
+        assertEquals(storage.stateManager.getL0SstablesSize(), 3)
+        val iter = storage.stateManager.constructMergeIterator()
 
         if (Configuration.TS_ENABLED) {
             checkIterator(
@@ -75,23 +72,6 @@ class Day1 {
     private fun sync(storage: LsmStorageInner) {
         storage.forceFreezeMemTable()
         storage.forceFlushNextImmMemTable()
-    }
-
-    private fun constructMergeIteratorOverStorage(
-        state: LsmStorageState
-    ): MergeIterator<SsTableIterator> {
-        val iters = mutableListOf<SsTableIterator>()
-        state.l0Sstables.forEach {
-            iters.add(SsTableIterator.createAndSeekToFirst(state.sstables[it]!!))
-        }
-
-        state.levels.forEach { level ->
-            level.sstIds.forEach {
-                iters.add(SsTableIterator.createAndSeekToFirst(state.sstables[it]!!))
-            }
-        }
-
-        return MergeIterator(iters)
     }
 
     private fun checkIterator(

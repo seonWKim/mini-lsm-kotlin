@@ -47,7 +47,7 @@ class LsmStorageInnerTest {
         // freeze and then
         storage.put("i".toComparableByteArray(), "ii".toComparableByteArray())
 
-        assertEquals(8, storage.snapshot().getImmutableMemTablesSize())
+        assertEquals(8, storage.stateManager.getImmutableMemTablesSize())
     }
 
     @Test
@@ -84,7 +84,7 @@ class LsmStorageInnerTest {
         tasks.forEach { it.get() } // Wait for all tasks to complete
 
         executors.forEach { it.shutdown() }
-        assertEquals(8, storage.snapshot().getImmutableMemTablesSize())
+        assertEquals(8, storage.stateManager.getImmutableMemTablesSize())
     }
 
     @Test
@@ -111,19 +111,19 @@ class LsmStorageInnerTest {
         storage.put("a".toComparableByteArray(), "aa".toComparableByteArray())
         storage.put("b".toComparableByteArray(), "bb".toComparableByteArray())
         storage.forceFreezeMemTable()
-        assertTrue { storage.snapshot().getImmutableMemTablesSize() == 2 }
+        assertTrue { storage.stateManager.getImmutableMemTablesSize() == 2 }
 
         // call forceFlushNextImmMemTable in parallel, this will only flush single, the oldest immutableMemTable
         val executors = List(5) { Executors.newSingleThreadExecutor() }
         val tasks = executors.map { executor -> executor.submit { storage.forceFlushNextImmMemTable() } }
         tasks.forEach { it.get() }
-        assertEquals(1, storage.snapshot().getImmutableMemTablesSize())
-        assertEquals(1, storage.snapshot().getL0SstablesSize())
+        assertEquals(1, storage.stateManager.getImmutableMemTablesSize())
+        assertEquals(1, storage.stateManager.getL0SstablesSize())
 
         // this will flush remaining immutableMemTable
         storage.forceFlushNextImmMemTable()
-        assertEquals(0, storage.snapshot().getImmutableMemTablesSize())
-        assertEquals(2, storage.snapshot().getL0SstablesSize())
+        assertEquals(0, storage.stateManager.getImmutableMemTablesSize())
+        assertEquals(2, storage.stateManager.getL0SstablesSize())
 
         executors.forEach { it.shutdown() }
     }
