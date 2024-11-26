@@ -57,17 +57,17 @@ class LsmStorageInnerTest {
             blockSize = 2,
             targetSstSize = 2,
             numMemTableLimit = 10,
-            customizableMemTableLock = SimulatedRwLock(
+        )
+
+        val storage = LsmStorageInner.openWithCustomLock(
+            path = createTempDirectory("test_concurrency").resolve("1.sst"),
+            options = options,
+            memTableLock = SimulatedRwLock(
                 value = Unit,
                 afterWriteLockAcquireBehavior = {
                     Thread.sleep(100)
                 }
             )
-        )
-
-        val storage = LsmStorageInner.open(
-            path = createTempDirectory("test_concurrency").resolve("1.sst"),
-            options = options,
         )
 
         val executors = List(3) { Executors.newVirtualThreadPerTaskExecutor() }
@@ -93,18 +93,18 @@ class LsmStorageInnerTest {
             blockSize = 2,
             targetSstSize = 2,
             numMemTableLimit = 10,
-            customizableMemTableLock = SimulatedRwLock(
+        )
+
+        val storage = LsmStorageInner.openWithCustomLock(
+            path = createTempDirectory("test_concurrency").resolve("1.sst"),
+            options = options,
+            memTableLock = SimulatedRwLock(
                 value = Unit,
                 afterWriteLockAcquireBehavior = {
                     Thread.sleep(500)
                     log.info { "Trying to acquire write lock from ${Thread.currentThread()}" }
                 }
             )
-        )
-
-        val storage = LsmStorageInner.open(
-            path = createTempDirectory("test_concurrency").resolve("1.sst"),
-            options = options,
         )
 
         // flush memTable into immutableMemTables

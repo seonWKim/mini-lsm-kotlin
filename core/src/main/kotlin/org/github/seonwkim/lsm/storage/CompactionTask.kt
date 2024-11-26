@@ -45,8 +45,8 @@ data class SimpleTask @JsonCreator constructor(
 }
 
 data class ForceFullCompaction @JsonCreator constructor(
-    @JsonProperty("l0SsTables") val l0SsTables: List<Int>,
-    @JsonProperty("l1SsTables") val l1SsTables: List<Int>
+    @JsonProperty("l0Sstables") val l0Sstables: List<Int>,
+    @JsonProperty("l1Sstables") val l1Sstables: List<Int>
 ) : CompactionTask {
     override fun compactToBottomLevel(): Boolean {
         return true

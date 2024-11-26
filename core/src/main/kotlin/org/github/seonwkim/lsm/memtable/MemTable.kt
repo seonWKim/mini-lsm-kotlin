@@ -79,4 +79,12 @@ class MemTable(
             builder.add(key, value.value)
         }
     }
+
+    fun copy(): MemTable {
+        return MemTable(
+            map = ConcurrentSkipListMap<TimestampedKey, MemtableValue>(map),
+            wal = wal,
+            id = id
+        )
+    }
 }

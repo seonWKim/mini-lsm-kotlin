@@ -1,8 +1,5 @@
 package org.github.seonwkim.lsm.storage
 
-import org.github.seonwkim.common.DefaultRwLock
-import org.github.seonwkim.common.RwLock
-
 data class LsmStorageOptions(
     // block size in bytes
     val blockSize: Int,
@@ -25,6 +22,4 @@ data class LsmStorageOptions(
 
     // TODO: add explanation
     val serializable: Boolean = false,
-    val customizableMemTableLock: RwLock<Unit> = DefaultRwLock(Unit),
-    val customizableImmutableMemTableLock: RwLock<Unit> = DefaultRwLock(Unit)
 )

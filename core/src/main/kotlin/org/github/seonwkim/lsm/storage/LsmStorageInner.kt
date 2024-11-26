@@ -10,7 +10,10 @@ import org.github.seonwkim.lsm.memtable.isValid
 import org.github.seonwkim.lsm.sstable.*
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.exists
 
 class LsmStorageInner private constructor(
@@ -21,9 +24,11 @@ class LsmStorageInner private constructor(
     val blockCache: BlockCache,
     private var manifest: Manifest? = null,
     private val compactionController: CompactionController,
-    private val memTableLock: RwLock<Unit> = options.customizableMemTableLock,
-    private val immutableMemTableLock: RwLock<Unit> = options.customizableMemTableLock
 ) {
+    private var memTableLock: RwLock<Unit> = DefaultRwLock(Unit)
+    private var immutableMemTableLock: RwLock<Unit> = DefaultRwLock(Unit)
+    private var sstableLock: RwLock<Unit> = DefaultRwLock(Unit)
+
 
     companion object {
         private val log = mu.KotlinLogging.logger { }
@@ -153,6 +158,20 @@ class LsmStorageInner private constructor(
                 compactionController = compactionController,
                 manifest = manifest,
             )
+        }
+
+        fun openWithCustomLock(
+            path: Path,
+            options: LsmStorageOptions,
+            memTableLock: RwLock<Unit> = DefaultRwLock(Unit),
+            immutableMemTableLock: RwLock<Unit> = DefaultRwLock(Unit),
+            sstableLock: RwLock<Unit> = DefaultRwLock(Unit)
+        ): LsmStorageInner {
+            val inner = open(path, options)
+            inner.memTableLock = memTableLock
+            inner.immutableMemTableLock = immutableMemTableLock
+            inner.sstableLock = sstableLock
+            return inner
         }
     }
 
@@ -519,7 +538,41 @@ class LsmStorageInner private constructor(
      *
      */
     fun forceFullCompaction() {
+        if (options.compactionOptions == NoCompaction) {
+            throw Error("Compaction is not enabled")
+        }
 
+        val snapshot = snapshot()
+        val compactionTask = ForceFullCompaction(
+            l0Sstables = snapshot.l0Sstables,
+            l1Sstables = snapshot.levels[0].sstIds
+        )
+        log.info { "Force full compaction: $compactionTask" }
+
+        val sstables = compact(compactionTask)
+        val ids = mutableListOf<Int>()
+
+
+    }
+
+    private fun snapshot(): LsmStorageState {
+        return memTableLock.withReadLock {
+            immutableMemTableLock.withReadLock {
+                sstableLock.withReadLock {
+                    LsmStorageState(
+                        memTable = AtomicReference(state.memTable.get().copy()),
+                        immutableMemTables = LinkedList(state.immutableMemTables),
+                        l0Sstables = LinkedList(state.l0Sstables),
+                        levels = LinkedList(state.levels),
+                        sstables = ConcurrentHashMap(state.sstables)
+                    )
+                }
+            }
+        }
+    }
+
+    private fun compact(task: CompactionTask): List<Sstable> {
+        TODO()
     }
 
     /**

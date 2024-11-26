@@ -49,8 +49,8 @@ class ManifestTest {
         )
         val record5 = Compaction(
             task = ForceFullCompaction(
-                l0SsTables = listOf(1, 2),
-                l1SsTables = listOf(3, 4)
+                l0Sstables = listOf(1, 2),
+                l1Sstables = listOf(3, 4)
             ),
             output = listOf(1, 2, 3)
         )
