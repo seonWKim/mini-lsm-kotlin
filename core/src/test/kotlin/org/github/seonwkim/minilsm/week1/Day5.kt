@@ -161,7 +161,7 @@ class Day5 {
                 Pair("00".toComparableByteArray(), "2333333".toComparableByteArray()),
                 Pair("4".toComparableByteArray(), "23".toComparableByteArray()),
             ),
-            blockCache = storage.stateManager.blockCache.copy()
+            blockCache = storage.blockCache.copy()
         )
 
         val sst2 = generateSst(
@@ -170,14 +170,13 @@ class Day5 {
             data = listOf(
                 Pair("4".toComparableByteArray(), "".toComparableByteArray()) // This is treated as deleted
             ),
-            blockCache = storage.stateManager.blockCache.copy()
+            blockCache = storage.blockCache.copy()
         )
 
-        val snapshot = storage.stateManager
-        snapshot.addL0Sstable(sst1.id)
-        snapshot.addL0Sstable(sst2.id)
-        snapshot.addSstable(sst1)
-        snapshot.addSstable(sst2)
+        storage.addL0Sstable(sst1.id)
+        storage.addL0Sstable(sst2.id)
+        storage.addSstable(sst1)
+        storage.addSstable(sst2)
 
         checkIterator(
             storage.scan(Unbounded, Unbounded),
@@ -253,7 +252,7 @@ class Day5 {
                 Pair("00".toComparableByteArray(), "2333333".toComparableByteArray()),
                 Pair("4".toComparableByteArray(), "23".toComparableByteArray()),
             ),
-            blockCache = storage.stateManager.blockCache.copy()
+            blockCache = storage.blockCache.copy()
         )
         val sst2 = generateSst(
             id = 11,
@@ -261,13 +260,13 @@ class Day5 {
             data = listOf(
                 Pair("4".toComparableByteArray(), "".toComparableByteArray()),
             ),
-            blockCache = storage.stateManager.blockCache.copy()
+            blockCache = storage.blockCache.copy()
         )
 
-        storage.stateManager.addL0Sstable(sst1.id)
-        storage.stateManager.addL0Sstable(sst2.id)
-        storage.stateManager.addSstable(sst1)
-        storage.stateManager.addSstable(sst2)
+        storage.addL0Sstable(sst1.id)
+        storage.addL0Sstable(sst2.id)
+        storage.addSstable(sst1)
+        storage.addSstable(sst2)
 
         assertEquals(storage.get("0".toComparableByteArray()), "2333333".toComparableByteArray())
         assertEquals(storage.get("00".toComparableByteArray()), "2333".toComparableByteArray())

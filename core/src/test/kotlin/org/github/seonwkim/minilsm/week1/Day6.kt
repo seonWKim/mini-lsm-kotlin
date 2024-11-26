@@ -41,8 +41,8 @@ class Day6 {
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toComparableByteArray())
 
-        assertEquals(storage.stateManager.getL0SstablesSize(), 2)
-        assertEquals(storage.stateManager.getImmutableMemTablesSize(), 2)
+        assertEquals(storage.getL0SstablesSize(), 2)
+        assertEquals(storage.getImmutableMemTablesSize(), 2)
 
         checkIterator(
             storage.scan(Unbounded, Unbounded),
@@ -104,8 +104,8 @@ class Day6 {
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toComparableByteArray())
 
-        assertEquals(storage.stateManager.getL0SstablesSize(), 2)
-        assertEquals(storage.stateManager.getImmutableMemTablesSize(), 2)
+        assertEquals(storage.getL0SstablesSize(), 2)
+        assertEquals(storage.getImmutableMemTablesSize(), 2)
 
         assertEquals(storage.get("0".toComparableByteArray()), "2333333".toComparableByteArray())
         assertEquals(storage.get("00".toComparableByteArray()), "2333".toComparableByteArray())
@@ -136,7 +136,7 @@ class Day6 {
         }
 
         Thread.sleep(500)
-        assertTrue { storage.inner.stateManager.getL0SstablesSize() > 0 }
+        assertTrue { storage.inner.getL0SstablesSize() > 0 }
     }
 
     @Test

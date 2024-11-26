@@ -9,7 +9,6 @@ import java.util.concurrent.TimeUnit
 
 class MiniLsm private constructor(
     val inner: LsmStorageInner,
-    val options: MiniLsmOptions
 ) {
 
     private val log = KotlinLogging.logger { }
@@ -20,7 +19,7 @@ class MiniLsm private constructor(
     companion object {
         fun open(path: Path, options: LsmStorageOptions): MiniLsm {
             val inner = LsmStorageInner.open(path, options)
-            val lsm = MiniLsm(inner, options.toMiniLsmOptions())
+            val lsm = MiniLsm(inner)
             lsm.scheduleFlush()
             lsm.scheduleCompaction()
             return lsm
@@ -56,14 +55,14 @@ class MiniLsm private constructor(
                     log.error { "Flush operation failed: $e" }
                 }
             },
-            options.flushIntervalMillis,
-            options.flushIntervalMillis,
+            inner.options.flushIntervalMillis,
+            inner.options.flushIntervalMillis,
             TimeUnit.MILLISECONDS
         )
     }
 
     private fun scheduleCompaction() {
-        when (options.compactionOptions) {
+        when (inner.options.compactionOptions) {
             is Simple,
             is Leveled,
             is Tiered -> {

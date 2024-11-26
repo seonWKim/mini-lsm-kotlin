@@ -41,8 +41,8 @@ class Day1 {
         storage.delete("2".toComparableByteArray())
         sync(storage)
 
-        assertEquals(storage.stateManager.getL0SstablesSize(), 3)
-        val iter = storage.stateManager.constructMergeIterator()
+        assertEquals(storage.getL0SstablesSize(), 3)
+        val iter = storage.constructMergeIterator()
 
         if (Configuration.TS_ENABLED) {
             checkIterator(
@@ -67,6 +67,7 @@ class Day1 {
             )
         }
 
+        storage.forceFullCompaction()
     }
 
     private fun sync(storage: LsmStorageInner) {

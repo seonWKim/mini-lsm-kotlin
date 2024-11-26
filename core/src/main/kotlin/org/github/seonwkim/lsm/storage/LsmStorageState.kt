@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference
  * @property memTable The current memTable.
  * @property immutableMemTables The immutable memTables from latest to earliest.
  * @property l0Sstables The L0 SSTs, from latest to earliest.
- * @property levels The levels of SSTables.
+ * @property levels Sstables sorted by key range; L1 ~ L_max for leveled compaction, or tiers for tiered compaction.
  * @property sstables The map of SSTable IDs to SSTable instances.
  */
 class LsmStorageState(
