@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.github.seonwkim.common.*
+import org.github.seonwkim.common.lock.MutexLock
+import org.github.seonwkim.common.lock.RwLock
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.file.Files

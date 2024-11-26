@@ -1,7 +1,7 @@
 package org.github.seonwkim.lsm.iterator.storage
 
 import mu.KotlinLogging
-import org.github.seonwkim.common.SimulatedRwLock
+import org.github.seonwkim.common.lock.SimulatedRwLock
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.LsmStorageOptions

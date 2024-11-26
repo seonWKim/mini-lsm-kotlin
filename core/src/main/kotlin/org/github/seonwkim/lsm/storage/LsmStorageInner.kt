@@ -2,6 +2,8 @@ package org.github.seonwkim.lsm.storage
 
 import com.google.common.annotations.VisibleForTesting
 import org.github.seonwkim.common.*
+import org.github.seonwkim.common.lock.DefaultRwLock
+import org.github.seonwkim.common.lock.RwLock
 import org.github.seonwkim.lsm.iterator.*
 import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.memtable.MemtableValue
