@@ -9,8 +9,8 @@ class LockTest {
 
     @Test
     fun `PriorityCheckLock test`() {
-        val higherPriorityLock = PriorityAwareLock("testValue", 1)
-        val lowerPriorityLock = PriorityAwareLock("testValue", 0)
+        val higherPriorityLock = PriorityAwareLock("testValue", 0)
+        val lowerPriorityLock = PriorityAwareLock("testValue", 1)
 
         val result = higherPriorityLock.withWriteLock {
             lowerPriorityLock.withWriteLock { value ->

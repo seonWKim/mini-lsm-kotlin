@@ -1,14 +1,19 @@
 package org.github.seonwkim.lsm.iterator.storage
 
 import mu.KotlinLogging
+import org.github.seonwkim.common.lock.PriorityAwareLock
 import org.github.seonwkim.common.lock.SimulatedRwLock
 import org.github.seonwkim.common.toComparableByteArray
+import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
+import org.github.seonwkim.lsm.storage.LsmStorageState
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import kotlin.io.path.createTempDirectory
 
@@ -52,21 +57,25 @@ class LsmStorageInnerTest {
 
     @Test
     @Disabled("Is there a way to freeze memtables even when acquiring write lock takes long?")
-    fun `appropriate number of immutableMemTables should be created even in concurrent environment`() {
+    fun `appropriate number of immutableMemTables should be created when acquiring memTable lock takes too long`() {
         val options = LsmStorageOptions(
             blockSize = 2,
             targetSstSize = 2,
             numMemTableLimit = 10,
         )
 
-        val storage = LsmStorageInner.openWithCustomLock(
+        val storage = LsmStorageInner.openWithCustomState(
             path = createTempDirectory("test_concurrency").resolve("1.sst"),
             options = options,
-            memTableLock = SimulatedRwLock(
-                value = Unit,
-                afterWriteLockAcquireBehavior = {
-                    Thread.sleep(100)
-                }
+            customState = LsmStorageState.createWithCustomLock(
+                memTable = SimulatedRwLock(value = MemTable.create(0), beforeWriteLockAcquireBehavior = {
+                    log.info { "Trying to acquire write lock from ${Thread.currentThread()}" }
+                    Thread.sleep(200)
+                }),
+                immutableMemTables = SimulatedRwLock(value = LinkedList()),
+                l0Sstables = SimulatedRwLock(value = LinkedList()),
+                levels = SimulatedRwLock(value = LinkedList()),
+                sstables = ConcurrentHashMap()
             )
         )
 
@@ -95,15 +104,18 @@ class LsmStorageInnerTest {
             numMemTableLimit = 10,
         )
 
-        val storage = LsmStorageInner.openWithCustomLock(
+        val storage = LsmStorageInner.openWithCustomState(
             path = createTempDirectory("test_concurrency").resolve("1.sst"),
             options = options,
-            memTableLock = SimulatedRwLock(
-                value = Unit,
-                afterWriteLockAcquireBehavior = {
-                    Thread.sleep(500)
+            customState = LsmStorageState.createWithCustomLock(
+                memTable = SimulatedRwLock(value = MemTable.create(0)),
+                immutableMemTables = SimulatedRwLock(value = LinkedList(), beforeWriteLockAcquireBehavior = {
                     log.info { "Trying to acquire write lock from ${Thread.currentThread()}" }
-                }
+                    Thread.sleep(200)
+                }),
+                l0Sstables = SimulatedRwLock(value = LinkedList()),
+                levels = SimulatedRwLock(value = LinkedList()),
+                sstables = ConcurrentHashMap()
             )
         )
 

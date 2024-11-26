@@ -1,10 +1,12 @@
 package org.github.seonwkim.lsm.storage
 
+import com.google.common.annotations.VisibleForTesting
+import org.github.seonwkim.common.lock.PriorityAwareLock
+import org.github.seonwkim.common.lock.RwLock
 import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.sstable.Sstable
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Represents the state of the LSM storage.
@@ -15,15 +17,13 @@ import java.util.concurrent.atomic.AtomicReference
  * @property levels Sstables sorted by key range; L1 ~ L_max for leveled compaction, or tiers for tiered compaction.
  * @property sstables The map of SSTable IDs to SSTable instances.
  */
-class LsmStorageState(
-    var memTable: AtomicReference<MemTable>,
-    var immutableMemTables: LinkedList<MemTable> = LinkedList(),
-    val l0Sstables: LinkedList<Int> = LinkedList(),
-    val levels: LinkedList<SstLevel> = LinkedList(),
-    val sstables: ConcurrentHashMap<Int, Sstable> = ConcurrentHashMap()
+class LsmStorageState private constructor(
+    var memTable: RwLock<MemTable>,
+    var immutableMemTables: RwLock<LinkedList<MemTable>>,
+    val l0Sstables: RwLock<LinkedList<Int>>,
+    val levels: RwLock<LinkedList<SstLevel>>,
+    val sstables: ConcurrentHashMap<Int, Sstable>
 ) {
-
-
     companion object {
         fun create(options: LsmStorageOptions): LsmStorageState {
             val levels = when (options.compactionOptions) {
@@ -47,9 +47,49 @@ class LsmStorageState(
             }.toCollection(LinkedList())
 
             return LsmStorageState(
-                memTable = AtomicReference(MemTable.create(0)),
-                levels = levels
+                memTable = PriorityAwareLock(value = MemTable.create(0), priority = 10),
+                immutableMemTables = PriorityAwareLock(value = LinkedList(), priority = 20),
+                l0Sstables = PriorityAwareLock(value = LinkedList(), priority = 30),
+                levels = PriorityAwareLock(value = levels, priority = 40),
+                sstables = ConcurrentHashMap()
             )
         }
+
+        fun create(
+            memTable: MemTable,
+            immutableMemTables: LinkedList<MemTable>,
+            l0Sstables: LinkedList<Int>,
+            levels: LinkedList<SstLevel>,
+            sstables: ConcurrentHashMap<Int, Sstable>
+        ): LsmStorageState {
+            return LsmStorageState(
+                memTable = PriorityAwareLock(value = memTable, priority = 10),
+                immutableMemTables = PriorityAwareLock(value = immutableMemTables, priority = 20),
+                l0Sstables = PriorityAwareLock(value = l0Sstables, priority = 30),
+                levels = PriorityAwareLock(value = levels, priority = 40),
+                sstables = sstables
+            )
+        }
+
+        @VisibleForTesting
+        fun createWithCustomLock(
+            memTable: RwLock<MemTable>,
+            immutableMemTables: RwLock<LinkedList<MemTable>>,
+            l0Sstables: RwLock<LinkedList<Int>>,
+            levels: RwLock<LinkedList<SstLevel>>,
+            sstables: ConcurrentHashMap<Int, Sstable>
+        ): LsmStorageState {
+            return LsmStorageState(
+                memTable = memTable,
+                immutableMemTables = immutableMemTables,
+                l0Sstables = l0Sstables,
+                levels = levels,
+                sstables = sstables
+            )
+        }
+    }
+
+    fun setMemTable(memTable: MemTable) {
+        this.memTable = PriorityAwareLock(value = memTable, priority = 10)
     }
 }

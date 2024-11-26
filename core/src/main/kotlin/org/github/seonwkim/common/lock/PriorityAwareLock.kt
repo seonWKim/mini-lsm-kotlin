@@ -7,14 +7,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
  *
  * @param T the type of the value being protected by the lock
  * @property value the value being protected by the lock
- * @property priority the priority level of the lock. Higher the value, higher the priority.
+ * @property priority the priority level of the lock. lower the value, higher the priority.
  */
 class PriorityAwareLock<T>(
-    val value: T,
+    private val value: T,
     private val priority: Int
 ) : RwLock<T> {
     companion object {
-        private val PRIORITY_SCOPED_VALUE: ScopedValue<Int> = ScopedValue.newInstance()
+        private val PRIORITY_SCOPED_VALUE: ScopedValue<PriorityAwareLock<*>> = ScopedValue.newInstance()
     }
 
     private val lock = ReentrantReadWriteLock()
@@ -25,7 +25,7 @@ class PriorityAwareLock<T>(
 
     override fun <R> withReadLock(action: (T) -> R): R {
         checkPriority()
-        return ScopedValue.where(PRIORITY_SCOPED_VALUE, priority)
+        return ScopedValue.where(PRIORITY_SCOPED_VALUE, this)
             .call {
                 val readLock = lock.readLock()
                 readLock.lock()
@@ -39,7 +39,7 @@ class PriorityAwareLock<T>(
 
     override fun <R> withWriteLock(action: (T) -> R): R {
         checkPriority()
-        return ScopedValue.where(PRIORITY_SCOPED_VALUE, priority)
+        return ScopedValue.where(PRIORITY_SCOPED_VALUE, this)
             .call {
                 val writeLock = lock.writeLock()
                 writeLock.lock()
@@ -53,7 +53,7 @@ class PriorityAwareLock<T>(
 
     private fun checkPriority() {
         val prevLockPriority = runCatching { PRIORITY_SCOPED_VALUE.get() }.getOrNull()
-        if (prevLockPriority != null && prevLockPriority <= priority) {
+        if (prevLockPriority != null && prevLockPriority.priority > priority) {
             throw Error("You have already acquired lock with higher priority.")
         }
     }
