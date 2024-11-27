@@ -49,8 +49,8 @@ class SstConcatIterator(
 
         fun createAndSeekToKey(sstables: List<Sstable>, key: TimestampedKey): SstConcatIterator {
             checkSstValid(sstables)
-            val idx = sstables.indexOfLast { it.firstKey <= key }
-            if (idx == -1) {
+            val idx = findMinimumSstableIdxContainingKey(sstables, key)
+            if (idx >= sstables.size) {
                 return SstConcatIterator(
                     current = null,
                     nextSstIdx = sstables.size,
@@ -113,4 +113,12 @@ class SstConcatIterator(
     override fun numActiveIterators(): Int {
         return 1
     }
+}
+
+fun findMinimumSstableIdxContainingKey(sstables: List<Sstable>, key: TimestampedKey): Int {
+    return sstables.binarySearch { it.firstKey.compareTo(key) }
+        .let { idx ->
+            if (idx < 0) maxOf(-idx - 2, 0)
+            else idx
+        }
 }
