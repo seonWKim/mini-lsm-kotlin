@@ -1,12 +1,17 @@
 package org.github.seonwkim.minilsm.week2
 
 import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.Configuration
+import org.github.seonwkim.lsm.iterator.SstConcatIterator
 import org.github.seonwkim.lsm.iterator.StorageIterator
+import org.github.seonwkim.lsm.sstable.SsTableBuilder
+import org.github.seonwkim.lsm.sstable.Sstable
 import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.storage.compaction.NoCompaction
+import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -155,6 +160,41 @@ class Day1 {
         }
     }
 
+    @Test
+    fun `test task2 concat iterator`() {
+        val dir = createTempDirectory("test_task2_concat_iterator")
+        val sstables = mutableListOf<Sstable>()
+        for (id in 1..10) {
+            sstables.add(
+                generateConcatSst(
+                    startKey = id * 10,
+                    endKey = (id + 1) * 10,
+                    dir = dir,
+                    id = id
+                )
+            )
+        }
+        for (key in 0 until 120) {
+            val iter = SstConcatIterator.createAndSeekToKey(
+                sstables = sstables,
+                key = TimestampedKey("%05d".format(key).toComparableByteArray())
+            )
+            if (key < 10) {
+                assertTrue { iter.isValid() }
+                assertEquals(iter.key(), "00010".toComparableByteArray())
+            } else if (key >= 110) {
+                assertTrue { !iter.isValid() }
+            } else {
+                assertTrue { iter.isValid() }
+                assertEquals(iter.key(), "%05d".format(key).toComparableByteArray())
+            }
+        }
+
+        val iter = SstConcatIterator.createAndSeekToFirst(sstables)
+        assertTrue { iter.isValid() }
+        assertEquals(iter.key(), "00010".toComparableByteArray())
+    }
+
     private fun sync(storage: LsmStorageInner) {
         storage.forceFreezeMemTable()
         storage.forceFlushNextImmMemTable()
@@ -166,10 +206,25 @@ class Day1 {
     ) {
         for (e in expected) {
             assertTrue { actual.isValid() }
-            // assertEquals(actual.key(), e.first)
-            // assertEquals(actual.value(), e.second)
+             assertEquals(actual.key(), e.first)
+             assertEquals(actual.value(), e.second)
             actual.next()
         }
         assertTrue { !actual.isValid() }
+    }
+
+    private fun generateConcatSst(
+        startKey: Int,
+        endKey: Int,
+        dir: Path,
+        id: Int
+    ): Sstable {
+        val builder = SsTableBuilder(128)
+        for (idx in startKey until endKey) {
+            val key = "%05d".format(idx)
+            builder.add(TimestampedKey(key.toComparableByteArray()), "test".toComparableByteArray())
+        }
+        val path = dir.resolve("${id}.sst")
+        return builder.buildForTest(path)
     }
 }
