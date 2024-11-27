@@ -76,10 +76,11 @@ class Sstable(
      * Find the block that may contain [key].
      */
     fun findBlockIdx(key: TimestampedKey): Int {
-        return blockMeta.indexOfFirst { it.firstKey > key }
-            .let { if (it == -1) blockMeta.size else it }
-            .minus(1)
-            .coerceAtLeast(0)
+        return blockMeta.binarySearch { it.firstKey.compareTo(key) }
+            .let { idx ->
+                if (idx < 0) maxOf(-idx - 2, 0)
+                else idx
+            }
     }
 
     /**
