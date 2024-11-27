@@ -1,8 +1,6 @@
 package org.github.seonwkim.minilsm.week2
 
-import org.github.seonwkim.common.ComparableByteArray
-import org.github.seonwkim.common.TimestampedKey
-import org.github.seonwkim.common.toComparableByteArray
+import org.github.seonwkim.common.*
 import org.github.seonwkim.lsm.Configuration
 import org.github.seonwkim.lsm.iterator.SstConcatIterator
 import org.github.seonwkim.lsm.iterator.StorageIterator
@@ -195,6 +193,57 @@ class Day1 {
         assertEquals(iter.key(), "00010".toComparableByteArray())
     }
 
+    @Test
+    fun `test task3 integration`() {
+        val dir = createTempDirectory("test_task3_integration")
+        val storage = LsmStorageInner.open(
+            path = dir,
+            options = lsmStorageOptionForTest()
+        )
+        storage.put("0".toComparableByteArray(), "2333333".toComparableByteArray())
+        storage.put("00".toComparableByteArray(), "2333333".toComparableByteArray())
+        storage.put("4".toComparableByteArray(), "23".toComparableByteArray())
+        sync(storage)
+
+        storage.delete("4".toComparableByteArray())
+        sync(storage)
+
+        storage.forceFullCompaction()
+        assertTrue { storage.state.l0Sstables.read().isEmpty() }
+        assertTrue { storage.state.levels.read()[0].sstIds.isNotEmpty() }
+
+        storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
+        storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
+        sync(storage)
+
+        storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
+        storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
+        storage.delete("1".toComparableByteArray())
+        sync(storage)
+        storage.forceFullCompaction()
+
+        assertTrue { storage.state.l0Sstables.read().isEmpty() }
+        assertTrue { storage.state.levels.read()[0].sstIds.isNotEmpty() }
+
+        checkIterator(
+            actual = storage.scan(Unbounded, Unbounded),
+            expected = listOf(
+                Pair("0".toComparableByteArray(), "2333333".toComparableByteArray()),
+                Pair("00".toComparableByteArray(), "2333".toComparableByteArray()),
+                Pair("2".toComparableByteArray(), "2333".toComparableByteArray()),
+                Pair("3".toComparableByteArray(), "23333".toComparableByteArray()),
+            )
+        )
+
+        assertEquals(storage.get("0".toComparableByteArray()), "2333333".toComparableByteArray())
+        assertEquals(storage.get("00".toComparableByteArray()), "2333".toComparableByteArray())
+        assertEquals(storage.get("2".toComparableByteArray()), "2333".toComparableByteArray())
+        assertEquals(storage.get("3".toComparableByteArray()), "23333".toComparableByteArray())
+        assertEquals(storage.get("4".toComparableByteArray()), null)
+        assertEquals(storage.get("--".toComparableByteArray()), null)
+        assertEquals(storage.get("555".toComparableByteArray()), null)
+    }
+
     private fun sync(storage: LsmStorageInner) {
         storage.forceFreezeMemTable()
         storage.forceFlushNextImmMemTable()
@@ -206,8 +255,8 @@ class Day1 {
     ) {
         for (e in expected) {
             assertTrue { actual.isValid() }
-             assertEquals(actual.key(), e.first)
-             assertEquals(actual.value(), e.second)
+            assertEquals(actual.key(), e.first)
+            assertEquals(actual.value(), e.second)
             actual.next()
         }
         assertTrue { !actual.isValid() }
@@ -227,4 +276,13 @@ class Day1 {
         val path = dir.resolve("${id}.sst")
         return builder.buildForTest(path)
     }
+
+    private fun lsmStorageOptionForTest(): LsmStorageOptions = LsmStorageOptions(
+        blockSize = 4096,
+        targetSstSize = 2 shl 20,
+        numMemTableLimit = 50,
+        enableWal = false,
+        compactionOptions = NoCompaction,
+        serializable = false
+    )
 }

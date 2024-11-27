@@ -414,11 +414,12 @@ class LsmStorageInner private constructor(
 
     private fun keepTable(key: TimestampedKey, table: Sstable): Boolean {
         if (table.firstKey <= key && key <= table.lastKey) {
-            if (table.bloom?.mayContain(farmHashFingerPrintU32(key.bytes)) == true) {
+            if (table.bloom == null) {
                 return true
             }
-        } else {
-            return true
+
+            // we can assure that key doesn't exist when bloom filter doesn't have the key
+            return table.bloom.mayContain(farmHashFingerPrintU32(key.bytes))
         }
 
         return false

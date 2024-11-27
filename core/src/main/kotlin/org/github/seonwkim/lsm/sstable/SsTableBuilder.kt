@@ -1,7 +1,10 @@
 package org.github.seonwkim.lsm.sstable
 
 import org.github.seonwkim.common.*
-import org.github.seonwkim.lsm.block.*
+import org.github.seonwkim.lsm.block.BlockBuilder
+import org.github.seonwkim.lsm.block.BlockMeta
+import org.github.seonwkim.lsm.block.BlockMetaUtil
+import org.github.seonwkim.lsm.block.BlockUtil
 import org.github.seonwkim.lsm.bloom.Bloom
 import org.github.seonwkim.lsm.bloom.BloomUtil
 import java.nio.file.Path
@@ -36,7 +39,7 @@ class SsTableBuilder(
         if (key.timestamp() > maxTimestamp) {
             maxTimestamp = key.timestamp()
         }
-        keyHashes.add(murmurHash(value))
+        keyHashes.add(farmHashFingerPrintU32(key.bytes))
 
         if (builder.add(key, value)) {
             lastKey.setFromBlockKey(key)
