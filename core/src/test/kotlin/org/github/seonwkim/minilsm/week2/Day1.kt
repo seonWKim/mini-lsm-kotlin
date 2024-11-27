@@ -91,6 +91,68 @@ class Day1 {
                 )
             }
         }
+
+        storage.put("0".toComparableByteArray(), "v3".toComparableByteArray())
+        storage.put("2".toComparableByteArray(), "v3".toComparableByteArray())
+        sync(storage)
+        storage.delete("1".toComparableByteArray())
+        sync(storage)
+        storage.constructMergeIterator().let { iter ->
+            if (Configuration.TS_ENABLED) {
+                checkIterator(
+                    actual = iter,
+                    expected = listOf(
+                        Pair("0".toComparableByteArray(), "v3".toComparableByteArray()),
+                        Pair("0".toComparableByteArray(), "".toComparableByteArray()),
+                        Pair("0".toComparableByteArray(), "v2".toComparableByteArray()),
+                        Pair("0".toComparableByteArray(), "v1".toComparableByteArray()),
+                        Pair("1".toComparableByteArray(), "".toComparableByteArray()),
+                        Pair("1".toComparableByteArray(), "v2".toComparableByteArray()),
+                        Pair("2".toComparableByteArray(), "v3".toComparableByteArray()),
+                        Pair("2".toComparableByteArray(), "".toComparableByteArray()),
+                        Pair("2".toComparableByteArray(), "v2".toComparableByteArray()),
+                    )
+                )
+            } else {
+                checkIterator(
+                    actual = iter,
+                    expected = listOf(
+                        Pair("0".toComparableByteArray(), "v3".toComparableByteArray()),
+                        Pair("1".toComparableByteArray(), "".toComparableByteArray()),
+                        Pair("2".toComparableByteArray(), "v3".toComparableByteArray()),
+                    )
+                )
+            }
+        }
+
+        storage.forceFullCompaction()
+        assertTrue { storage.state.l0Sstables.read().isEmpty() }
+        storage.constructMergeIterator().let { iter ->
+            if (Configuration.TS_ENABLED) {
+                checkIterator(
+                    actual = iter,
+                    expected = listOf(
+                        Pair("0".toComparableByteArray(), "v3".toComparableByteArray()),
+                        Pair("0".toComparableByteArray(), "".toComparableByteArray()),
+                        Pair("0".toComparableByteArray(), "v2".toComparableByteArray()),
+                        Pair("0".toComparableByteArray(), "v1".toComparableByteArray()),
+                        Pair("1".toComparableByteArray(), "".toComparableByteArray()),
+                        Pair("1".toComparableByteArray(), "v2".toComparableByteArray()),
+                        Pair("2".toComparableByteArray(), "v3".toComparableByteArray()),
+                        Pair("2".toComparableByteArray(), "".toComparableByteArray()),
+                        Pair("2".toComparableByteArray(), "v2".toComparableByteArray()),
+                    )
+                )
+            } else {
+                checkIterator(
+                    actual = iter,
+                    expected = listOf(
+                        Pair("0".toComparableByteArray(), "v3".toComparableByteArray()),
+                        Pair("2".toComparableByteArray(), "v3".toComparableByteArray()),
+                    )
+                )
+            }
+        }
     }
 
     private fun sync(storage: LsmStorageInner) {
