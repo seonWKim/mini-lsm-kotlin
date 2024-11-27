@@ -630,51 +630,41 @@ class LsmStorageInner private constructor(
     ): List<Sstable> {
         var builder: SsTableBuilder? = null
         val newSst = mutableListOf<Sstable>()
-        val lastKey = mutableListOf<Byte>()
-        var firstKeyBelowWatermark = false
-        val compactionFilters = compactionFilters.withWriteLock {
-            while (iter.isValid()) {
-                if (builder == null) {
-                    builder = SsTableBuilder(blockSize = options.blockSize)
-                }
-
-                // TODO: check whether MutableList<Byte> == MutableList<Int> works well
-                val sameAsLastKey = iter.key().array == lastKey
-                if (!sameAsLastKey) {
-                    firstKeyBelowWatermark = true
-                }
-
-                if (builder!!.estimatedSize() >= options.targetSstSize && !sameAsLastKey) {
-                    val sstId = nextSstId.getAndIncrement()
-                    newSst.add(
-                        builder!!.build(
-                            id = sstId,
-                            blockCache = blockCache.copy(),
-                            sstPath(path = path, id = sstId)
-                        )
-                    )
-                    builder = SsTableBuilder(blockSize = options.blockSize)
-                }
-
-                builder!!.add(TimestampedKey(iter.key()), iter.value())
-
-                if (!sameAsLastKey) {
-                    lastKey.clear()
-                    lastKey.addAll(iter.key().array)
-                }
-
-                iter.next()
+        while (iter.isValid()) {
+            if (builder == null) {
+                builder = SsTableBuilder(blockSize = options.blockSize)
             }
 
-            if (builder != null) {
+            if (compactToBottomLevel) {
+                if (!iter.value().isEmpty()) {
+                    builder.add(TimestampedKey(iter.key()), iter.value())
+                }
+            } else {
+                builder.add(TimestampedKey(iter.key()), iter.value())
+            }
+            iter.next()
+
+            if (builder.estimatedSize() >= options.targetSstSize) {
                 val sstId = nextSstId.getAndIncrement()
-                val sst = builder!!.build(
-                    id = sstId,
-                    blockCache = blockCache.copy(),
-                    path = sstPath(path = path, id = sstId)
+                newSst.add(
+                    builder.build(
+                        id = sstId,
+                        blockCache = blockCache.copy(),
+                        sstPath(path = path, id = sstId)
+                    )
                 )
-                newSst.add(sst)
+                builder = null
             }
+        }
+
+        if (builder != null) {
+            val sstId = nextSstId.getAndIncrement()
+            val sst = builder.build(
+                id = sstId,
+                blockCache = blockCache.copy(),
+                path = sstPath(path = path, id = sstId)
+            )
+            newSst.add(sst)
         }
 
         return newSst
