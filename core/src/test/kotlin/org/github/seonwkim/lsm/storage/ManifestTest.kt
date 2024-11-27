@@ -1,5 +1,6 @@
 package org.github.seonwkim.lsm.storage
 
+import org.github.seonwkim.lsm.storage.compaction.*
 import org.junit.jupiter.api.Test
 import kotlin.io.path.createTempDirectory
 import kotlin.test.assertEquals

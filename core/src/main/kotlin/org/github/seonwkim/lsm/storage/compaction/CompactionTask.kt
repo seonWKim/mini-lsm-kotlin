@@ -1,4 +1,4 @@
-package org.github.seonwkim.lsm.storage
+package org.github.seonwkim.lsm.storage.compaction
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty

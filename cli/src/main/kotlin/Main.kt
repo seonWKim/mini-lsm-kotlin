@@ -6,7 +6,7 @@ import kotlinx.cli.ExperimentalCli
 import kotlinx.cli.Subcommand
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.storage.MiniLsm
-import org.github.seonwkim.lsm.storage.NoCompaction
+import org.github.seonwkim.lsm.storage.compaction.NoCompaction
 import java.nio.file.Paths
 
 @OptIn(ExperimentalCli::class)

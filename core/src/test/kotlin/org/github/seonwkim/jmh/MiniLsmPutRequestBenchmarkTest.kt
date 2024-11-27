@@ -3,7 +3,7 @@ package org.github.seonwkim.jmh
 import mu.KotlinLogging
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.storage.MiniLsm
-import org.github.seonwkim.lsm.storage.NoCompaction
+import org.github.seonwkim.lsm.storage.compaction.NoCompaction
 import org.openjdk.jmh.annotations.*
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.createTempDirectory

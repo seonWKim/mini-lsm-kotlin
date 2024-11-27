@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.github.seonwkim.common.*
 import org.github.seonwkim.common.lock.MutexLock
 import org.github.seonwkim.common.lock.RwLock
+import org.github.seonwkim.lsm.storage.compaction.CompactionTask
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.file.Files

@@ -1,4 +1,4 @@
-package org.github.seonwkim.lsm.storage
+package org.github.seonwkim.lsm.storage.compaction
 
 sealed interface CompactionOptions
 data object NoCompaction : CompactionOptions

@@ -3,6 +3,10 @@ package org.github.seonwkim.lsm.storage
 import mu.KotlinLogging
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.toComparableByteArray
+import org.github.seonwkim.lsm.storage.compaction.Leveled
+import org.github.seonwkim.lsm.storage.compaction.NoCompaction
+import org.github.seonwkim.lsm.storage.compaction.Simple
+import org.github.seonwkim.lsm.storage.compaction.Tiered
 import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit

@@ -1,4 +1,4 @@
-package org.github.seonwkim.lsm.storage
+package org.github.seonwkim.lsm.storage.compaction
 
 sealed interface CompactionController {
     fun flushTol0(): Boolean
