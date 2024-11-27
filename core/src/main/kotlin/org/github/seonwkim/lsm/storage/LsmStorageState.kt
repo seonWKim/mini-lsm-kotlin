@@ -5,6 +5,10 @@ import org.github.seonwkim.common.lock.PriorityAwareLock
 import org.github.seonwkim.common.lock.RwLock
 import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.sstable.Sstable
+import org.github.seonwkim.lsm.storage.compaction.Leveled
+import org.github.seonwkim.lsm.storage.compaction.NoCompaction
+import org.github.seonwkim.lsm.storage.compaction.Simple
+import org.github.seonwkim.lsm.storage.compaction.Tiered
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -92,4 +96,37 @@ class LsmStorageState private constructor(
     fun setMemTable(memTable: MemTable) {
         this.memTable = PriorityAwareLock(value = memTable, priority = 10)
     }
+
+    fun <T> stateWriteLock(
+        action: (snapshot: LsmStorageStateSnapshot) -> T
+    ): T {
+        return memTable.withWriteLock { memTable ->
+            immutableMemTables.withWriteLock { immutableMemTables ->
+                l0Sstables.withWriteLock { l0Sstables ->
+                    levels.withWriteLock { levels ->
+                        action(
+                            LsmStorageStateSnapshot(
+                                memTable = memTable,
+                                immutableMemTables = immutableMemTables,
+                                l0Sstables = l0Sstables,
+                                levels = levels,
+                                sstables = sstables
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
+
+/**
+ * Snapshot of [LsmStorageState]. Only valid when full write lock is acquired.
+ */
+class LsmStorageStateSnapshot(
+    var memTable: MemTable,
+    var immutableMemTables: LinkedList<MemTable>,
+    val l0Sstables: LinkedList<Int>,
+    val levels: LinkedList<SstLevel>,
+    val sstables: ConcurrentHashMap<Int, Sstable>
+)

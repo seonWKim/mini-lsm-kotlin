@@ -52,10 +52,6 @@ class MemTableIterator(
         }
     }
 
-    override fun isDeleted(): Boolean {
-        return current?.value.isDeleted()
-    }
-
     override fun next() {
         current = if (iter.hasNext()) iter.next() else null
 

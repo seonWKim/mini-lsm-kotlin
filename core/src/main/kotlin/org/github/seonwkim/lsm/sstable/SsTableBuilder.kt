@@ -110,4 +110,8 @@ class SsTableBuilder(
     fun buildForTest(path: Path): Sstable {
         return build(0, null, path)
     }
+
+    fun estimatedSize(): Int {
+        return data.size()
+    }
 }

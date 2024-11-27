@@ -14,7 +14,7 @@ class BlockIterator(
     private val firstKey: TimestampedKey
 ) {
     companion object {
-        fun new(block: Block): BlockIterator {
+        private fun new(block: Block): BlockIterator {
             return BlockIterator(
                 firstKey = BlockUtil.getFirstKey(block),
                 block = block,
@@ -57,11 +57,16 @@ class BlockIterator(
         return !key.isEmpty()
     }
 
+    fun next() {
+        idx += SIZE_OF_U16_IN_BYTE
+        seekTo(idx)
+    }
+
     fun seekToFirst() {
         seekTo(0)
     }
 
-    fun seekTo(idx: Int) {
+    private fun seekTo(idx: Int) {
         if (idx >= block.offsets.size()) {
             key.clear()
             valueRange = IntRange.EMPTY
@@ -95,8 +100,8 @@ class BlockIterator(
                 SIZE_OF_U16_IN_BYTE + // (overlap length)'s length
                 SIZE_OF_U16_IN_BYTE + // (key length)'s length
                 SIZE_OF_U64_IN_BYTE + // timestamp length
-                keyLength + // key length
-                SIZE_OF_U16_IN_BYTE // (value length)'s length
+                keyLength +           // key length
+                SIZE_OF_U16_IN_BYTE   // (value length)'s length
         val valueOffsetEnd = valueOffsetBegin + valueLength
         this.valueRange = valueOffsetBegin..<valueOffsetEnd
     }
@@ -125,10 +130,5 @@ class BlockIterator(
         }
 
         seekTo(low)
-    }
-
-    fun next() {
-        idx += SIZE_OF_U16_IN_BYTE
-        seekTo(idx)
     }
 }

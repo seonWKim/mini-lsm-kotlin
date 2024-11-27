@@ -12,8 +12,6 @@ interface StorageIterator {
     // Check if the current iterator is valid
     fun isValid(): Boolean
 
-    fun isDeleted(): Boolean = false
-
     // Move to the next position
     fun next()
 
