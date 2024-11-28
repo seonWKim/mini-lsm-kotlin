@@ -5,7 +5,7 @@ import org.github.seonwkim.lsm.storage.compaction.option.LeveledCompactionOption
 import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
 
 class LeveledCompactionController(options: LeveledCompactionOptions) : CompactionController {
-    override fun generateCompactionTask(state: LsmStorageState): CompactionTask {
+    override fun generateCompactionTask(state: LsmStorageState): CompactionTask? {
         TODO()
     }
 

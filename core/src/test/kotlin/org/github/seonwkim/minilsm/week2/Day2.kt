@@ -52,7 +52,7 @@ class Day2 {
             val rangeBegin = iter * 5000
             for (i in rangeBegin until (rangeBegin + overlaps)) {
                 val key = genKey(i)
-                val version = keyMap[i]!! + 1
+                val version = keyMap.getOrDefault(i, 0) + 1
                 val value = genValue(version)
                 keyMap[i] = version
                 storage.put(key.toComparableByteArray(), value.toComparableByteArray())

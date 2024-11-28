@@ -4,7 +4,7 @@ import org.github.seonwkim.lsm.storage.LsmStorageState
 import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
 
 data object NoCompactionController : CompactionController {
-    override fun generateCompactionTask(state: LsmStorageState): CompactionTask {
+    override fun generateCompactionTask(state: LsmStorageState): CompactionTask? {
         throw Error("generateCompactionTask should not be called on NoCompactionController")
     }
 

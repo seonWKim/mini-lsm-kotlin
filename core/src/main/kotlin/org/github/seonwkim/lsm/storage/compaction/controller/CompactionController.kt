@@ -16,7 +16,7 @@ sealed interface CompactionController {
         }
     }
 
-    fun generateCompactionTask(state: LsmStorageState): CompactionTask
+    fun generateCompactionTask(state: LsmStorageState): CompactionTask?
 
     fun flushTol0(): Boolean
 }
