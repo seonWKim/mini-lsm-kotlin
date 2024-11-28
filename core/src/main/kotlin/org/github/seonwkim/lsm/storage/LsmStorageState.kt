@@ -5,7 +5,10 @@ import org.github.seonwkim.common.lock.PriorityAwareLock
 import org.github.seonwkim.common.lock.RwLock
 import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.sstable.Sstable
-import org.github.seonwkim.lsm.storage.compaction.*
+import org.github.seonwkim.lsm.storage.compaction.option.LeveledCompactionOptions
+import org.github.seonwkim.lsm.storage.compaction.option.NoCompaction
+import org.github.seonwkim.lsm.storage.compaction.option.SimpleLeveledCompactionOptions
+import org.github.seonwkim.lsm.storage.compaction.option.TieredCompactionOptions
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 

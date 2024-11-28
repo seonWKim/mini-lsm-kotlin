@@ -7,7 +7,7 @@ import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.Configuration
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.storage.MiniLsm
-import org.github.seonwkim.lsm.storage.compaction.SimpleLeveledCompactionOptions
+import org.github.seonwkim.lsm.storage.compaction.option.SimpleLeveledCompactionOptions
 import org.github.seonwkim.minilsm.week2.Utils.checkCompactionRatio
 import org.github.seonwkim.minilsm.week2.Utils.checkIterator
 import kotlin.io.path.createTempDirectory

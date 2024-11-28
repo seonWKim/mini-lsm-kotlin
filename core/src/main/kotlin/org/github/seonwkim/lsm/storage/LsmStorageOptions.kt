@@ -1,7 +1,7 @@
 package org.github.seonwkim.lsm.storage
 
-import org.github.seonwkim.lsm.storage.compaction.CompactionOptions
-import org.github.seonwkim.lsm.storage.compaction.NoCompaction
+import org.github.seonwkim.lsm.storage.compaction.option.CompactionOptions
+import org.github.seonwkim.lsm.storage.compaction.option.NoCompaction
 
 data class LsmStorageOptions(
     // block size in bytes

@@ -1,7 +1,7 @@
 package org.github.seonwkim.lsm.storage.compaction.controller
 
 import org.github.seonwkim.lsm.storage.LsmStorageState
-import org.github.seonwkim.lsm.storage.compaction.TieredCompactionOptions
+import org.github.seonwkim.lsm.storage.compaction.option.TieredCompactionOptions
 
 class TieredCompactionController(options: TieredCompactionOptions) : CompactionController {
     override fun generateCompactionTask(state: LsmStorageState) {

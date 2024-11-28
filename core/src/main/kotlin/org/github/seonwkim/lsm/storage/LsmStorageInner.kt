@@ -13,6 +13,7 @@ import org.github.seonwkim.lsm.sstable.*
 import org.github.seonwkim.lsm.storage.compaction.*
 import org.github.seonwkim.lsm.storage.compaction.controller.CompactionController
 import org.github.seonwkim.lsm.storage.compaction.controller.LeveledCompactionController
+import org.github.seonwkim.lsm.storage.compaction.option.NoCompaction
 import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
 import org.github.seonwkim.lsm.storage.compaction.task.ForceFullCompactionTask
 import java.nio.file.Files

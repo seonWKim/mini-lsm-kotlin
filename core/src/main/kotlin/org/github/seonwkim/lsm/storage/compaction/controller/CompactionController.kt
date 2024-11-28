@@ -1,7 +1,7 @@
 package org.github.seonwkim.lsm.storage.compaction.controller
 
 import org.github.seonwkim.lsm.storage.LsmStorageState
-import org.github.seonwkim.lsm.storage.compaction.*
+import org.github.seonwkim.lsm.storage.compaction.option.*
 
 sealed interface CompactionController {
     companion object {

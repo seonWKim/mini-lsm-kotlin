@@ -7,7 +7,7 @@ import org.github.seonwkim.lsm.sstable.SsTableBuilder
 import org.github.seonwkim.lsm.sstable.Sstable
 import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
-import org.github.seonwkim.lsm.storage.compaction.NoCompaction
+import org.github.seonwkim.lsm.storage.compaction.option.NoCompaction
 import org.github.seonwkim.minilsm.week2.Utils.checkIterator
 import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
