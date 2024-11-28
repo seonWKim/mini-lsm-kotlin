@@ -724,4 +724,15 @@ class LsmStorageInner private constructor(
 
         return MergeIterator(iters)
     }
+
+    @VisibleForTesting
+    fun dumpStructure() {
+        if (state.l0Sstables.read().isNotEmpty()) {
+            log.info { "L0 (${state.l0Sstables.read().size}): ${state.l0Sstables.read()}" }
+        }
+
+        for ((level, files) in state.levels.read()) {
+            log.info { "L${level} (${files.size}): $files" }
+        }
+    }
 }

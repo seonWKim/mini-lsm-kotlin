@@ -3,12 +3,12 @@ package org.github.seonwkim.minilsm.week2
 import org.github.seonwkim.common.*
 import org.github.seonwkim.lsm.Configuration
 import org.github.seonwkim.lsm.iterator.SstConcatIterator
-import org.github.seonwkim.lsm.iterator.StorageIterator
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
 import org.github.seonwkim.lsm.sstable.Sstable
 import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.storage.compaction.NoCompaction
+import org.github.seonwkim.minilsm.week2.Utils.checkIterator
 import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
@@ -247,19 +247,6 @@ class Day1 {
     private fun sync(storage: LsmStorageInner) {
         storage.forceFreezeMemTable()
         storage.forceFlushNextImmMemTable()
-    }
-
-    private fun checkIterator(
-        actual: StorageIterator,
-        expected: List<Pair<ComparableByteArray, ComparableByteArray>>
-    ) {
-        for (e in expected) {
-            assertTrue { actual.isValid() }
-            assertEquals(actual.key(), e.first)
-            assertEquals(actual.value(), e.second)
-            actual.next()
-        }
-        assertTrue { !actual.isValid() }
     }
 
     private fun generateConcatSst(

@@ -1,8 +1,11 @@
 package org.github.seonwkim.lsm.storage
 
+import com.google.common.annotations.VisibleForTesting
 import mu.KotlinLogging
+import org.github.seonwkim.common.Bound
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.toComparableByteArray
+import org.github.seonwkim.lsm.iterator.FusedIterator
 import org.github.seonwkim.lsm.storage.compaction.Leveled
 import org.github.seonwkim.lsm.storage.compaction.NoCompaction
 import org.github.seonwkim.lsm.storage.compaction.Simple
@@ -48,6 +51,15 @@ class MiniLsm private constructor(
 
     fun delete(key: String) {
         inner.delete(key.toComparableByteArray())
+    }
+
+    fun scan(lower: Bound, upper: Bound): FusedIterator {
+        return inner.scan(lower, upper)
+    }
+
+    @VisibleForTesting
+    fun dumpStructure() {
+        inner.dumpStructure()
     }
 
     private fun scheduleFlush() {
