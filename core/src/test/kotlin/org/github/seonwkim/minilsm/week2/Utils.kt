@@ -5,10 +5,7 @@ import org.github.seonwkim.common.Unbounded
 import org.github.seonwkim.lsm.Configuration
 import org.github.seonwkim.lsm.iterator.StorageIterator
 import org.github.seonwkim.lsm.storage.MiniLsm
-import org.github.seonwkim.lsm.storage.compaction.Leveled
-import org.github.seonwkim.lsm.storage.compaction.NoCompaction
-import org.github.seonwkim.lsm.storage.compaction.Simple
-import org.github.seonwkim.lsm.storage.compaction.Tiered
+import org.github.seonwkim.lsm.storage.compaction.*
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -27,7 +24,7 @@ object Utils {
     }
 
 
-    private fun checkCompactionRatio(storage: MiniLsm) {
+    fun checkCompactionRatio(storage: MiniLsm) {
         val state = storage.inner.state
         val compactionOptions = storage.inner.options.compactionOptions
         val extraIterators = if (Configuration.TS_ENABLED) 1 else 0
@@ -35,15 +32,15 @@ object Utils {
         val l0SstNum = state.l0Sstables.read().size
         for ((_, files) in state.levels.read()) {
             val size = when (compactionOptions) {
-                is Simple -> {
+                is SimpleLeveledCompactionOptions -> {
                     files.size.toLong()
                 }
 
-                is Tiered -> {
+                is TieredCompactionOptions -> {
                     files.size.toLong()
                 }
 
-                is Leveled -> {
+                is LeveledCompactionOptions -> {
                     TODO()
                 }
 
@@ -58,8 +55,8 @@ object Utils {
         val numMemTables = storage.inner.state.immutableMemTables.read().size + 1
         when (compactionOptions) {
             is NoCompaction -> throw Error("Unreachable!!")
-            is Simple -> {
-                val (sizeRatioPercent, level0FileNumCompactionTrigger, maxLevels) = compactionOptions.options
+            is SimpleLeveledCompactionOptions -> {
+                val (sizeRatioPercent, level0FileNumCompactionTrigger, maxLevels) = compactionOptions
                 assertTrue { l0SstNum < level0FileNumCompactionTrigger }
                 assertTrue { levelSize.size <= maxLevels }
                 for (idx in 1 until levelSize.size) {
@@ -82,11 +79,11 @@ object Utils {
                 ) { numIters <= l0SstNum + numMemTables + maxLevels + extraIterators }
             }
 
-            is Leveled -> {
+            is LeveledCompactionOptions -> {
                 TODO()
             }
 
-            is Tiered -> {
+            is TieredCompactionOptions -> {
                 TODO()
             }
         }

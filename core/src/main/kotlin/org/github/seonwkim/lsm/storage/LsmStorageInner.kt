@@ -47,23 +47,7 @@ class LsmStorageInner private constructor(
 
             val state = customState ?: LsmStorageState.create(options)
             val compactionOptions = options.compactionOptions
-            val compactionController: CompactionController = when (compactionOptions) {
-                is Leveled -> {
-                    LeveledCompactionController(compactionOptions.options)
-                }
-
-                is Tiered -> {
-                    TieredCompactionController(compactionOptions.options)
-                }
-
-                is Simple -> {
-                    SimpleCompactionController(compactionOptions.options)
-                }
-
-                is NoCompaction -> {
-                    NoCompactionController
-                }
-            }
+            val compactionController = CompactionController.createCompactionController(compactionOptions)
 
             val manifestPath = path.resolve("MANIFEST")
             lateinit var manifest: Manifest
@@ -688,7 +672,7 @@ class LsmStorageInner private constructor(
     }
 
     fun triggerCompaction() {
-
+        TODO()
     }
 
     fun getImmutableMemTablesSize(): Int {

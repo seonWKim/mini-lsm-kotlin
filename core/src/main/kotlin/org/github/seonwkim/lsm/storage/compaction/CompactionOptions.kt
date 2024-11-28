@@ -1,10 +1,11 @@
 package org.github.seonwkim.lsm.storage.compaction
 
 sealed interface CompactionOptions
+
+/**
+ * No compaction
+ */
 data object NoCompaction : CompactionOptions
-data class Simple(val options: SimpleLeveledCompactionOptions) : CompactionOptions
-data class Leveled(val options: LeveledCompactionOptions) : CompactionOptions
-data class Tiered(val options: TieredCompactionOptions) : CompactionOptions
 
 /**
  * Simple leveled compaction
@@ -13,7 +14,7 @@ data class SimpleLeveledCompactionOptions(
     val sizeRatioPercent: Int,
     val level0FileNumCompactionTrigger: Int,
     val maxLevels: Int
-)
+) : CompactionOptions
 
 /**
  * Leveled compaction with partial compaction + dynamic level support
@@ -24,7 +25,7 @@ data class LeveledCompactionOptions(
     val level0FileNumCompactionTrigger: Int,
     val maxLevel: Int,
     val baseLevelSizeMB: Int
-)
+) : CompactionOptions
 
 /**
  * Tiered compaction
@@ -36,4 +37,4 @@ data class TieredCompactionOptions(
     val sizeRatio: Int,
     val minMergeWidth: Int,
     val maxMergeWidth: Int?
-)
+) : CompactionOptions

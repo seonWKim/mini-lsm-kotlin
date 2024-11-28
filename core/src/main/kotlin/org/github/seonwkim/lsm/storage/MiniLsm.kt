@@ -6,10 +6,10 @@ import org.github.seonwkim.common.Bound
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.iterator.FusedIterator
-import org.github.seonwkim.lsm.storage.compaction.Leveled
+import org.github.seonwkim.lsm.storage.compaction.LeveledCompactionOptions
 import org.github.seonwkim.lsm.storage.compaction.NoCompaction
-import org.github.seonwkim.lsm.storage.compaction.Simple
-import org.github.seonwkim.lsm.storage.compaction.Tiered
+import org.github.seonwkim.lsm.storage.compaction.SimpleLeveledCompactionOptions
+import org.github.seonwkim.lsm.storage.compaction.TieredCompactionOptions
 import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -79,9 +79,9 @@ class MiniLsm private constructor(
 
     private fun scheduleCompaction() {
         when (inner.options.compactionOptions) {
-            is Simple,
-            is Leveled,
-            is Tiered -> {
+            is SimpleLeveledCompactionOptions,
+            is LeveledCompactionOptions,
+            is TieredCompactionOptions -> {
                 compactionScheduler.scheduleWithFixedDelay(
                     {
                         try {

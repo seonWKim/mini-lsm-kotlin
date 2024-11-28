@@ -5,10 +5,7 @@ import org.github.seonwkim.common.lock.PriorityAwareLock
 import org.github.seonwkim.common.lock.RwLock
 import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.sstable.Sstable
-import org.github.seonwkim.lsm.storage.compaction.Leveled
-import org.github.seonwkim.lsm.storage.compaction.NoCompaction
-import org.github.seonwkim.lsm.storage.compaction.Simple
-import org.github.seonwkim.lsm.storage.compaction.Tiered
+import org.github.seonwkim.lsm.storage.compaction.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -31,17 +28,17 @@ class LsmStorageState private constructor(
     companion object {
         fun create(options: LsmStorageOptions): LsmStorageState {
             val levels = when (options.compactionOptions) {
-                is Leveled -> {
-                    (1..options.compactionOptions.options.maxLevel)
+                is LeveledCompactionOptions -> {
+                    (1..options.compactionOptions.maxLevel)
                         .map { SstLevel(level = it, sstIds = mutableListOf()) }
                 }
 
-                is Simple -> {
-                    (1..options.compactionOptions.options.maxLevels)
+                is SimpleLeveledCompactionOptions -> {
+                    (1..options.compactionOptions.maxLevels)
                         .map { SstLevel(level = it, sstIds = mutableListOf()) }
                 }
 
-                is Tiered -> {
+                is TieredCompactionOptions -> {
                     mutableListOf()
                 }
 

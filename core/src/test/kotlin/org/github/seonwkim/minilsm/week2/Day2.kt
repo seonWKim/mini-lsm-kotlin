@@ -7,8 +7,8 @@ import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.Configuration
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.storage.MiniLsm
-import org.github.seonwkim.lsm.storage.compaction.Simple
 import org.github.seonwkim.lsm.storage.compaction.SimpleLeveledCompactionOptions
+import org.github.seonwkim.minilsm.week2.Utils.checkCompactionRatio
 import org.github.seonwkim.minilsm.week2.Utils.checkIterator
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
@@ -27,12 +27,10 @@ class Day2 {
             options = LsmStorageOptions(
                 blockSize = 4096,
                 targetSstSize = 1 shl 20,
-                compactionOptions = Simple(
-                    options = SimpleLeveledCompactionOptions(
+                compactionOptions = SimpleLeveledCompactionOptions(
                         sizeRatioPercent = 200,
                         level0FileNumCompactionTrigger = 2,
                         maxLevels = 3
-                    )
                 ),
                 enableWal = false,
                 numMemTableLimit = 2,
