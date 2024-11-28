@@ -2,6 +2,7 @@ package org.github.seonwkim.lsm.storage.compaction.controller
 
 import org.github.seonwkim.lsm.storage.LsmStorageState
 import org.github.seonwkim.lsm.storage.compaction.option.*
+import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
 
 sealed interface CompactionController {
     companion object {
@@ -15,7 +16,7 @@ sealed interface CompactionController {
         }
     }
 
-    fun generateCompactionTask(state: LsmStorageState)
+    fun generateCompactionTask(state: LsmStorageState): CompactionTask
 
     fun flushTol0(): Boolean
 }

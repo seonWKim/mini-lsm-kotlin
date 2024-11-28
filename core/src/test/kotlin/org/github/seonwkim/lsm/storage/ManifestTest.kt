@@ -1,9 +1,9 @@
 package org.github.seonwkim.lsm.storage
 
 import org.github.seonwkim.lsm.storage.compaction.task.ForceFullCompactionTask
-import org.github.seonwkim.lsm.storage.compaction.task.LeveledTask
-import org.github.seonwkim.lsm.storage.compaction.task.SimpleTask
-import org.github.seonwkim.lsm.storage.compaction.task.TieredTask
+import org.github.seonwkim.lsm.storage.compaction.task.LeveledCompactionTask
+import org.github.seonwkim.lsm.storage.compaction.task.SimpleLeveledCompactionTask
+import org.github.seonwkim.lsm.storage.compaction.task.TieredCompactionTask
 import org.junit.jupiter.api.Test
 import kotlin.io.path.createTempDirectory
 import kotlin.test.assertEquals
@@ -19,7 +19,7 @@ class ManifestTest {
         val record0 = NewMemTable(1)
         val record1 = Flush(2)
         val record2 = Compaction(
-            task = LeveledTask(
+            task = LeveledCompactionTask(
                 upperLevel = 10,
                 upperLevelSstIds = listOf(1),
                 lowerLevel = 1,
@@ -29,14 +29,14 @@ class ManifestTest {
             output = listOf(1, 2, 3)
         )
         val record3 = Compaction(
-            task = TieredTask(
+            task = TieredCompactionTask(
                 tiers = emptyList(),
                 bottomTierIncluded = false
             ),
             output = listOf(1, 2, 3)
         )
         val record4 = Compaction(
-            task = SimpleTask(
+            task = SimpleLeveledCompactionTask(
                 upperLevel = 10,
                 upperLevelSstIds = listOf(1),
                 lowerLevel = 1,

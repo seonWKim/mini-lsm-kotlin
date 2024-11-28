@@ -9,9 +9,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     property = "type"
 )
 @JsonSubTypes(
-    JsonSubTypes.Type(value = LeveledTask::class, name = "LeveledTask"),
-    JsonSubTypes.Type(value = TieredTask::class, name = "TieredTask"),
-    JsonSubTypes.Type(value = SimpleTask::class, name = "SimpleTask"),
+    JsonSubTypes.Type(value = LeveledCompactionTask::class, name = "LeveledTask"),
+    JsonSubTypes.Type(value = TieredCompactionTask::class, name = "TieredTask"),
+    JsonSubTypes.Type(value = SimpleLeveledCompactionTask::class, name = "SimpleTask"),
     JsonSubTypes.Type(value = ForceFullCompactionTask::class, name = "ForceFullCompaction")
 )
 sealed interface CompactionTask {
