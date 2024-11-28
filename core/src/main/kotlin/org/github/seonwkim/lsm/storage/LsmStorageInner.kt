@@ -13,6 +13,8 @@ import org.github.seonwkim.lsm.sstable.*
 import org.github.seonwkim.lsm.storage.compaction.*
 import org.github.seonwkim.lsm.storage.compaction.controller.CompactionController
 import org.github.seonwkim.lsm.storage.compaction.controller.LeveledCompactionController
+import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
+import org.github.seonwkim.lsm.storage.compaction.task.ForceFullCompactionTask
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -541,7 +543,7 @@ class LsmStorageInner private constructor(
                 l1SstablesSnapshot = levels[0].sstIds
             }
         }
-        val compactionTask = ForceFullCompaction(
+        val compactionTask = ForceFullCompactionTask(
             l0Sstables = l0SstablesSnapshot,
             l1Sstables = l1SstablesSnapshot
         )
@@ -588,7 +590,7 @@ class LsmStorageInner private constructor(
 
     private fun compact(task: CompactionTask): List<Sstable> {
         return when (task) {
-            is ForceFullCompaction -> {
+            is ForceFullCompactionTask -> {
                 val l0Iters = task.l0Sstables.mapNotNull { l0SstableId ->
                     state.sstables[l0SstableId]?.let { SsTableIterator.createAndSeekToFirst(it) }
                 }

@@ -1,6 +1,9 @@
 package org.github.seonwkim.lsm.storage
 
-import org.github.seonwkim.lsm.storage.compaction.*
+import org.github.seonwkim.lsm.storage.compaction.task.ForceFullCompactionTask
+import org.github.seonwkim.lsm.storage.compaction.task.LeveledTask
+import org.github.seonwkim.lsm.storage.compaction.task.SimpleTask
+import org.github.seonwkim.lsm.storage.compaction.task.TieredTask
 import org.junit.jupiter.api.Test
 import kotlin.io.path.createTempDirectory
 import kotlin.test.assertEquals
@@ -17,39 +20,33 @@ class ManifestTest {
         val record1 = Flush(2)
         val record2 = Compaction(
             task = LeveledTask(
-                meta = LeveledCompactionTaskMeta(
-                    upperLevel = 10,
-                    upperLevelSstIds = listOf(1),
-                    lowerLevel = 1,
-                    lowerLevelSstIds = listOf(2),
-                    lowerLevelBottomLevel = true
-                )
+                upperLevel = 10,
+                upperLevelSstIds = listOf(1),
+                lowerLevel = 1,
+                lowerLevelSstIds = listOf(2),
+                lowerLevelBottomLevel = true
             ),
             output = listOf(1, 2, 3)
         )
         val record3 = Compaction(
             task = TieredTask(
-                meta = TieredCompactionTaskMeta(
-                    tiers = emptyList(),
-                    bottomTierIncluded = false
-                )
+                tiers = emptyList(),
+                bottomTierIncluded = false
             ),
             output = listOf(1, 2, 3)
         )
         val record4 = Compaction(
             task = SimpleTask(
-                meta = SimpleLeveledCompactionTaskMeta(
-                    upperLevel = 10,
-                    upperLevelSstIds = listOf(1),
-                    lowerLevel = 1,
-                    lowerLevelSstIds = listOf(2),
-                    lowerLevelBottomLevel = true
-                )
+                upperLevel = 10,
+                upperLevelSstIds = listOf(1),
+                lowerLevel = 1,
+                lowerLevelSstIds = listOf(2),
+                lowerLevelBottomLevel = true
             ),
             output = listOf(1, 2, 3)
         )
         val record5 = Compaction(
-            task = ForceFullCompaction(
+            task = ForceFullCompactionTask(
                 l0Sstables = listOf(1, 2),
                 l1Sstables = listOf(3, 4)
             ),
