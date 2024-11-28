@@ -8,6 +8,15 @@ data object NoCompactionController : CompactionController {
         throw Error("generateCompactionTask should not be called on NoCompactionController")
     }
 
+    override fun applyCompactionResult(
+        state: LsmStorageState,
+        task: CompactionTask,
+        output: List<Int>,
+        inRecovery: Boolean
+    ): List<Int> {
+        throw Error("applyCompactionResult should not be called on NoCompactionController")
+    }
+
     override fun flushTol0(): Boolean {
         return false
     }

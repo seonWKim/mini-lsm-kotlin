@@ -58,6 +58,47 @@ class SimpleLeveledCompactionController(
         return null
     }
 
+    override fun applyCompactionResult(
+        state: LsmStorageState,
+        task: CompactionTask,
+        output: List<Int>,
+        inRecovery: Boolean
+    ): List<Int> {
+        if (task !is SimpleLeveledCompactionTask) {
+            throw Error("task should be of type SimpleLeveledCompactionTask")
+        }
+
+        val sstIdsToRemove = mutableListOf<Int>()
+        state.l0Sstables.withWriteLock { l0Sstables ->
+            state.levels.withWriteLock { levels ->
+                val upperLevel = task.upperLevel
+                if (upperLevel != null) {
+                    if (task.upperLevelSstIds != levels[upperLevel - 1].sstIds) {
+                        throw Error("sst mismatched: ${task.upperLevelSstIds} != ${levels[upperLevel - 1].sstIds}")
+                    }
+
+                    sstIdsToRemove.addAll(levels[upperLevel - 1].sstIds)
+                    levels[upperLevel - 1].sstIds.clear()
+                } else {
+                    sstIdsToRemove.addAll(task.upperLevelSstIds)
+                    val l0SstsCompacted = task.upperLevelSstIds.toHashSet()
+                    val newL0Sstables = l0Sstables.filter { !l0SstsCompacted.remove(it) }
+                    if (l0SstsCompacted.isNotEmpty()) {
+                        throw Error("l0SstsCompacted should be empty")
+                    }
+                    l0Sstables.clear()
+                    l0Sstables.addAll(newL0Sstables)
+                }
+
+                sstIdsToRemove.addAll(levels[task.lowerLevel - 1].sstIds)
+                levels[task.lowerLevel - 1].sstIds.clear()
+                levels[task.lowerLevel - 1].sstIds.addAll(output)
+            }
+        }
+
+        return sstIdsToRemove
+    }
+
     override fun flushTol0(): Boolean {
         return true
     }

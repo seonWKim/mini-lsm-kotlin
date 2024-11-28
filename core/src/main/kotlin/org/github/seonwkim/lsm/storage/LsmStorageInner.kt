@@ -10,7 +10,8 @@ import org.github.seonwkim.lsm.memtable.MemtableValue
 import org.github.seonwkim.lsm.memtable.isDeleted
 import org.github.seonwkim.lsm.memtable.isValid
 import org.github.seonwkim.lsm.sstable.*
-import org.github.seonwkim.lsm.storage.compaction.*
+import org.github.seonwkim.lsm.storage.compaction.CompactionFilter
+import org.github.seonwkim.lsm.storage.compaction.Prefix
 import org.github.seonwkim.lsm.storage.compaction.controller.CompactionController
 import org.github.seonwkim.lsm.storage.compaction.controller.LeveledCompactionController
 import org.github.seonwkim.lsm.storage.compaction.option.NoCompaction
@@ -676,8 +677,37 @@ class LsmStorageInner private constructor(
         }
     }
 
+    /**
+     * Ignore concurrent cases because this will be executed by single threaded scheduler. If not, we should
+     * rewrite the code to consider concurrent operations.
+     */
     fun triggerCompaction() {
-        val task = compactionController.generateCompactionTask(state)
+        val task = compactionController.generateCompactionTask(state) ?: return
+        dumpStructure()
+
+        log.info { "Running compaction task: $task" }
+        val sstables = compact(task)
+        val output = sstables.map { it.id }
+
+        val newSstIds = mutableListOf<Int>()
+        for (newSstable in sstables) {
+            newSstIds.add(newSstable.id)
+            state.sstables[newSstable.id] = newSstable
+        }
+
+        val sstIdsToRemove = compactionController.applyCompactionResult(state, task, output, false)
+        val sstsToRemove = mutableListOf<Sstable>()
+
+        for (sstId in sstIdsToRemove) {
+            val sstToRemove = state.sstables.remove(sstId) ?: throw Error("Can't remove sstable of id $sstId")
+            sstsToRemove.add(sstToRemove)
+        }
+
+        manifest?.addRecord(Compaction(task = task, output = newSstIds))
+        log.info { "Compaction finished: $sstsToRemove files removed, ${output.size} files added, output: ${output}" }
+        for (sst in sstsToRemove) {
+            Files.delete(sstPath(path = path, id = sst.id))
+        }
     }
 
     fun getImmutableMemTablesSize(): Int {
