@@ -11,6 +11,8 @@ import org.github.seonwkim.lsm.memtable.isDeleted
 import org.github.seonwkim.lsm.memtable.isValid
 import org.github.seonwkim.lsm.sstable.*
 import org.github.seonwkim.lsm.storage.compaction.*
+import org.github.seonwkim.lsm.storage.compaction.controller.CompactionController
+import org.github.seonwkim.lsm.storage.compaction.controller.LeveledCompactionController
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -672,7 +674,7 @@ class LsmStorageInner private constructor(
     }
 
     fun triggerCompaction() {
-        TODO()
+        val task = compactionController.generateCompactionTask(state)
     }
 
     fun getImmutableMemTablesSize(): Int {
