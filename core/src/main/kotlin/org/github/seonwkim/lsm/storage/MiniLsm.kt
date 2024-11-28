@@ -82,7 +82,18 @@ class MiniLsm private constructor(
             is Simple,
             is Leveled,
             is Tiered -> {
-                // TODO
+                compactionScheduler.scheduleWithFixedDelay(
+                    {
+                        try {
+                            inner.triggerCompaction()
+                        } catch (e: Exception) {
+                            log.error { "Compaction failed: $e" }
+                        }
+                    },
+                    inner.options.compactionIntervalMillis,
+                    inner.options.compactionIntervalMillis,
+                    TimeUnit.MILLISECONDS
+                )
             }
 
             is NoCompaction -> {

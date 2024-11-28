@@ -23,6 +23,9 @@ data class LsmStorageOptions(
     // flush interval in millisecond
     val flushIntervalMillis: Long = 50,
 
+    // compaction interval in milliseconds
+    val compactionIntervalMillis: Long = 50,
+
     // TODO: add explanation
     val serializable: Boolean = false,
 )

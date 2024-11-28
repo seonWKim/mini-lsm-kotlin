@@ -687,6 +687,10 @@ class LsmStorageInner private constructor(
         }
     }
 
+    fun triggerCompaction() {
+
+    }
+
     fun getImmutableMemTablesSize(): Int {
         return state.immutableMemTables.withReadLock { it.size }
     }
@@ -725,7 +729,6 @@ class LsmStorageInner private constructor(
         return MergeIterator(iters)
     }
 
-    @VisibleForTesting
     fun dumpStructure() {
         if (state.l0Sstables.read().isNotEmpty()) {
             log.info { "L0 (${state.l0Sstables.read().size}): ${state.l0Sstables.read()}" }
