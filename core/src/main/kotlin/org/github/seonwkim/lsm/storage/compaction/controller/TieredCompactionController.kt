@@ -20,6 +20,6 @@ class TieredCompactionController(options: TieredCompactionOptions) : CompactionC
     }
 
     override fun flushToL0(): Boolean {
-        return true
+        return false
     }
 }

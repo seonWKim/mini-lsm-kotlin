@@ -19,6 +19,6 @@ data object NoCompactionController : CompactionController {
     }
 
     override fun flushToL0(): Boolean {
-        return false
+        return true
     }
 }
