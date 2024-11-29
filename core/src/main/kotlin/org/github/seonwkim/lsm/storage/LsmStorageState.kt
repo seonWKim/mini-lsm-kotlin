@@ -97,36 +97,15 @@ class LsmStorageState private constructor(
         this.memTable = PriorityAwareLock(value = memTable, priority = 10)
     }
 
-    fun <T> stateWriteLock(
-        action: (snapshot: LsmStorageStateSnapshot) -> T
-    ): T {
-        return memTable.withWriteLock { memTable ->
-            immutableMemTables.withWriteLock { immutableMemTables ->
-                l0Sstables.withWriteLock { l0Sstables ->
-                    levels.withWriteLock { levels ->
-                        action(
-                            LsmStorageStateSnapshot(
-                                memTable = memTable,
-                                immutableMemTables = immutableMemTables,
-                                l0Sstables = l0Sstables,
-                                levels = levels,
-                                sstables = sstables
-                            )
-                        )
-                    }
-                }
+    fun diskSnapshot(): LsmStorageStateDiskSnapshot {
+        return l0Sstables.withReadLock { l0Sstables ->
+            levels.withReadLock { levels ->
+                LsmStorageStateDiskSnapshot(
+                    l0Sstables = l0Sstables.toList(),
+                    levels = levels.map { it.deepCopy() },
+                    sstables = sstables
+                )
             }
         }
     }
 }
-
-/**
- * Snapshot of [LsmStorageState]. Only valid when full write lock is acquired.
- */
-class LsmStorageStateSnapshot(
-    var memTable: MemTable,
-    var immutableMemTables: LinkedList<MemTable>,
-    val l0Sstables: LinkedList<Int>,
-    val levels: LinkedList<SstLevel>,
-    val sstables: ConcurrentHashMap<Int, Sstable>
-)

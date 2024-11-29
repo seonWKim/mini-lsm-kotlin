@@ -10,4 +10,8 @@ data class TieredCompactionTask @JsonCreator constructor(
     override fun compactToBottomLevel(): Boolean {
         return bottomTierIncluded
     }
+
+    override fun l0Compaction(): Boolean {
+        TODO()
+    }
 }

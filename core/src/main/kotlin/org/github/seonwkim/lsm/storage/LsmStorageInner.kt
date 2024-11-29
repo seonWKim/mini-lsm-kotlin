@@ -17,6 +17,7 @@ import org.github.seonwkim.lsm.storage.compaction.controller.LeveledCompactionCo
 import org.github.seonwkim.lsm.storage.compaction.option.NoCompaction
 import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
 import org.github.seonwkim.lsm.storage.compaction.task.ForceFullCompactionTask
+import org.github.seonwkim.lsm.storage.compaction.task.SimpleLeveledCompactionTask
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -81,7 +82,7 @@ class LsmStorageInner private constructor(
                             if (!removed) {
                                 throw Error("memtable of id $sstId not exists")
                             }
-                            if (compactionController.flushTol0()) {
+                            if (compactionController.flushToL0()) {
                                 state.l0Sstables.read().addFirst(sstId)
                             } else {
                                 state.levels.read().addFirst(SstLevel(sstId, mutableListOf(sstId)))
@@ -608,6 +609,41 @@ class LsmStorageInner private constructor(
                 compactGenerateSstFromIter(iter, task.compactToBottomLevel())
             }
 
+            is SimpleLeveledCompactionTask -> {
+                if (task.l0Compaction()) {
+                    val upperIters = mutableListOf<SsTableIterator>()
+                    for (id in task.upperLevelSstIds) {
+                        state.sstables[id]?.let { SsTableIterator.createAndSeekToFirst(it) }
+                            ?.let { upperIters.add(it) }
+                    }
+                    val upperIter = MergeIterator(upperIters)
+                    val lowerSsts = mutableListOf<Sstable>()
+                    for (id in task.lowerLevelSstIds) {
+                        state.sstables[id]?.let { lowerSsts.add(it) }
+                    }
+                    val lowerIter = SstConcatIterator.createAndSeekToFirst(lowerSsts)
+                    compactGenerateSstFromIter(
+                        iter = TwoMergeIterator.create(upperIter, lowerIter),
+                        compactToBottomLevel = task.compactToBottomLevel()
+                    )
+                } else {
+                    val upperSsts = mutableListOf<Sstable>()
+                    for (id in task.upperLevelSstIds) {
+                        state.sstables[id]?.let { upperSsts.add(it) }
+                    }
+                    val upperIter = SstConcatIterator.createAndSeekToFirst(upperSsts)
+                    val lowerSsts = mutableListOf<Sstable>()
+                    for (id in task.lowerLevelSstIds) {
+                        state.sstables[id]?.let { lowerSsts.add(it) }
+                    }
+                    val lowerIter = SstConcatIterator.createAndSeekToFirst(lowerSsts)
+                    compactGenerateSstFromIter(
+                        iter = TwoMergeIterator.create(upperIter, lowerIter),
+                        compactToBottomLevel = task.compactToBottomLevel()
+                    )
+                }
+            }
+
             else -> {
                 TODO()
             }
@@ -682,30 +718,43 @@ class LsmStorageInner private constructor(
      * rewrite the code to consider concurrent operations.
      */
     fun triggerCompaction() {
-        val task = compactionController.generateCompactionTask(state) ?: return
-        dumpStructure()
+        val snapshotForCompaction = state.diskSnapshot()
+        val task = compactionController.generateCompactionTask(snapshotForCompaction) ?: return
+        dumpStructure(snapshotForCompaction)
 
         log.info { "Running compaction task: $task" }
-        val sstables = compact(task)
-        val output = sstables.map { it.id }
-
+        val nesSstables = compact(task)
         val newSstIds = mutableListOf<Int>()
-        for (newSstable in sstables) {
+        nesSstables.forEach { newSstable ->
             newSstIds.add(newSstable.id)
-            state.sstables[newSstable.id] = newSstable
+            snapshotForCompaction.sstables[newSstable.id] = newSstable
         }
 
-        val sstIdsToRemove = compactionController.applyCompactionResult(state, task, output, false)
-        val sstsToRemove = mutableListOf<Sstable>()
-
+        // changes are applied to the snapshot
+        val (snapshot, sstIdsToRemove) =
+            compactionController.applyCompactionResult(snapshotForCompaction, task, newSstIds, false)
+        log.info { "Compaction applied snapshot: $snapshot" }
+        val sstablesToRemove = mutableListOf<Sstable>()
         for (sstId in sstIdsToRemove) {
-            val sstToRemove = state.sstables.remove(sstId) ?: throw Error("Can't remove sstable of id $sstId")
-            sstsToRemove.add(sstToRemove)
+            val sstable = state.sstables.remove(sstId) ?: throw Error("Sstable(id: $sstId) doesn't exist!!")
+            sstablesToRemove.add(sstable)
         }
 
+        state.l0Sstables.withWriteLock { l0sstables ->
+            while (l0sstables.isNotEmpty()) {
+                if (!sstIdsToRemove.contains(l0sstables.last())) {
+                    break
+                }
+                l0sstables.removeLast()
+            }
+        }
+        state.levels.withWriteLock { levels ->
+            levels.clear()
+            levels.addAll(snapshot.levels)
+        }
         manifest?.addRecord(Compaction(task = task, output = newSstIds))
-        log.info { "Compaction finished: $sstsToRemove files removed, ${output.size} files added, output: ${output}" }
-        for (sst in sstsToRemove) {
+        log.info { "Compaction finished: ${sstIdsToRemove.size} files removed, ${newSstIds.size} files added, newSstIds=${newSstIds}, oldSstIDs=${sstIdsToRemove}" }
+        sstablesToRemove.forEach { sst ->
             Files.delete(sstPath(path = path, id = sst.id))
         }
     }
@@ -749,11 +798,16 @@ class LsmStorageInner private constructor(
     }
 
     fun dumpStructure() {
-        if (state.l0Sstables.read().isNotEmpty()) {
+        dumpStructure(state.diskSnapshot())
+    }
+
+    private fun dumpStructure(snapshot: LsmStorageStateDiskSnapshot) {
+        log.debug { "Dumping l0sstables and levels" }
+        if (snapshot.l0Sstables.isNotEmpty()) {
             log.info { "L0 (${state.l0Sstables.read().size}): ${state.l0Sstables.read()}" }
         }
 
-        for ((level, files) in state.levels.read()) {
+        for ((level, files) in snapshot.levels) {
             log.info { "L${level} (${files.size}): $files" }
         }
     }

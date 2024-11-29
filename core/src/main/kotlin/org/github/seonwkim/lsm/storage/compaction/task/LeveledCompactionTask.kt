@@ -13,4 +13,8 @@ data class LeveledCompactionTask @JsonCreator constructor(
     override fun compactToBottomLevel(): Boolean {
         return lowerLevelBottomLevel
     }
+
+    override fun l0Compaction(): Boolean {
+        TODO()
+    }
 }

@@ -10,4 +10,11 @@ data class ForceFullCompactionTask @JsonCreator constructor(
     override fun compactToBottomLevel(): Boolean {
         return true
     }
+
+    /**
+     * [ForceFullCompactionTask] always flushes l0 to l1.
+     */
+    override fun l0Compaction(): Boolean {
+        return true
+    }
 }

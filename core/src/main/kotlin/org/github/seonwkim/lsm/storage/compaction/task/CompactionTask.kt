@@ -16,4 +16,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 )
 sealed interface CompactionTask {
     fun compactToBottomLevel(): Boolean
+
+    // Whether l0 compaction occurred.
+    fun l0Compaction(): Boolean
 }

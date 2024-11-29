@@ -62,19 +62,19 @@ object Utils {
                 val (sizeRatioPercent, level0FileNumCompactionTrigger, maxLevels) = compactionOptions
                 assertTrue { l0SstNum < level0FileNumCompactionTrigger }
                 assertTrue { levelSize.size <= maxLevels }
-                for (idx in 1 until levelSize.size) {
-                    val prevSize = levelSize[idx - 1]
-                    val currentSize = levelSize[idx]
-                    if (prevSize == 0L && currentSize == 0L) {
+                for (lowerLevelIdx in 1 until levelSize.size) {
+                    val upperLevelSize = levelSize[lowerLevelIdx - 1]
+                    val lowerLevelSize = levelSize[lowerLevelIdx]
+                    if (upperLevelSize == 0L && lowerLevelSize == 0L) {
                         continue
                     }
 
-                    val prevLevel = state.levels.read()[idx - 1].level
-                    val currentLevel = state.levels.read()[idx].level
-                    val sizePercent = prevSize.toDouble() / currentSize.toDouble()
+                    val sizePercent = lowerLevelSize.toDouble() / upperLevelSize.toDouble()
+                    val sizeRatio = sizeRatioPercent / 100.0
+                    val levels = state.levels.read()
                     assertTrue(
-                        "L${prevLevel}/L${currentLevel}, ${prevSize}/${currentSize}<${sizePercent}%"
-                    ) { sizePercent >= sizeRatioPercent }
+                        "L${levels[lowerLevelIdx-1].level}/L${levels[lowerLevelIdx].level}, ${sizePercent}<${sizeRatio}"
+                    ) { sizePercent >= sizeRatio }
                 }
 
                 assertTrue(
