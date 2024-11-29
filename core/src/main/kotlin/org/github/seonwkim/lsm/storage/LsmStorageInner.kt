@@ -516,12 +516,17 @@ class LsmStorageInner private constructor(
                 it.pollLast()
             }
 
-            // TODO: this is only for no compaction strategy, will require additional logic when we support for diverse compaction algorithms
-            state.l0Sstables.withWriteLock { l0SsTables ->
-                l0SsTables.addFirst(flushedMemTableId)
-                log.info { "Flushed $flushedMemTableId.sst with size ${sst.file.size}" }
-                state.sstables[flushedMemTableId] = sst
+            if (compactionController.flushToL0()) {
+                state.l0Sstables.withWriteLock { l0SsTables ->
+                    l0SsTables.addFirst(flushedMemTableId)
+                }
+            } else {
+                state.levels.withWriteLock { levels ->
+                    levels.addFirst(SstLevel(flushedMemTableId, mutableListOf(flushedMemTableId)))
+                }
             }
+            log.info { "Flushed $flushedMemTableId.sst with size ${sst.file.size}" }
+            state.sstables[flushedMemTableId] = sst
         }
 
         if (options.enableWal) {

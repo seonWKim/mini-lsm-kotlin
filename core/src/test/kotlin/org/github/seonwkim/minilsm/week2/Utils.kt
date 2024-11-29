@@ -28,8 +28,8 @@ object Utils {
         assertTrue { !actual.isValid() }
     }
 
-
     private val log = KotlinLogging.logger { }
+
     fun compactionBatch(storage: MiniLsm) {
         val keyMap = hashMapOf<Int, Int>()
         val genKey = { i: Int -> "%10d".format(i) }
