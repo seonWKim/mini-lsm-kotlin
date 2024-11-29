@@ -7,6 +7,15 @@ import org.github.seonwkim.lsm.storage.compaction.option.SimpleLeveledCompaction
 import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
 import org.github.seonwkim.lsm.storage.compaction.task.SimpleLeveledCompactionTask
 
+/**
+ * Controller for simple leveled compaction in the LSM storage system.
+ *
+ * This controller handles the compaction process for a leveled compaction strategy, where SSTables are organized
+ * into multiple levels. Compaction is triggered based on the size ratio between levels and other criteria defined
+ * in the provided options.
+ *
+ * @property options The options for configuring the simple leveled compaction strategy.
+ */
 class SimpleLeveledCompactionController(
     private val options: SimpleLeveledCompactionOptions
 ) : CompactionController {
