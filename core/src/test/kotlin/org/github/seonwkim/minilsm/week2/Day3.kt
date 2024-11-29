@@ -1,30 +1,29 @@
 package org.github.seonwkim.minilsm.week2
 
-import mu.KotlinLogging
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.storage.MiniLsm
-import org.github.seonwkim.lsm.storage.compaction.option.SimpleLeveledCompactionOptions
+import org.github.seonwkim.lsm.storage.compaction.option.TieredCompactionOptions
 import org.github.seonwkim.minilsm.week2.Utils.checkCompactionRatio
 import org.github.seonwkim.minilsm.week2.Utils.compactionBatch
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 
-class Day2 {
-
-    private val log = KotlinLogging.logger { }
+class Day3 {
 
     @Test
-    fun `simple leveled compaction integration test`() {
-        val dir = createTempDirectory("simple_leveled_compaction_integration_test")
+    fun `tiered compaction integration test`() {
+        val dir = createTempDirectory("tiered_compaction_integration_test")
         val storage = MiniLsm.open(
             path = dir,
             options = LsmStorageOptions(
                 blockSize = 4096,
                 targetSstSize = 1 shl 20,
-                compactionOptions = SimpleLeveledCompactionOptions(
-                    sizeRatioPercent = 200,
-                    level0FileNumCompactionTrigger = 2,
-                    maxLevels = 3
+                compactionOptions = TieredCompactionOptions(
+                    numTiers = 3,
+                    maxSizeAmplificationPercent = 200,
+                    sizeRatio = 1,
+                    minMergeWidth = 2,
+                    maxMergeWidth = null
                 ),
                 enableWal = false,
                 numMemTableLimit = 2,
