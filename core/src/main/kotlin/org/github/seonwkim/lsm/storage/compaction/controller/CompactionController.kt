@@ -6,8 +6,10 @@ import org.github.seonwkim.lsm.storage.compaction.option.*
 import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
 
 /**
- * All compaction controllers will run on a single threaded environment, so we shouldn't have to consider concurrency
- * for now. But if we need to introduce concurrency, implementations should be updated.
+ * Interface for compaction controllers in the LSM storage system.
+ *
+ * All compaction controllers will run in a single-threaded environment, so concurrency considerations are not necessary
+ * for now. If concurrency is introduced in the future, implementations should be updated accordingly.
  */
 sealed interface CompactionController {
     companion object {
@@ -57,5 +59,12 @@ sealed interface CompactionController {
         inRecovery: Boolean
     ): LsmCompactionResult
 
+    /**
+     * Determines whether to flush the current data to level 0 (L0).
+     *
+     * This method checks if the current conditions require a flush operation to level 0 (L0) of the LSM storage system.
+     *
+     * @return `true` if a flush to L0 is required, `false` otherwise.
+     */
     fun flushToL0(): Boolean
 }
