@@ -720,6 +720,10 @@ class LsmStorageInner private constructor(
      * If the limit is exceeded, it forces a flush of the earliest created immutable memTable to disk.
      */
     fun triggerFlush() {
+        if (!options.enableFlush) {
+            return
+        }
+
         val shouldFlush = state.immutableMemTables.withReadLock {
             it.size >= options.numMemTableLimit
         }
@@ -734,6 +738,10 @@ class LsmStorageInner private constructor(
      * rewrite the code to consider concurrent operations.
      */
     fun triggerCompaction() {
+        if (!options.enableCompaction) {
+            return
+        }
+
         val snapshotForCompaction = state.diskSnapshot()
         val task = compactionController.generateCompactionTask(snapshotForCompaction) ?: return
         if (log.isDebugEnabled) {

@@ -1,6 +1,5 @@
 package org.github.seonwkim.minilsm.week2
 
-import mu.KotlinLogging
 import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.storage.MiniLsm
 import org.github.seonwkim.lsm.storage.compaction.option.SimpleLeveledCompactionOptions
@@ -14,8 +13,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class Day2 {
-
-    private val log = KotlinLogging.logger { }
 
     @Test
     fun `simple leveled compaction integration test`() {
