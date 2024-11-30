@@ -728,11 +728,11 @@ class LsmStorageInner private constructor(
         dumpStructure(snapshotForCompaction)
 
         log.info { "Running compaction task: $task" }
-        val nesSstables = compact(task)
+        val newSstables = compact(task)
         val newSstIds = mutableListOf<Int>()
-        nesSstables.forEach { newSstable ->
+        newSstables.forEach { newSstable ->
             newSstIds.add(newSstable.id)
-            snapshotForCompaction.sstables[newSstable.id] = newSstable
+            state.sstables[newSstable.id] = newSstable
         }
 
         // changes are applied to the snapshot
@@ -806,7 +806,7 @@ class LsmStorageInner private constructor(
         dumpStructure(state.diskSnapshot())
     }
 
-    private fun dumpStructure(snapshot: LsmStorageStateDiskSnapshot) {
+    private fun dumpStructure(snapshot: LsmStorageSstableSnapshot) {
         log.debug { "Dumping l0sstables and levels" }
         if (snapshot.l0Sstables.isNotEmpty()) {
             log.info { "L0 (${state.l0Sstables.read().size}): ${state.l0Sstables.read()}" }

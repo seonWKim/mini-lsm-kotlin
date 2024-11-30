@@ -97,13 +97,12 @@ class LsmStorageState private constructor(
         this.memTable = PriorityAwareLock(value = memTable, priority = 10)
     }
 
-    fun diskSnapshot(): LsmStorageStateDiskSnapshot {
+    fun diskSnapshot(): LsmStorageSstableSnapshot {
         return l0Sstables.withReadLock { l0Sstables ->
             levels.withReadLock { levels ->
-                LsmStorageStateDiskSnapshot(
+                LsmStorageSstableSnapshot(
                     l0Sstables = l0Sstables.toList(),
                     levels = levels.map { it.deepCopy() },
-                    sstables = sstables
                 )
             }
         }

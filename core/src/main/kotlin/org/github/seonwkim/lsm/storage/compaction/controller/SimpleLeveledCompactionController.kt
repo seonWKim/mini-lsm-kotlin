@@ -2,7 +2,7 @@ package org.github.seonwkim.lsm.storage.compaction.controller
 
 import mu.KotlinLogging
 import org.github.seonwkim.lsm.storage.LsmCompactionResult
-import org.github.seonwkim.lsm.storage.LsmStorageStateDiskSnapshot
+import org.github.seonwkim.lsm.storage.LsmStorageSstableSnapshot
 import org.github.seonwkim.lsm.storage.compaction.option.SimpleLeveledCompactionOptions
 import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
 import org.github.seonwkim.lsm.storage.compaction.task.SimpleLeveledCompactionTask
@@ -24,7 +24,7 @@ class SimpleLeveledCompactionController(
 
     private val sizeRatioLimit = options.sizeRatioPercent.toDouble() / 100.0
 
-    override fun generateCompactionTask(snapshot: LsmStorageStateDiskSnapshot): CompactionTask? {
+    override fun generateCompactionTask(snapshot: LsmStorageSstableSnapshot): CompactionTask? {
         val l0Sstables = snapshot.l0Sstables
         val l0SstablesSize = l0Sstables.size
         val levels = snapshot.levels
@@ -66,13 +66,13 @@ class SimpleLeveledCompactionController(
     }
 
     override fun applyCompactionResult(
-        snapshot: LsmStorageStateDiskSnapshot,
+        snapshot: LsmStorageSstableSnapshot,
         task: CompactionTask,
         newSstIds: List<Int>,
         inRecovery: Boolean
     ): LsmCompactionResult {
         if (task !is SimpleLeveledCompactionTask) {
-            throw Error("task should be of type SimpleLeveledCompactionTask")
+            throw Error("task($task) should be of type SimpleLeveledCompactionTask")
         }
 
         val sstIdsToRemove = hashSetOf<Int>()
@@ -105,10 +105,9 @@ class SimpleLeveledCompactionController(
         levels[task.lowerLevel - 1].sstIds.addAll(newSstIds)
 
         return LsmCompactionResult(
-            snapshot = LsmStorageStateDiskSnapshot(
+            snapshot = LsmStorageSstableSnapshot(
                 l0Sstables = l0Sstables,
                 levels = levels,
-                sstables = snapshot.sstables
             ),
             sstIdsToRemove = sstIdsToRemove,
             l0Compacted = upperLevel == null

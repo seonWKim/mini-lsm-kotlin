@@ -1,7 +1,7 @@
 package org.github.seonwkim.lsm.storage.compaction.controller
 
 import org.github.seonwkim.lsm.storage.LsmCompactionResult
-import org.github.seonwkim.lsm.storage.LsmStorageStateDiskSnapshot
+import org.github.seonwkim.lsm.storage.LsmStorageSstableSnapshot
 import org.github.seonwkim.lsm.storage.compaction.option.*
 import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
 
@@ -34,7 +34,7 @@ sealed interface CompactionController {
      * @param snapshot The current state of the LSM storage system.
      * @return A `CompactionTask` if compaction is needed, or `null` if no compaction is necessary.
      */
-    fun generateCompactionTask(snapshot: LsmStorageStateDiskSnapshot): CompactionTask?
+    fun generateCompactionTask(snapshot: LsmStorageSstableSnapshot): CompactionTask?
 
     /**
      * Applies the result of a compaction task to the provided snapshot of the LSM storage system.
@@ -53,7 +53,7 @@ sealed interface CompactionController {
      * @throws Error if the task is not of the expected type or if there is a mismatch in SSTable IDs.
      */
     fun applyCompactionResult(
-        snapshot: LsmStorageStateDiskSnapshot,
+        snapshot: LsmStorageSstableSnapshot,
         task: CompactionTask,
         newSstIds: List<Int>,
         inRecovery: Boolean

@@ -1,17 +1,17 @@
 package org.github.seonwkim.lsm.storage.compaction.controller
 
 import org.github.seonwkim.lsm.storage.LsmCompactionResult
-import org.github.seonwkim.lsm.storage.LsmStorageStateDiskSnapshot
+import org.github.seonwkim.lsm.storage.LsmStorageSstableSnapshot
 import org.github.seonwkim.lsm.storage.compaction.option.LeveledCompactionOptions
 import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
 
 class LeveledCompactionController(options: LeveledCompactionOptions) : CompactionController {
-    override fun generateCompactionTask(snapshot: LsmStorageStateDiskSnapshot): CompactionTask? {
+    override fun generateCompactionTask(snapshot: LsmStorageSstableSnapshot): CompactionTask? {
         TODO()
     }
 
     override fun applyCompactionResult(
-        snapshot: LsmStorageStateDiskSnapshot,
+        snapshot: LsmStorageSstableSnapshot,
         task: CompactionTask,
         newSstIds: List<Int>,
         inRecovery: Boolean

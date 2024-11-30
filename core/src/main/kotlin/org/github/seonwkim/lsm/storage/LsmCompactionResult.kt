@@ -8,7 +8,7 @@ package org.github.seonwkim.lsm.storage
  * @property l0Compacted Indicates whether the L0 level was compacted.
  */
 data class LsmCompactionResult(
-    val snapshot: LsmStorageStateDiskSnapshot,
+    val snapshot: LsmStorageSstableSnapshot,
     val sstIdsToRemove: HashSet<Int>,
     val l0Compacted: Boolean = false
 )
