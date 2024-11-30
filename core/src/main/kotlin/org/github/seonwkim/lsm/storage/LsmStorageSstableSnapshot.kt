@@ -8,7 +8,7 @@ package org.github.seonwkim.lsm.storage
  * and a concurrent map of all SSTables.
  *
  * @property l0Sstables The list of SSTable IDs at level 0.
- * @property levels The list of SSTable levels, each represented by an `SstLevel` object.
+ * @property levels The list of SSTable levels, each represented by an `SstLevel` object. Represented as tier when tiered compaction is used.
  */
 data class LsmStorageSstableSnapshot(
     val l0Sstables: List<Int>,

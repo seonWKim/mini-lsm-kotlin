@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class TieredCompactionTask @JsonCreator constructor(
-    @JsonProperty("tiers") val tiers: List<Pair<Int, List<Int>>>,
+    @JsonProperty("tiers") val tiers: List<Tier>,
     @JsonProperty("bottomTierIncluded") val bottomTierIncluded: Boolean
 ) : CompactionTask {
     override fun compactToBottomLevel(): Boolean {
@@ -15,3 +15,8 @@ data class TieredCompactionTask @JsonCreator constructor(
         TODO()
     }
 }
+
+data class Tier @JsonCreator constructor(
+    @JsonProperty("id") val id: Int,
+    @JsonProperty("sstIds") val sstIds: List<Int>
+)

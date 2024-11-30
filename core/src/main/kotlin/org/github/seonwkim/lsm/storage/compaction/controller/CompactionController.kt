@@ -2,8 +2,10 @@ package org.github.seonwkim.lsm.storage.compaction.controller
 
 import org.github.seonwkim.lsm.storage.LsmCompactionResult
 import org.github.seonwkim.lsm.storage.LsmStorageSstableSnapshot
+import org.github.seonwkim.lsm.storage.SstLevel
 import org.github.seonwkim.lsm.storage.compaction.option.*
 import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
+import java.util.*
 
 /**
  * Interface for compaction controllers in the LSM storage system.
@@ -58,6 +60,22 @@ sealed interface CompactionController {
         newSstIds: List<Int>,
         inRecovery: Boolean
     ): LsmCompactionResult
+
+    /**
+     * Updates the levels in the LSM storage system based on the provided snapshot and task.
+     *
+     * This method removes invalid levels and updates them with the levels from the provided snapshot.
+     * It is used to reflect the changes made after the compaction process.
+     *
+     * @param levels The current levels in the LSM storage system.
+     * @param task The compaction task that was performed.
+     * @param snapshot The snapshot of the LSM storage system after the compaction. Might not reflect the exact current state if there are concurrent modifications to the l0sstables or levels.
+     */
+    fun updateLevels(
+        levels: LinkedList<SstLevel>,
+        task: CompactionTask,
+        snapshot: LsmStorageSstableSnapshot
+    )
 
     /**
      * Determines whether to flush the current data to level 0 (L0).

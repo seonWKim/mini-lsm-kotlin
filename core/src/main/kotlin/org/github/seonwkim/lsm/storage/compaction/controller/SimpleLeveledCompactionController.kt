@@ -3,9 +3,11 @@ package org.github.seonwkim.lsm.storage.compaction.controller
 import mu.KotlinLogging
 import org.github.seonwkim.lsm.storage.LsmCompactionResult
 import org.github.seonwkim.lsm.storage.LsmStorageSstableSnapshot
+import org.github.seonwkim.lsm.storage.SstLevel
 import org.github.seonwkim.lsm.storage.compaction.option.SimpleLeveledCompactionOptions
 import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
 import org.github.seonwkim.lsm.storage.compaction.task.SimpleLeveledCompactionTask
+import java.util.*
 
 /**
  * Controller for simple leveled compaction in the LSM storage system.
@@ -112,6 +114,21 @@ class SimpleLeveledCompactionController(
             sstIdsToRemove = sstIdsToRemove,
             l0Compacted = upperLevel == null
         )
+    }
+
+    /**
+     * Updates the levels in the LSM storage system based on the provided snapshot.
+     *
+     * In SimpleLeveledCompaction, no SSTable is added to a level while the compaction process is being processed.
+     * Therefore, this method can simply clear all the existing levels and adds new levels from the provided snapshot.
+     */
+    override fun updateLevels(
+        levels: LinkedList<SstLevel>,
+        task: CompactionTask,
+        snapshot: LsmStorageSstableSnapshot
+    ) {
+        levels.clear()
+        levels.addAll(snapshot.levels)
     }
 
     override fun flushToL0(): Boolean {

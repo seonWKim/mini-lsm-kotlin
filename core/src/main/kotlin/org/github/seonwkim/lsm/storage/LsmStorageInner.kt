@@ -18,9 +18,9 @@ import org.github.seonwkim.lsm.storage.compaction.option.NoCompaction
 import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
 import org.github.seonwkim.lsm.storage.compaction.task.ForceFullCompactionTask
 import org.github.seonwkim.lsm.storage.compaction.task.SimpleLeveledCompactionTask
+import org.github.seonwkim.lsm.storage.compaction.task.TieredCompactionTask
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.exists
 
@@ -394,9 +394,10 @@ class LsmStorageInner private constructor(
         return state.levels.read().map { level ->
             val validLevelSsts = mutableListOf<Sstable>()
             level.sstIds.forEach { levelSstId ->
-                val table = state.sstables[levelSstId]!!
-                if (keepTable(key, table)) {
-                    validLevelSsts.add(table)
+                state.sstables[levelSstId]?.let {
+                    if (keepTable(key, it)) {
+                        validLevelSsts.add(it)
+                    }
                 }
             }
             SstConcatIterator.createAndSeekToKey(validLevelSsts, key)
@@ -541,16 +542,10 @@ class LsmStorageInner private constructor(
             throw Error("Force compaction can only be called with NoCompaction option")
         }
 
-        lateinit var l0SstablesSnapshot: LinkedList<Int>
-        lateinit var l1SstablesSnapshot: MutableList<Int>
+        val (l0SstablesSnapshot, lNSstablesSnapshot) = state.diskSnapshot()
+        val l1SstablesSnapshot = lNSstablesSnapshot[0].sstIds
 
         // We should run compaction without blocking l0 flush
-        state.l0Sstables.withReadLock { l0Sstables ->
-            state.levels.withReadLock { levels ->
-                l0SstablesSnapshot = l0Sstables
-                l1SstablesSnapshot = levels[0].sstIds
-            }
-        }
         val compactionTask = ForceFullCompactionTask(
             l0Sstables = l0SstablesSnapshot,
             l1Sstables = l1SstablesSnapshot
@@ -649,6 +644,18 @@ class LsmStorageInner private constructor(
                 }
             }
 
+            is TieredCompactionTask -> {
+                val iters = mutableListOf<SstConcatIterator>()
+                for ((_, tierSstIds) in task.tiers) {
+                    val ssts = tierSstIds.mapNotNull { state.sstables[it] }
+                    iters.add(SstConcatIterator.createAndSeekToFirst(ssts))
+                }
+                compactGenerateSstFromIter(
+                    iter = MergeIterator(iters),
+                    task.compactToBottomLevel()
+                )
+            }
+
             else -> {
                 TODO()
             }
@@ -725,7 +732,10 @@ class LsmStorageInner private constructor(
     fun triggerCompaction() {
         val snapshotForCompaction = state.diskSnapshot()
         val task = compactionController.generateCompactionTask(snapshotForCompaction) ?: return
-        dumpStructure(snapshotForCompaction)
+        if (log.isDebugEnabled) {
+            log.debug { "BEFORE COMPACTION" }
+            dumpStructure(snapshotForCompaction)
+        }
 
         log.info { "Running compaction task: $task" }
         val newSstables = compact(task)
@@ -736,15 +746,16 @@ class LsmStorageInner private constructor(
         }
 
         // changes are applied to the snapshot
-        val (snapshot, sstIdsToRemove) =
+        val (compactionAppliedSnapshot, sstIdsToRemove) =
             compactionController.applyCompactionResult(snapshotForCompaction, task, newSstIds, false)
-        log.info { "Compaction applied snapshot: $snapshot" }
-        val sstablesToRemove = mutableListOf<Sstable>()
+        log.info { "Compaction applied snapshot: $compactionAppliedSnapshot" }
+        val sstablesToRemove = hashSetOf<Sstable>()
         for (sstId in sstIdsToRemove) {
             val sstable = state.sstables.remove(sstId) ?: throw Error("Sstable(id: $sstId) doesn't exist!!")
             sstablesToRemove.add(sstable)
         }
 
+        // TODO: should we extract it to a method such as compactionController.updateL0Sstables() ?
         state.l0Sstables.withWriteLock { l0sstables ->
             while (l0sstables.isNotEmpty()) {
                 if (!sstIdsToRemove.contains(l0sstables.last())) {
@@ -754,13 +765,18 @@ class LsmStorageInner private constructor(
             }
         }
         state.levels.withWriteLock { levels ->
-            levels.clear()
-            levels.addAll(snapshot.levels)
+            compactionController.updateLevels(levels, task, compactionAppliedSnapshot)
         }
+
         manifest?.addRecord(Compaction(task = task, output = newSstIds))
         log.info { "Compaction finished: ${sstIdsToRemove.size} files removed, ${newSstIds.size} files added, newSstIds=${newSstIds}, oldSstIDs=${sstIdsToRemove}" }
         sstablesToRemove.forEach { sst ->
             Files.delete(sstPath(path = path, id = sst.id))
+        }
+
+        if (log.isDebugEnabled) {
+            log.debug { "AFTER COMPACTION" }
+            dumpStructure()
         }
     }
 
@@ -807,7 +823,6 @@ class LsmStorageInner private constructor(
     }
 
     private fun dumpStructure(snapshot: LsmStorageSstableSnapshot) {
-        log.debug { "Dumping l0sstables and levels" }
         if (snapshot.l0Sstables.isNotEmpty()) {
             log.info { "L0 (${state.l0Sstables.read().size}): ${state.l0Sstables.read()}" }
         }
