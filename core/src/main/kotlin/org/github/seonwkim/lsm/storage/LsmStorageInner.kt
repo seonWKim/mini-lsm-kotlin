@@ -60,7 +60,7 @@ class LsmStorageInner private constructor(
             lateinit var manifest: Manifest
             var lastCommitTs = 0L
             val blockCache = BlockCache(1 shl 20)
-            var nextSstId = 1
+            var nextSstId = 0
             if (!manifestPath.exists()) {
                 if (options.enableWal) {
                     // TODO("create with WAL")
@@ -466,7 +466,6 @@ class LsmStorageInner private constructor(
                 if (!shouldFreezeMemTable()) return@withWriteLock
             }
 
-            // val newMemTableId = nextSstId.incrementAndGet()
             val newMemTableId = nextSstId.incrementAndGet()
             val newMemTable = if (options.enableWal) {
                 TODO("should be implemented after WAL is supported")
@@ -475,6 +474,7 @@ class LsmStorageInner private constructor(
             }
 
             state.immutableMemTables.withWriteLock {
+                log.info { "PREV MEMTABLE IS ADDED: ${prevMemTable.id}" }
                 it.addFirst(prevMemTable)
             }
             state.setMemTable(newMemTable)
