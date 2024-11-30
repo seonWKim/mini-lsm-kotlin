@@ -3,8 +3,8 @@ package org.github.seonwkim.minilsm.week1
 import org.github.seonwkim.common.*
 import org.github.seonwkim.lsm.iterator.*
 import org.github.seonwkim.lsm.memtable.MemTable
-import org.github.seonwkim.lsm.storage.LsmStorageInner
-import org.github.seonwkim.lsm.storage.LsmStorageOptions
+import org.github.seonwkim.lsm.LsmStorageInner
+import org.github.seonwkim.lsm.LsmStorageOptions
 import org.junit.jupiter.api.assertThrows
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test

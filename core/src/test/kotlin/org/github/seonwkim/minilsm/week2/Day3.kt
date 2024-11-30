@@ -1,8 +1,8 @@
 package org.github.seonwkim.minilsm.week2
 
-import org.github.seonwkim.lsm.storage.LsmStorageOptions
-import org.github.seonwkim.lsm.storage.MiniLsm
-import org.github.seonwkim.lsm.storage.compaction.option.TieredCompactionOptions
+import org.github.seonwkim.lsm.LsmStorageOptions
+import org.github.seonwkim.lsm.MiniLsm
+import org.github.seonwkim.lsm.compaction.option.TieredCompactionOptions
 import org.github.seonwkim.minilsm.week2.Utils.checkCompactionRatio
 import org.github.seonwkim.minilsm.week2.Utils.compactionBench
 import org.github.seonwkim.minilsm.week2.Utils.waitUntilCompactionEnds

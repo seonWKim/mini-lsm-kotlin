@@ -6,8 +6,8 @@ import org.github.seonwkim.lsm.iterator.MockIteratorData
 import org.github.seonwkim.lsm.iterator.StorageIterator
 import org.github.seonwkim.lsm.iterator.TwoMergeIterator
 import org.github.seonwkim.lsm.iterator.util.generateSst
-import org.github.seonwkim.lsm.storage.LsmStorageInner
-import org.github.seonwkim.lsm.storage.LsmStorageOptions
+import org.github.seonwkim.lsm.LsmStorageInner
+import org.github.seonwkim.lsm.LsmStorageOptions
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -2,9 +2,9 @@ package org.github.seonwkim.minilsm.week1
 
 import org.github.seonwkim.common.*
 import org.github.seonwkim.lsm.iterator.StorageIterator
-import org.github.seonwkim.lsm.storage.LsmStorageInner
-import org.github.seonwkim.lsm.storage.LsmStorageOptions
-import org.github.seonwkim.lsm.storage.MiniLsm
+import org.github.seonwkim.lsm.LsmStorageInner
+import org.github.seonwkim.lsm.LsmStorageOptions
+import org.github.seonwkim.lsm.MiniLsm
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -5,13 +5,13 @@ import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.Unbounded
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.Configuration
+import org.github.seonwkim.lsm.LsmStorageInner
+import org.github.seonwkim.lsm.MiniLsm
+import org.github.seonwkim.lsm.compaction.option.LeveledCompactionOptions
+import org.github.seonwkim.lsm.compaction.option.NoCompaction
+import org.github.seonwkim.lsm.compaction.option.SimpleLeveledCompactionOptions
+import org.github.seonwkim.lsm.compaction.option.TieredCompactionOptions
 import org.github.seonwkim.lsm.iterator.StorageIterator
-import org.github.seonwkim.lsm.storage.LsmStorageInner
-import org.github.seonwkim.lsm.storage.MiniLsm
-import org.github.seonwkim.lsm.storage.compaction.option.LeveledCompactionOptions
-import org.github.seonwkim.lsm.storage.compaction.option.NoCompaction
-import org.github.seonwkim.lsm.storage.compaction.option.SimpleLeveledCompactionOptions
-import org.github.seonwkim.lsm.storage.compaction.option.TieredCompactionOptions
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 

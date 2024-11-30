@@ -3,7 +3,7 @@ package org.github.seonwkim.lsm.memtable
 import org.github.seonwkim.common.Bound
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedKey
-import org.github.seonwkim.lsm.storage.Wal
+import org.github.seonwkim.lsm.Wal
 import org.github.seonwkim.lsm.iterator.MemTableIterator
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
 import java.util.concurrent.ConcurrentSkipListMap
