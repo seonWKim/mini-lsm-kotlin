@@ -1,43 +1,16 @@
-package org.github.seonwkim.lsm.storage
+package org.github.seonwkim.lsm.storage.manifest
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-import org.github.seonwkim.common.*
+import org.github.seonwkim.common.SerdeUtil
+import org.github.seonwkim.common.crcHash
 import org.github.seonwkim.common.lock.MutexLock
 import org.github.seonwkim.common.lock.RwLock
-import org.github.seonwkim.lsm.storage.compaction.task.CompactionTask
+import org.github.seonwkim.common.toU32ByteArray
+import org.github.seonwkim.common.toU64ByteArray
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "type"
-)
-@JsonSubTypes(
-    JsonSubTypes.Type(value = Flush::class, name = "Flush"),
-    JsonSubTypes.Type(value = NewMemTable::class, name = "NewMemTable"),
-    JsonSubTypes.Type(value = Compaction::class, name = "Compaction")
-)
-sealed interface ManifestRecord
-
-data class Flush @JsonCreator constructor(
-    @JsonProperty("sstId") val sstId: Int
-) : ManifestRecord
-
-data class NewMemTable @JsonCreator constructor(
-    @JsonProperty("memTableId") val memTableId: Int
-) : ManifestRecord
-
-data class Compaction @JsonCreator constructor(
-    @JsonProperty("task") val task: CompactionTask,
-    @JsonProperty("output") val output: List<Int>
-) : ManifestRecord
 
 /**
  * Append only file which records all operations happened in the engine.

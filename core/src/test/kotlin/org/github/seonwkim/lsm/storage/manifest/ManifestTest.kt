@@ -1,4 +1,4 @@
-package org.github.seonwkim.lsm.storage
+package org.github.seonwkim.lsm.storage.manifest
 
 import org.github.seonwkim.lsm.storage.compaction.task.ForceFullCompactionTask
 import org.github.seonwkim.lsm.storage.compaction.task.LeveledCompactionTask

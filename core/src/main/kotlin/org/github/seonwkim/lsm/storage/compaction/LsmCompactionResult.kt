@@ -1,4 +1,6 @@
-package org.github.seonwkim.lsm.storage
+package org.github.seonwkim.lsm.storage.compaction
+
+import org.github.seonwkim.lsm.storage.LsmStorageSstableSnapshot
 
 /**
  * Represents the result of a compaction operation in the LSM storage system.

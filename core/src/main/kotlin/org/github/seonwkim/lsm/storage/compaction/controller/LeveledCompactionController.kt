@@ -1,6 +1,6 @@
 package org.github.seonwkim.lsm.storage.compaction.controller
 
-import org.github.seonwkim.lsm.storage.LsmCompactionResult
+import org.github.seonwkim.lsm.storage.compaction.LsmCompactionResult
 import org.github.seonwkim.lsm.storage.LsmStorageSstableSnapshot
 import org.github.seonwkim.lsm.storage.SstLevel
 import org.github.seonwkim.lsm.storage.compaction.option.LeveledCompactionOptions
