@@ -75,7 +75,7 @@ object Utils {
         )
 
         storage.dumpStructure()
-        log.info {
+        log.debug {
             "This test case does not guarantee your compaction algorithm produces a LSM state as expected. " +
                     "It only does minimal checks on the size of the levels. " +
                     "Please use the compaction simulator to check if the compaction is correctly going on."
@@ -98,7 +98,7 @@ object Utils {
                 prevLevels = currentLevels
             }
 
-            log.info { "Waiting for compaction to end" }
+            log.debug { "Waiting for compaction to end" }
         }
     }
 

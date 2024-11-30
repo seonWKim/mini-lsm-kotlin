@@ -49,7 +49,7 @@ class SimpleLeveledCompactionController(
                 continue
             }
 
-            log.info { "Compaction triggered at level $upperLevel and $lowerLevel with size ratio $sizeRatio" }
+            log.debug { "Compaction triggered at level $upperLevel and $lowerLevel with size ratio $sizeRatio" }
             return SimpleLeveledCompactionTask(
                 upperLevel = if (upperLevel == 0) null else upperLevel,
                 upperLevelSstIds = if (upperLevel == 0) {
@@ -80,7 +80,7 @@ class SimpleLeveledCompactionController(
 
         val l0Sstables = snapshot.l0Sstables.toMutableList()
         val levels = snapshot.levels.toMutableList()
-        log.info { "Simple Leveled compaction: l0($l0Sstables), levels($levels)" }
+        log.debug { "Simple Leveled compaction: l0($l0Sstables), levels($levels)" }
         val upperLevel = task.upperLevel
         if (task.l0Compaction()) {
             sstIdsToRemove.addAll(task.upperLevelSstIds)

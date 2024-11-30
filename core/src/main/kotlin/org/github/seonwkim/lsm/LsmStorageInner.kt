@@ -47,7 +47,7 @@ class LsmStorageInner private constructor(
             customState: LsmStorageState? = null
         ): LsmStorageInner {
             if (!path.exists()) {
-                log.info { "Creating directories $path" }
+                log.debug { "Creating directories $path" }
                 try {
                     Files.createDirectories(path)
                 } catch (e: Exception) {
@@ -122,7 +122,7 @@ class LsmStorageInner private constructor(
                     state.sstables[sstableId] = sst
                     sstCount += 1
                 }
-                log.info { "$sstCount SSTs opened" }
+                log.debug { "$sstCount SSTs opened" }
                 nextSstId++
 
                 // For leveled compaction, sort SSTs on each level
@@ -503,11 +503,10 @@ class LsmStorageInner private constructor(
             it.lastOrNull()
         }
         if (flushTargetMemTable == null) {
-            log.info { "No immutable memTables to flush" }
+            log.debug { "No immutable memTables to flush" }
             return
         }
 
-        log.info { "We will try to flush ${flushTargetMemTable.id}" }
         val builder = SsTableBuilder(options.blockSize)
         flushTargetMemTable.flush(builder)
         val flushedMemTableId = flushTargetMemTable.id
@@ -516,18 +515,15 @@ class LsmStorageInner private constructor(
         )
 
         state.immutableMemTables.withWriteLock {
-            log.info { "We will try to flush ${flushTargetMemTable.id}, write lock acquired!!" }
             val immutableMemTable = it.peekLast()
-            log.info { "BEFORE: ${it.map { mem -> mem.id }}}" }
             if (immutableMemTable?.id != flushedMemTableId) {
                 // in case where forceFlushNextImmMemTable() is called concurrently, it can enter this block
-                log.info { "Sst id($flushedMemTableId) and immutable memTable id(${immutableMemTable?.id}) mismatch. There might be concurrent calls to flush immMemTable" }
+                log.debug { "Sst id($flushedMemTableId) and immutable memTable id(${immutableMemTable?.id}) mismatch. There might be concurrent calls to flush immMemTable" }
                 return@withWriteLock
             } else {
                 // we can safely remove the oldest immutableMemTable
                 it.pollLast()
             }
-            log.info { "AFTER: ${it.map { mem -> mem.id }}}" }
             if (compactionController.flushToL0()) {
                 state.l0Sstables.withWriteLock { l0SsTables ->
                     l0SsTables.addFirst(flushedMemTableId)
@@ -538,7 +534,7 @@ class LsmStorageInner private constructor(
                 }
             }
             state.sstables[flushedMemTableId] = sst
-            log.info { "Flushed $flushedMemTableId.sst with size ${sst.file.size}" }
+            log.debug { "Flushed $flushedMemTableId.sst with size ${sst.file.size}" }
 
             if (options.enableWal) {
                 TODO("remove wal file")
@@ -561,7 +557,7 @@ class LsmStorageInner private constructor(
             l0Sstables = l0SstablesSnapshot,
             l1Sstables = l1SstablesSnapshot
         )
-        log.info { "Force full compaction: $compactionTask" }
+        log.debug { "Force full compaction: $compactionTask" }
 
         val newSstableIds = mutableListOf<Int>()
         val newSstables = compact(compactionTask)
@@ -599,7 +595,7 @@ class LsmStorageInner private constructor(
             }
         }
 
-        log.info { "Force full compaction done, new SSTs: $newSstableIds" }
+        log.debug { "Force full compaction done, new SSTs: $newSstableIds" }
     }
 
     private fun compact(task: CompactionTask): List<Sstable> {
@@ -752,11 +748,10 @@ class LsmStorageInner private constructor(
         val snapshotForCompaction = state.diskSnapshot()
         val task = compactionController.generateCompactionTask(snapshotForCompaction) ?: return
         if (log.isDebugEnabled) {
-            log.debug { "BEFORE COMPACTION" }
             dumpStructure(snapshotForCompaction)
         }
 
-        log.info { "Running compaction task: $task" }
+        log.debug { "Running compaction task: $task" }
         val newSstables = compact(task)
         val newSstIds = mutableListOf<Int>()
         newSstables.forEach { newSstable ->
@@ -767,7 +762,7 @@ class LsmStorageInner private constructor(
         // changes are applied to the snapshot
         val (compactionAppliedSnapshot, sstIdsToRemove) =
             compactionController.applyCompaction(snapshotForCompaction, task, newSstIds, false)
-        log.info { "Compaction applied snapshot: $compactionAppliedSnapshot" }
+        log.debug { "Compaction applied snapshot: $compactionAppliedSnapshot" }
         val sstablesToRemove = hashSetOf<Sstable>()
         for (sstId in sstIdsToRemove) {
             val sstable = state.sstables.remove(sstId) ?: throw Error("Sstable(id: $sstId) doesn't exist!!")
@@ -788,7 +783,7 @@ class LsmStorageInner private constructor(
         }
 
         manifest?.addRecord(Compaction(task = task, output = newSstIds))
-        log.info { "Compaction finished: ${sstIdsToRemove.size} files removed, ${newSstIds.size} files added, newSstIds=${newSstIds}, oldSstIDs=${sstIdsToRemove}" }
+        log.debug { "Compaction finished: ${sstIdsToRemove.size} files removed, ${newSstIds.size} files added, newSstIds=${newSstIds}, oldSstIDs=${sstIdsToRemove}" }
         sstablesToRemove.forEach { sst ->
             Files.delete(sstPath(path = path, id = sst.id))
         }
@@ -817,11 +812,11 @@ class LsmStorageInner private constructor(
 
     private fun dumpStructure(snapshot: LsmStorageSstableSnapshot) {
         if (snapshot.l0Sstables.isNotEmpty()) {
-            log.info { "L0 (${state.l0Sstables.readValue().size}): ${state.l0Sstables.readValue()}" }
+            log.debug { "L0 (${state.l0Sstables.readValue().size}): ${state.l0Sstables.readValue()}" }
         }
 
         for ((level, files) in snapshot.levels) {
-            log.info { "L${level} (${files.size}): $files" }
+            log.debug { "L${level} (${files.size}): $files" }
         }
     }
 

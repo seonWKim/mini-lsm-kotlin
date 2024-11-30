@@ -112,7 +112,7 @@ class LsmStorageInnerTest {
             options = options,
             customState = LsmStorageState.createWithCustomLock(
                 memTable = SimulatedRwLock(value = MemTable.create(0), beforeWriteLockAcquireBehavior = {
-                    log.info { "Trying to acquire write lock from ${Thread.currentThread()}" }
+                    log.debug { "Trying to acquire write lock from ${Thread.currentThread()}" }
                     Thread.sleep(200)
                 }),
                 immutableMemTables = SimulatedRwLock(value = LinkedList()),
@@ -153,7 +153,7 @@ class LsmStorageInnerTest {
             customState = LsmStorageState.createWithCustomLock(
                 memTable = SimulatedRwLock(value = MemTable.create(0)),
                 immutableMemTables = SimulatedRwLock(value = LinkedList(), beforeWriteLockAcquireBehavior = {
-                    log.info { "Trying to acquire write lock from ${Thread.currentThread()}" }
+                    log.debug { "Trying to acquire write lock from ${Thread.currentThread()}" }
                     Thread.sleep(200)
                 }),
                 l0Sstables = SimulatedRwLock(value = LinkedList()),
