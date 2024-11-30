@@ -474,7 +474,6 @@ class LsmStorageInner private constructor(
             }
 
             state.immutableMemTables.withWriteLock {
-                log.info { "PREV MEMTABLE IS ADDED: ${prevMemTable.id}" }
                 it.addFirst(prevMemTable)
             }
             state.setMemTable(newMemTable)
@@ -804,6 +803,21 @@ class LsmStorageInner private constructor(
         return state.sstables.size
     }
 
+    fun dumpStructure() {
+        dumpStructure(state.diskSnapshot())
+    }
+
+    private fun dumpStructure(snapshot: LsmStorageSstableSnapshot) {
+        if (snapshot.l0Sstables.isNotEmpty()) {
+            log.info { "L0 (${state.l0Sstables.readValue().size}): ${state.l0Sstables.readValue()}" }
+        }
+
+        for ((level, files) in snapshot.levels) {
+            log.info { "L${level} (${files.size}): $files" }
+        }
+    }
+
+
     @VisibleForTesting
     fun addL0Sstable(sstId: Int) {
         state.l0Sstables.readValue().addFirst(sstId)
@@ -830,17 +844,13 @@ class LsmStorageInner private constructor(
         return MergeIterator(iters)
     }
 
-    fun dumpStructure() {
-        dumpStructure(state.diskSnapshot())
+    @VisibleForTesting
+    fun getMemTableId(): Int {
+        return state.memTable.readValue().id
     }
 
-    private fun dumpStructure(snapshot: LsmStorageSstableSnapshot) {
-        if (snapshot.l0Sstables.isNotEmpty()) {
-            log.info { "L0 (${state.l0Sstables.readValue().size}): ${state.l0Sstables.readValue()}" }
-        }
-
-        for ((level, files) in snapshot.levels) {
-            log.info { "L${level} (${files.size}): $files" }
-        }
+    @VisibleForTesting
+    fun getImmutableMemTableIds(): List<Int> {
+        return state.immutableMemTables.readValue().map { it.id }
     }
 }

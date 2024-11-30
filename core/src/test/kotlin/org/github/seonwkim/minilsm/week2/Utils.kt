@@ -6,6 +6,7 @@ import org.github.seonwkim.common.Unbounded
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.Configuration
 import org.github.seonwkim.lsm.iterator.StorageIterator
+import org.github.seonwkim.lsm.storage.LsmStorageInner
 import org.github.seonwkim.lsm.storage.MiniLsm
 import org.github.seonwkim.lsm.storage.compaction.option.LeveledCompactionOptions
 import org.github.seonwkim.lsm.storage.compaction.option.NoCompaction
@@ -82,10 +83,14 @@ object Utils {
     }
 
     fun waitUntilCompactionEnds(storage: MiniLsm) {
-        var (prevL0Sstables, prevLevels) = storage.inner.state.diskSnapshot()
+        waitUntilCompactionEnds(storage.inner)
+    }
+
+    fun waitUntilCompactionEnds(storage: LsmStorageInner) {
+        var (prevL0Sstables, prevLevels) = storage.state.diskSnapshot()
         while (true) {
             Thread.sleep(1000)
-            val (currentL0Sstables, currentLevels) = storage.inner.state.diskSnapshot()
+            val (currentL0Sstables, currentLevels) = storage.state.diskSnapshot()
             if (prevL0Sstables == currentL0Sstables && prevLevels == currentLevels) {
                 break
             } else {
@@ -97,10 +102,13 @@ object Utils {
         }
     }
 
-
     fun checkCompactionRatio(storage: MiniLsm) {
-        val state = storage.inner.state
-        val compactionOptions = storage.inner.options.compactionOptions
+        checkCompactionRatio(storage.inner)
+    }
+
+    fun checkCompactionRatio(storage: LsmStorageInner) {
+        val state = storage.state
+        val compactionOptions = storage.options.compactionOptions
         val extraIterators = if (Configuration.TS_ENABLED) 1 else 0
         val levelSize = mutableListOf<Long>()
         val l0SstNum = state.l0Sstables.readValue().size
@@ -126,7 +134,7 @@ object Utils {
         }
 
         val numIters = storage.scan(Unbounded, Unbounded).numActiveIterators()
-        val numMemTables = storage.inner.state.immutableMemTables.readValue().size + 1
+        val numMemTables = storage.state.immutableMemTables.readValue().size + 1
         when (compactionOptions) {
             is NoCompaction -> throw Error("Unreachable!!")
             is SimpleLeveledCompactionOptions -> {

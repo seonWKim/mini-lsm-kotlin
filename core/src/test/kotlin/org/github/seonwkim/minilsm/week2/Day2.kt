@@ -46,9 +46,9 @@ class Day2 {
         }
         futures.forEach { future ->
             try {
-                val key = future.get() // Wait for the future to complete and get the key
+                val idx = future.get() // Wait for the future to complete and get the key
                 if (future.isDone && !future.isCancelled) {
-                    succeeded.add(key)
+                    succeeded.add(idx)
                 }
             } catch (e: Exception) {
                 failureCount++
