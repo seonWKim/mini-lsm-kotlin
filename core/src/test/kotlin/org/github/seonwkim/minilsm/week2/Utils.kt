@@ -50,7 +50,7 @@ object Utils {
 
         // wait until all memtables flush
         Thread.sleep(1000)
-        while (storage.inner.state.immutableMemTables.read().isNotEmpty()) {
+        while (storage.inner.state.immutableMemTables.readValue().isNotEmpty()) {
             storage.inner.forceFlushNextImmMemTable()
         }
 
@@ -103,8 +103,8 @@ object Utils {
         val compactionOptions = storage.inner.options.compactionOptions
         val extraIterators = if (Configuration.TS_ENABLED) 1 else 0
         val levelSize = mutableListOf<Long>()
-        val l0SstNum = state.l0Sstables.read().size
-        for ((_, files) in state.levels.read()) {
+        val l0SstNum = state.l0Sstables.readValue().size
+        for ((_, files) in state.levels.readValue()) {
             val size = when (compactionOptions) {
                 is SimpleLeveledCompactionOptions -> {
                     files.size.toLong()
@@ -126,7 +126,7 @@ object Utils {
         }
 
         val numIters = storage.scan(Unbounded, Unbounded).numActiveIterators()
-        val numMemTables = storage.inner.state.immutableMemTables.read().size + 1
+        val numMemTables = storage.inner.state.immutableMemTables.readValue().size + 1
         when (compactionOptions) {
             is NoCompaction -> throw Error("Unreachable!!")
             is SimpleLeveledCompactionOptions -> {
@@ -142,7 +142,7 @@ object Utils {
 
                     val sizePercent = lowerLevelSize.toDouble() / upperLevelSize.toDouble()
                     val sizeRatio = sizeRatioPercent / 100.0
-                    val levels = state.levels.read()
+                    val levels = state.levels.readValue()
                     assertTrue(
                         "L${levels[lowerLevelIdx - 1].id}/L${levels[lowerLevelIdx].id}, ${sizePercent}<${sizeRatio}"
                     ) { sizePercent >= sizeRatio }
@@ -164,7 +164,7 @@ object Utils {
                 var sumSize = levelSize[0]
                 for (idx in 1 until levelSize.size) {
                     val thisSize = levelSize[idx]
-                    val levels = state.levels.read()
+                    val levels = state.levels.readValue()
                     if (levelSize.size > compactionOptions.minMergeWidth) {
                         assertTrue(
                             "violation of size ratio: sum(L${levels[0].id})/L${levels[0].id}, ${sumSize}/${thisSize}>${sizeRatioTrigger}"

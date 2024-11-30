@@ -3,15 +3,18 @@ package org.github.seonwkim.common.lock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 class SimulatedRwLock<T>(
-    val value: T,
+    var value: T,
     val beforeReadLockAcquireBehavior: () -> Unit = {},
     val afterReadLockAcquireBehavior: () -> Unit = {},
     val beforeWriteLockAcquireBehavior: () -> Unit = {},
     val afterWriteLockAcquireBehavior: () -> Unit = {},
 ) : RwLock<T> {
     private val lock = ReentrantReadWriteLock()
+    override fun switchValue(value: T) {
+        this.value = value
+    }
 
-    override fun read(): T {
+    override fun readValue(): T {
         return value
     }
 

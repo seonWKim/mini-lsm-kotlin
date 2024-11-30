@@ -71,7 +71,7 @@ class Day1 {
         }
 
         storage.forceFullCompaction()
-        assertTrue { storage.state.l0Sstables.read().isEmpty() }
+        assertTrue { storage.state.l0Sstables.readValue().isEmpty() }
         storage.constructMergeIterator().let { iter ->
             if (Configuration.TS_ENABLED) {
                 checkIterator(
@@ -129,7 +129,7 @@ class Day1 {
         }
 
         storage.forceFullCompaction()
-        assertTrue { storage.state.l0Sstables.read().isEmpty() }
+        assertTrue { storage.state.l0Sstables.readValue().isEmpty() }
         storage.constructMergeIterator().let { iter ->
             if (Configuration.TS_ENABLED) {
                 checkIterator(
@@ -209,8 +209,8 @@ class Day1 {
         sync(storage)
 
         storage.forceFullCompaction()
-        assertTrue { storage.state.l0Sstables.read().isEmpty() }
-        assertTrue { storage.state.levels.read()[0].sstIds.isNotEmpty() }
+        assertTrue { storage.state.l0Sstables.readValue().isEmpty() }
+        assertTrue { storage.state.levels.readValue()[0].sstIds.isNotEmpty() }
 
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
@@ -222,8 +222,8 @@ class Day1 {
         sync(storage)
         storage.forceFullCompaction()
 
-        assertTrue { storage.state.l0Sstables.read().isEmpty() }
-        assertTrue { storage.state.levels.read()[0].sstIds.isNotEmpty() }
+        assertTrue { storage.state.l0Sstables.readValue().isEmpty() }
+        assertTrue { storage.state.levels.readValue()[0].sstIds.isNotEmpty() }
 
         checkIterator(
             actual = storage.scan(Unbounded, Unbounded),

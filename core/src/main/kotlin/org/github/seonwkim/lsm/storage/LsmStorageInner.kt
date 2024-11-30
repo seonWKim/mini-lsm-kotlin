@@ -70,7 +70,7 @@ class LsmStorageInner private constructor(
                 } catch (e: Exception) {
                     throw Error("Failed to create manifest file: $e")
                 }
-                manifest.addRecord(NewMemTable(state.memTable.read().id))
+                manifest.addRecord(NewMemTable(state.memTable.readValue().id))
             } else {
                 val (m, records) = Manifest.recover(manifestPath)
                 val memTables = mutableSetOf<Int>()
@@ -83,9 +83,9 @@ class LsmStorageInner private constructor(
                                 throw Error("memtable of id $sstId not exists")
                             }
                             if (compactionController.flushToL0()) {
-                                state.l0Sstables.read().addFirst(sstId)
+                                state.l0Sstables.readValue().addFirst(sstId)
                             } else {
-                                state.levels.read().addFirst(SstLevel(sstId, mutableListOf(sstId)))
+                                state.levels.readValue().addFirst(SstLevel(sstId, mutableListOf(sstId)))
                             }
 
                             nextSstId = maxOf(nextSstId, sstId)
@@ -103,7 +103,7 @@ class LsmStorageInner private constructor(
                 }
 
                 var sstCount = 0
-                val totalSstableIds = state.l0Sstables.read() + state.levels.read().flatMap { it.sstIds }
+                val totalSstableIds = state.l0Sstables.readValue() + state.levels.readValue().flatMap { it.sstIds }
                 for (sstableId in totalSstableIds) {
                     val sst = Sstable.open(
                         id = sstableId,
@@ -120,7 +120,7 @@ class LsmStorageInner private constructor(
                 // For leveled compaction, sort SSTs on each level
                 if (compactionController is LeveledCompactionController) {
                     val sstables = state.sstables
-                    for ((_, ssts) in state.levels.read()) {
+                    for ((_, ssts) in state.levels.readValue()) {
                         ssts.sortWith { t1, t2 ->
                             sstables[t1]!!.firstKey.compareTo(sstables[t2]!!.firstKey)
                         }
@@ -133,7 +133,7 @@ class LsmStorageInner private constructor(
                 } else {
                     state.setMemTable(MemTable.create(nextSstId))
                 }
-                m.addRecord(NewMemTable(state.memTable.read().id))
+                m.addRecord(NewMemTable(state.memTable.readValue().id))
                 nextSstId++
                 manifest = m
             }
@@ -349,7 +349,7 @@ class LsmStorageInner private constructor(
     }
 
     fun getLevelIterators(lower: Bound, upper: Bound): List<SstConcatIterator> {
-        return state.levels.read().map { level ->
+        return state.levels.readValue().map { level ->
             val levelSsts = mutableListOf<Sstable>()
             level.sstIds.forEach {
                 val sstable = state.sstables[it]!!
@@ -391,7 +391,7 @@ class LsmStorageInner private constructor(
     }
 
     private fun getSstConcatIterator(key: TimestampedKey): List<SstConcatIterator> {
-        return state.levels.read().map { level ->
+        return state.levels.readValue().map { level ->
             val validLevelSsts = mutableListOf<Sstable>()
             level.sstIds.forEach { levelSstId ->
                 state.sstables[levelSstId]?.let {
@@ -798,7 +798,7 @@ class LsmStorageInner private constructor(
 
     @VisibleForTesting
     fun addL0Sstable(sstId: Int) {
-        state.l0Sstables.read().addFirst(sstId)
+        state.l0Sstables.readValue().addFirst(sstId)
     }
 
     @VisibleForTesting
@@ -809,11 +809,11 @@ class LsmStorageInner private constructor(
     @VisibleForTesting
     fun constructMergeIterator(): MergeIterator<SsTableIterator> {
         val iters = mutableListOf<SsTableIterator>()
-        state.l0Sstables.read().forEach {
+        state.l0Sstables.readValue().forEach {
             iters.add(SsTableIterator.createAndSeekToFirst(state.sstables[it]!!))
         }
 
-        state.levels.read().forEach { level ->
+        state.levels.readValue().forEach { level ->
             level.sstIds.forEach {
                 iters.add(SsTableIterator.createAndSeekToFirst(state.sstables[it]!!))
             }
@@ -828,7 +828,7 @@ class LsmStorageInner private constructor(
 
     private fun dumpStructure(snapshot: LsmStorageSstableSnapshot) {
         if (snapshot.l0Sstables.isNotEmpty()) {
-            log.info { "L0 (${state.l0Sstables.read().size}): ${state.l0Sstables.read()}" }
+            log.info { "L0 (${state.l0Sstables.readValue().size}): ${state.l0Sstables.readValue()}" }
         }
 
         for ((level, files) in snapshot.levels) {

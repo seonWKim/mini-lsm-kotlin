@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap
  * @property sstables The map of SSTable IDs to SSTable instances.
  */
 class LsmStorageState private constructor(
-    var memTable: RwLock<MemTable>,
+    val memTable: RwLock<MemTable>,
     var immutableMemTables: RwLock<LinkedList<MemTable>>,
     val l0Sstables: RwLock<LinkedList<Int>>,
     val levels: RwLock<LinkedList<SstLevel>>,
@@ -94,7 +94,7 @@ class LsmStorageState private constructor(
     }
 
     fun setMemTable(memTable: MemTable) {
-        this.memTable = PriorityAwareLock(value = memTable, priority = 10)
+        this.memTable.switchValue(memTable)
     }
 
     fun diskSnapshot(): LsmStorageSstableSnapshot {

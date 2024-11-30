@@ -3,11 +3,14 @@ package org.github.seonwkim.common.lock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 class DefaultRwLock<T>(
-    private val value: T
+    private var value: T
 ) : RwLock<T> {
     private val lock = ReentrantReadWriteLock()
+    override fun switchValue(value: T) {
+        this.value = value
+    }
 
-    override fun read(): T {
+    override fun readValue(): T {
         return value
     }
 

@@ -83,7 +83,9 @@ class MiniLsm private constructor(
             is LeveledCompactionOptions,
             is TieredCompactionOptions -> {
                 compactionScheduler.scheduleWithFixedDelay(
-                    { inner.triggerCompaction() },
+                    {
+                        inner.triggerCompaction()
+                    },
                     inner.options.compactionIntervalMillis,
                     inner.options.compactionIntervalMillis,
                     TimeUnit.MILLISECONDS

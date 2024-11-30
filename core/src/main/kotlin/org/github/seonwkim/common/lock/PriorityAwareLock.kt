@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
  * @property priority the priority level of the lock. lower the value, higher the priority.
  */
 class PriorityAwareLock<T>(
-    private val value: T,
+    private var value: T,
     private val priority: Int
 ) : RwLock<T> {
     companion object {
@@ -19,7 +19,14 @@ class PriorityAwareLock<T>(
 
     private val lock = ReentrantReadWriteLock()
 
-    override fun read(): T {
+    /**
+     * Note that explicit write lock should be acquired using [withWriteLock].
+     */
+    override fun switchValue(value: T) {
+        this.value = value
+    }
+
+    override fun readValue(): T {
         return value
     }
 

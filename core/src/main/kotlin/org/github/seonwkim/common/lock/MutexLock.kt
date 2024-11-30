@@ -3,11 +3,14 @@ package org.github.seonwkim.common.lock
 import java.util.concurrent.locks.ReentrantLock
 
 class MutexLock<T>(
-    val value: T
+    var value: T
 ) : RwLock<T> {
     private val lock = ReentrantLock()
+    override fun switchValue(value: T) {
+        this.value = value
+    }
 
-    override fun read(): T {
+    override fun readValue(): T {
         return value
     }
 
