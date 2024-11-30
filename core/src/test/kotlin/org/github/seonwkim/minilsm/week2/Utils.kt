@@ -154,7 +154,36 @@ object Utils {
             }
 
             is TieredCompactionOptions -> {
-                TODO()
+                val sizeRatioTrigger = (100.0 + compactionOptions.sizeRatio.toDouble()) / 100.0
+                assertEquals(l0SstNum, 0)
+                assertTrue { levelSize.size <= compactionOptions.numTiers }
+
+                var sumSize = levelSize[0]
+                for (idx in 1 until levelSize.size) {
+                    val thisSize = levelSize[idx]
+                    val levels = state.levels.read()
+                    if (levelSize.size > compactionOptions.minMergeWidth) {
+                        assertTrue(
+                            "violation of size ratio: sum(L${levels[0].level})/L${levels[0].level}, ${sumSize}/${thisSize}>${sizeRatioTrigger}"
+                        ) {
+                            sumSize.toDouble() / thisSize.toDouble() <= sizeRatioTrigger
+                        }
+                    }
+
+                    if (idx + 1 == levelSize.size) {
+                        assertTrue(
+                            "violation of space amplification: sum(L${levels[idx - 1].level})/L${levels[idx].level}, ${sumSize}/${thisSize}>${compactionOptions.maxSizeAmplificationPercent}%"
+                        ) {
+                            (sumSize.toDouble() / thisSize.toDouble()) <= compactionOptions.maxSizeAmplificationPercent.toDouble() / 100.0
+                        }
+                    }
+
+                    sumSize += thisSize
+                }
+
+                assertTrue(
+                    "we found $numIters iterators in your implementation, (numMemTables=${numMemTables}, numTiers=${compactionOptions.numTiers} did you use concat iterators?"
+                ) { numIters <= numMemTables + compactionOptions.numTiers + extraIterators }
             }
         }
     }
