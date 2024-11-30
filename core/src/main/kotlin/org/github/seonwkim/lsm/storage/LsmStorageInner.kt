@@ -466,7 +466,8 @@ class LsmStorageInner private constructor(
                 if (!shouldFreezeMemTable()) return@withWriteLock
             }
 
-            val newMemTableId = nextSstId.getAndIncrement()
+            // val newMemTableId = nextSstId.incrementAndGet()
+            val newMemTableId = nextSstId.incrementAndGet()
             val newMemTable = if (options.enableWal) {
                 TODO("should be implemented after WAL is supported")
             } else {
@@ -491,23 +492,26 @@ class LsmStorageInner private constructor(
      * @throws IllegalStateException if no immutable memTables exist.
      */
     fun forceFlushNextImmMemTable() {
-        var flushTargetMemTable: MemTable? = null
-        state.immutableMemTables.withReadLock {
-            flushTargetMemTable = it.lastOrNull()
+        val flushTargetMemTable: MemTable? = state.immutableMemTables.withReadLock {
+            it.lastOrNull()
         }
         if (flushTargetMemTable == null) {
-            throw IllegalStateException("No immutable memTables exist!")
+            log.info { "No immutable memTables to flush" }
+            return
         }
 
+        log.info { "We will try to flush ${flushTargetMemTable.id}" }
         val builder = SsTableBuilder(options.blockSize)
-        flushTargetMemTable!!.flush(builder)
-        val flushedMemTableId = flushTargetMemTable!!.id
+        flushTargetMemTable.flush(builder)
+        val flushedMemTableId = flushTargetMemTable.id
         val sst = builder.build(
             id = flushedMemTableId, blockCache = blockCache.copy(), path = sstPath(path, flushedMemTableId)
         )
 
         state.immutableMemTables.withWriteLock {
-            val immutableMemTable: MemTable? = it.peekLast()
+            log.info { "We will try to flush ${flushTargetMemTable.id}, write lock acquired!!" }
+            val immutableMemTable = it.peekLast()
+            log.info { "BEFORE: ${it.map { mem -> mem.id } }}" }
             if (immutableMemTable?.id != flushedMemTableId) {
                 // in case where forceFlushNextImmMemTable() is called concurrently, it can enter this block
                 log.info { "Sst id($flushedMemTableId) and immutable memTable id(${immutableMemTable?.id}) mismatch. There might be concurrent calls to flush immMemTable" }
@@ -516,7 +520,7 @@ class LsmStorageInner private constructor(
                 // we can safely remove the oldest immutableMemTable
                 it.pollLast()
             }
-
+            log.info { "AFTER: ${it.map { mem -> mem.id } }}" }
             if (compactionController.flushToL0()) {
                 state.l0Sstables.withWriteLock { l0SsTables ->
                     l0SsTables.addFirst(flushedMemTableId)
@@ -526,15 +530,15 @@ class LsmStorageInner private constructor(
                     levels.addFirst(SstLevel(flushedMemTableId, mutableListOf(flushedMemTableId)))
                 }
             }
-            log.info { "Flushed $flushedMemTableId.sst with size ${sst.file.size}" }
             state.sstables[flushedMemTableId] = sst
-        }
+            log.info { "Flushed $flushedMemTableId.sst with size ${sst.file.size}" }
 
-        if (options.enableWal) {
-            TODO("remove wal file")
-        }
+            if (options.enableWal) {
+                TODO("remove wal file")
+            }
 
-        manifest?.addRecord(Flush(flushedMemTableId))
+            manifest?.addRecord(Flush(flushedMemTableId))
+        }
     }
 
     fun forceFullCompaction() {
@@ -684,7 +688,7 @@ class LsmStorageInner private constructor(
             iter.next()
 
             if (builder.estimatedSize() >= options.targetSstSize) {
-                val sstId = nextSstId.getAndIncrement()
+                val sstId = nextSstId.incrementAndGet()
                 newSst.add(
                     builder.build(
                         id = sstId,
@@ -697,7 +701,7 @@ class LsmStorageInner private constructor(
         }
 
         if (builder != null) {
-            val sstId = nextSstId.getAndIncrement()
+            val sstId = nextSstId.incrementAndGet()
             val sst = builder.build(
                 id = sstId,
                 blockCache = blockCache.copy(),
