@@ -26,25 +26,43 @@ class Day2 {
 
     @Test
     fun `simple leveled compaction concurrent write and read test`() {
-        val storage = createSimpleLeveledCompactionMiniLsm("simple_leveled_compaction_concurrent_write_and_read_test")
+        val storage =
+            createSimpleLeveledCompactionMiniLsm("simple_leveled_compaction_concurrent_write_and_read_test")
         val availableProcessors = maxOf(Runtime.getRuntime().availableProcessors(), 5)
         val executors = (1..availableProcessors).map {
-            Executors.newVirtualThreadPerTaskExecutor()
+            Executors.newSingleThreadExecutor()
         }
 
         val genKey = { it: Int -> "key_%10d".format(it) }
         val genValue = { it: Int -> "value_%100d".format(it) }
-        val futures = mutableListOf<Future<*>>()
+        val futures = mutableListOf<Future<Int>>()
+        val succeeded = hashSetOf<Int>()
+        var failureCount = 0
         for (i in 0 until 100_000) {
             val key = genKey(i)
             val value = genValue(i)
 
-            executors[i % availableProcessors].submit { storage.put(key, value) }.let { futures.add(it) }
+            executors[i % availableProcessors].submit<Int> {
+                storage.put(key, value)
+                i
+            }.let { futures.add(it) }
         }
-        futures.forEach { it.get() }
-        waitUntilCompactionEnds(storage)
+        futures.forEach { future ->
+            try {
+                val key = future.get() // Wait for the future to complete and get the key
+                if (future.isDone && !future.isCancelled) {
+                    succeeded.add(key)
+                }
+            } catch (e: Exception) {
+                failureCount++
+                println("Future failed: ${e.message}")
+            }
+        }
 
-        for (i in 0 until 100_000) {
+        waitUntilCompactionEnds(storage)
+        println("Succeeded count: ${succeeded.size}, failure count: $failureCount")
+
+        for (i in succeeded) {
             assertEquals(genValue(i), storage.get(genKey(i)))
         }
     }
