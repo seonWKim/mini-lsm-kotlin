@@ -54,20 +54,7 @@ object Utils {
             storage.inner.forceFlushNextImmMemTable()
         }
 
-        var (prevL0Sstables, prevLevels) = storage.inner.state.diskSnapshot()
-        while (true) {
-            Thread.sleep(1000)
-            val (currentL0Sstables, currentLevels) = storage.inner.state.diskSnapshot()
-            if (prevL0Sstables == currentL0Sstables && prevLevels == currentLevels) {
-                break
-            } else {
-                prevL0Sstables = currentL0Sstables
-                prevLevels = currentLevels
-            }
-
-            log.info { "Waiting for compaction to converge" }
-        }
-
+        waitUntilCompactionEnds(storage)
         val expectedKeyValuePairs = mutableListOf<Pair<ComparableByteArray, ComparableByteArray>>()
         for (i in 0 until (maxKey + 40_000)) {
             val key = genKey(i)
@@ -91,6 +78,22 @@ object Utils {
             "This test case does not guarantee your compaction algorithm produces a LSM state as expected. " +
                     "It only does minimal checks on the size of the levels. " +
                     "Please use the compaction simulator to check if the compaction is correctly going on."
+        }
+    }
+
+    fun waitUntilCompactionEnds(storage: MiniLsm) {
+        var (prevL0Sstables, prevLevels) = storage.inner.state.diskSnapshot()
+        while (true) {
+            Thread.sleep(1000)
+            val (currentL0Sstables, currentLevels) = storage.inner.state.diskSnapshot()
+            if (prevL0Sstables == currentL0Sstables && prevLevels == currentLevels) {
+                break
+            } else {
+                prevL0Sstables = currentL0Sstables
+                prevLevels = currentLevels
+            }
+
+            log.info { "Waiting for compaction to end" }
         }
     }
 
