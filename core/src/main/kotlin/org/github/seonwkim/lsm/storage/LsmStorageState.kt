@@ -33,12 +33,12 @@ class LsmStorageState private constructor(
             val levels = when (options.compactionOptions) {
                 is LeveledCompactionOptions -> {
                     (1..options.compactionOptions.maxLevel)
-                        .map { SstLevel(level = it, sstIds = mutableListOf()) }
+                        .map { SstLevel(id = it, sstIds = mutableListOf()) }
                 }
 
                 is SimpleLeveledCompactionOptions -> {
                     (1..options.compactionOptions.maxLevels)
-                        .map { SstLevel(level = it, sstIds = mutableListOf()) }
+                        .map { SstLevel(id = it, sstIds = mutableListOf()) }
                 }
 
                 is TieredCompactionOptions -> {
@@ -46,7 +46,7 @@ class LsmStorageState private constructor(
                 }
 
                 is NoCompaction -> {
-                    mutableListOf(SstLevel(level = 1, sstIds = mutableListOf()))
+                    mutableListOf(SstLevel(id = 1, sstIds = mutableListOf()))
                 }
             }.toCollection(LinkedList())
 

@@ -72,7 +72,7 @@ class TieredCompactionController(
         return spaceAmplificationExceeded
     }
 
-    override fun applyCompactionResult(
+    override fun applyCompaction(
         snapshot: LsmStorageSstableSnapshot,
         task: CompactionTask,
         newSstIds: List<Int>,
@@ -106,7 +106,7 @@ class TieredCompactionController(
                 newTierAdded = true
                 tiers.add(
                     SstLevel(
-                        level = newSstIds[0],
+                        id = newSstIds[0],
                         sstIds = newSstIds.toMutableList()
                     )
                 )
@@ -146,10 +146,10 @@ class TieredCompactionController(
         // tier ids included in snapshot has 2 types
         // 1. newly created tier ids
         // 2. existing tier ids which didn't participate in the compaction process
-        // because we are going to append tieres included in snapshot at the end of levels, we should first exclude it from current level
-        snapshot.levels.forEach { tierIdsToExclude.add(it.level) }
+        // because we are going to append tiers included in snapshot at the end of levels, we first exclude them all it from current level
+        snapshot.levels.forEach { tierIdsToExclude.add(it.id) }
 
-        levels.removeIf { tierIdsToExclude.contains(it.level) }
+        levels.removeIf { tierIdsToExclude.contains(it.id) }
         levels.addAll(snapshot.levels)
     }
 
@@ -159,7 +159,7 @@ class TieredCompactionController(
 
     private fun SstLevel.toTier(): Tier {
         return Tier(
-            id = this.level,
+            id = this.id,
             sstIds = this.sstIds
         )
     }

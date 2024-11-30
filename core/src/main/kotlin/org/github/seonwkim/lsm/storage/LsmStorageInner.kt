@@ -747,7 +747,7 @@ class LsmStorageInner private constructor(
 
         // changes are applied to the snapshot
         val (compactionAppliedSnapshot, sstIdsToRemove) =
-            compactionController.applyCompactionResult(snapshotForCompaction, task, newSstIds, false)
+            compactionController.applyCompaction(snapshotForCompaction, task, newSstIds, false)
         log.info { "Compaction applied snapshot: $compactionAppliedSnapshot" }
         val sstablesToRemove = hashSetOf<Sstable>()
         for (sstId in sstIdsToRemove) {

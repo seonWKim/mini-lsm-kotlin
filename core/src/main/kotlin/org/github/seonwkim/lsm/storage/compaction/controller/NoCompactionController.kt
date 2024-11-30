@@ -11,7 +11,7 @@ data object NoCompactionController : CompactionController {
         throw Error("generateCompactionTask should not be called on NoCompactionController")
     }
 
-    override fun applyCompactionResult(
+    override fun applyCompaction(
         snapshot: LsmStorageSstableSnapshot,
         task: CompactionTask,
         newSstIds: List<Int>,

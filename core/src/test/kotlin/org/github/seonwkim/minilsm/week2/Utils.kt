@@ -144,7 +144,7 @@ object Utils {
                     val sizeRatio = sizeRatioPercent / 100.0
                     val levels = state.levels.read()
                     assertTrue(
-                        "L${levels[lowerLevelIdx - 1].level}/L${levels[lowerLevelIdx].level}, ${sizePercent}<${sizeRatio}"
+                        "L${levels[lowerLevelIdx - 1].id}/L${levels[lowerLevelIdx].id}, ${sizePercent}<${sizeRatio}"
                     ) { sizePercent >= sizeRatio }
                 }
 
@@ -167,7 +167,7 @@ object Utils {
                     val levels = state.levels.read()
                     if (levelSize.size > compactionOptions.minMergeWidth) {
                         assertTrue(
-                            "violation of size ratio: sum(L${levels[0].level})/L${levels[0].level}, ${sumSize}/${thisSize}>${sizeRatioTrigger}"
+                            "violation of size ratio: sum(L${levels[0].id})/L${levels[0].id}, ${sumSize}/${thisSize}>${sizeRatioTrigger}"
                         ) {
                             sumSize.toDouble() / thisSize.toDouble() <= sizeRatioTrigger
                         }
@@ -175,7 +175,7 @@ object Utils {
 
                     if (idx + 1 == levelSize.size) {
                         assertTrue(
-                            "violation of space amplification: sum(L${levels[idx - 1].level})/L${levels[idx].level}, ${sumSize}/${thisSize}>${compactionOptions.maxSizeAmplificationPercent}%"
+                            "violation of space amplification: sum(L${levels[idx - 1].id})/L${levels[idx].id}, ${sumSize}/${thisSize}>${compactionOptions.maxSizeAmplificationPercent}%"
                         ) {
                             (sumSize.toDouble() / thisSize.toDouble()) <= compactionOptions.maxSizeAmplificationPercent.toDouble() / 100.0
                         }

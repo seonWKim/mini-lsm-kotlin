@@ -39,7 +39,7 @@ sealed interface CompactionController {
     fun generateCompactionTask(snapshot: LsmStorageSstableSnapshot): CompactionTask?
 
     /**
-     * Applies the result of a compaction task to the provided snapshot of the LSM storage system.
+     * Applies the result of a compaction task to the provided snapshot of the LSM storage system and return a new snapshot.
      *
      * This method updates the LSM storage state based on the provided compaction task and the new SSTable IDs
      * generated during the compaction. It removes the SSTable IDs that were compacted and adds the new SSTable IDs
@@ -54,7 +54,7 @@ sealed interface CompactionController {
      * @return An [LsmCompactionResult] object representing the state of the LSM storage system after applying the compaction result.
      * @throws Error if the task is not of the expected type or if there is a mismatch in SSTable IDs.
      */
-    fun applyCompactionResult(
+    fun applyCompaction(
         snapshot: LsmStorageSstableSnapshot,
         task: CompactionTask,
         newSstIds: List<Int>,

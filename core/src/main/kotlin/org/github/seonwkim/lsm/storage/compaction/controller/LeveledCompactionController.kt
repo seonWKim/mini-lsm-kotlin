@@ -12,7 +12,7 @@ class LeveledCompactionController(options: LeveledCompactionOptions) : Compactio
         TODO()
     }
 
-    override fun applyCompactionResult(
+    override fun applyCompaction(
         snapshot: LsmStorageSstableSnapshot,
         task: CompactionTask,
         newSstIds: List<Int>,

@@ -67,7 +67,7 @@ class SimpleLeveledCompactionController(
         return null
     }
 
-    override fun applyCompactionResult(
+    override fun applyCompaction(
         snapshot: LsmStorageSstableSnapshot,
         task: CompactionTask,
         newSstIds: List<Int>,

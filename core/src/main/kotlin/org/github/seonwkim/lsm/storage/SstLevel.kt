@@ -6,20 +6,20 @@ package org.github.seonwkim.lsm.storage
  */
 data class SstLevel(
     // sst level or tier id
-    val level: Int,
+    val id: Int,
 
     // sst ids or tier ids
     val sstIds: MutableList<Int>
 ) {
     init {
-        if (level < 0) {
-            throw IllegalStateException("SST id $level < 0 or Tier id $level < 0")
+        if (id < 0) {
+            throw IllegalStateException("SST id $id < 0 or Tier id $id < 0")
         }
     }
 
     fun deepCopy(): SstLevel {
         return SstLevel(
-            level = this.level,
+            id = this.id,
             sstIds = this.sstIds.toMutableList()
         )
     }

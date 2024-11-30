@@ -25,8 +25,8 @@ class Day2 {
     }
 
     @Test
-    fun `concurrent write and read test`() {
-        val storage = createSimpleLeveledCompactionMiniLsm("concurrent_write_and_read_test")
+    fun `simple leveled compaction concurrent write and read test`() {
+        val storage = createSimpleLeveledCompactionMiniLsm("simple_leveled_compaction_concurrent_write_and_read_test")
         val availableProcessors = maxOf(Runtime.getRuntime().availableProcessors(), 5)
         val executors = (1..availableProcessors).map {
             Executors.newVirtualThreadPerTaskExecutor()
