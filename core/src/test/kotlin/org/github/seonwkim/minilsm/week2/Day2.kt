@@ -5,7 +5,7 @@ import org.github.seonwkim.lsm.storage.LsmStorageOptions
 import org.github.seonwkim.lsm.storage.MiniLsm
 import org.github.seonwkim.lsm.storage.compaction.option.SimpleLeveledCompactionOptions
 import org.github.seonwkim.minilsm.week2.Utils.checkCompactionRatio
-import org.github.seonwkim.minilsm.week2.Utils.compactionBatch
+import org.github.seonwkim.minilsm.week2.Utils.compactionBench
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 
@@ -32,7 +32,7 @@ class Day2 {
             )
         )
 
-        compactionBatch(storage)
+        compactionBench(storage)
         checkCompactionRatio(storage)
     }
 }

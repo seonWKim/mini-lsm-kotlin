@@ -30,7 +30,7 @@ object Utils {
 
     private val log = KotlinLogging.logger { }
 
-    fun compactionBatch(storage: MiniLsm) {
+    fun compactionBench(storage: MiniLsm) {
         val keyMap = hashMapOf<Int, Int>()
         val genKey = { i: Int -> "%10d".format(i) }
         val genValue = { i: Int -> "%110d".format(i) }
@@ -49,20 +49,15 @@ object Utils {
         }
 
         // wait until all memtables flush
-        // TODO: use Awaitility
         Thread.sleep(1000)
         while (storage.inner.state.immutableMemTables.read().isNotEmpty()) {
             storage.inner.forceFlushNextImmMemTable()
         }
 
-        var prevL0Sstables = storage.inner.state.l0Sstables.read().toList()
-        var prevLevels = storage.inner.state.levels.read().toList()
-
+        var (prevL0Sstables, prevLevels) = storage.inner.state.diskSnapshot()
         while (true) {
             Thread.sleep(1000)
-            val currentL0Sstables = storage.inner.state.l0Sstables.read().toList()
-            val currentLevels = storage.inner.state.levels.read().toList()
-
+            val (currentL0Sstables, currentLevels) = storage.inner.state.diskSnapshot()
             if (prevL0Sstables == currentL0Sstables && prevLevels == currentLevels) {
                 break
             } else {
@@ -156,7 +151,6 @@ object Utils {
             }
 
             is LeveledCompactionOptions -> {
-                TODO()
             }
 
             is TieredCompactionOptions -> {
