@@ -3,6 +3,10 @@ package org.github.seonwkim.lsm.compaction.task
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 
+/**
+ * Interface for compaction tasks.
+ * Implementations of this interface define specific compaction task strategies.
+ */
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.PROPERTY,
@@ -15,8 +19,18 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     JsonSubTypes.Type(value = ForceFullCompactionTask::class, name = "ForceFullCompaction")
 )
 sealed interface CompactionTask {
+
+    /**
+     * Determines if the compaction process should include the bottom level.
+     *
+     * @return true if the compaction process includes the bottom-most level, false otherwise.
+     */
     fun compactToBottomLevel(): Boolean
 
-    // Whether l0 compaction occurred.
+    /**
+     * Checks if level 0 compaction occurred.
+     *
+     * @return true if level 0 compaction occurred, false otherwise
+     */
     fun l0Compaction(): Boolean
 }
