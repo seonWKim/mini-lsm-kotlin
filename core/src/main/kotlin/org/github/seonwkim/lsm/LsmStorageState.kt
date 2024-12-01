@@ -101,7 +101,7 @@ class LsmStorageState private constructor(
         return l0Sstables.withReadLock { l0Sstables ->
             levels.withReadLock { levels ->
                 LsmStorageSstableSnapshot(
-                    l0Sstables = l0Sstables.toList(),
+                    l0SstableIds = l0Sstables.toList(),
                     levels = levels.map { it.deepCopy() },
                 )
             }

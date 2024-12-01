@@ -5,7 +5,9 @@ import org.github.seonwkim.lsm.SstLevel
 import org.github.seonwkim.lsm.compaction.LsmCompactionResult
 import org.github.seonwkim.lsm.compaction.option.*
 import org.github.seonwkim.lsm.compaction.task.CompactionTask
+import org.github.seonwkim.lsm.sstable.Sstable
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Interface for compaction controllers in the LSM storage system.
@@ -41,10 +43,15 @@ sealed interface CompactionController {
      * a `CompactionTask` object that describes the task to be performed. If no compaction is needed,
      * it returns `null`.
      *
-     * @param snapshot The current state of the LSM storage system.
-     * @return A `CompactionTask` if compaction is needed, or `null` if no compaction is necessary.
+     * @param snapshot A snapshot of the current state of the LSM storage system, including all SSTables and their levels.
+     * @param sstables Sstables in the system.
+     * @return A [CompactionTask] object that describes the compaction task to be performed, or `null` if no compaction is necessary.
+     * @throws IllegalStateException if the snapshot or state is invalid or inconsistent.
      */
-    fun generateCompactionTask(snapshot: LsmStorageSstableSnapshot): CompactionTask?
+    fun generateCompactionTask(
+        snapshot: LsmStorageSstableSnapshot,
+        sstables: ConcurrentHashMap<Int, Sstable>
+    ): CompactionTask?
 
     /**
      * Applies the result of a compaction task to the provided snapshot of the LSM storage system and return a new snapshot.
@@ -55,7 +62,8 @@ sealed interface CompactionController {
      * The method does not directly modify the state of the [snapshot]. Instead, it returns a new snapshot
      * representing the state of the LSM storage system after applying the compaction result.
      *
-     * @param snapshot The current state of the LSM storage system before applying the compaction result.
+     * @param snapshot The snapshot of the current state of the LSM storage system before applying the compaction result.
+     * @param sstables Sstables in the system.
      * @param task The compaction task that was performed.
      * @param newSstIds The list of new SSTable IDs generated during the compaction.
      * @param inRecovery Indicates whether the system is in recovery mode.
@@ -64,6 +72,7 @@ sealed interface CompactionController {
      */
     fun applyCompaction(
         snapshot: LsmStorageSstableSnapshot,
+        sstables: ConcurrentHashMap<Int, Sstable>,
         task: CompactionTask,
         newSstIds: List<Int>,
         inRecovery: Boolean

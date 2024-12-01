@@ -2,12 +2,15 @@ package org.github.seonwkim.lsm.compaction.controller
 
 import mu.KotlinLogging
 import org.github.seonwkim.lsm.LsmStorageSstableSnapshot
+import org.github.seonwkim.lsm.LsmStorageState
 import org.github.seonwkim.lsm.SstLevel
 import org.github.seonwkim.lsm.compaction.LsmCompactionResult
 import org.github.seonwkim.lsm.compaction.option.SimpleLeveledCompactionOptions
 import org.github.seonwkim.lsm.compaction.task.CompactionTask
 import org.github.seonwkim.lsm.compaction.task.SimpleLeveledCompactionTask
+import org.github.seonwkim.lsm.sstable.Sstable
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Controller for simple leveled compaction in the LSM storage system.
@@ -26,8 +29,11 @@ class SimpleLeveledCompactionController(
 
     private val sizeRatioLimit = options.sizeRatioPercent.toDouble() / 100.0
 
-    override fun generateCompactionTask(snapshot: LsmStorageSstableSnapshot): CompactionTask? {
-        val l0Sstables = snapshot.l0Sstables
+    override fun generateCompactionTask(
+        snapshot: LsmStorageSstableSnapshot,
+        sstables: ConcurrentHashMap<Int, Sstable>
+    ): CompactionTask? {
+        val l0Sstables = snapshot.l0SstableIds
         val l0SstablesSize = l0Sstables.size
         val levels = snapshot.levels
         val levelSizes = listOf(l0SstablesSize) + levels.map { it.sstIds.size }
@@ -68,6 +74,7 @@ class SimpleLeveledCompactionController(
 
     override fun applyCompaction(
         snapshot: LsmStorageSstableSnapshot,
+        sstables: ConcurrentHashMap<Int, Sstable>,
         task: CompactionTask,
         newSstIds: List<Int>,
         inRecovery: Boolean
@@ -78,7 +85,7 @@ class SimpleLeveledCompactionController(
 
         val sstIdsToRemove = hashSetOf<Int>()
 
-        val l0Sstables = snapshot.l0Sstables.toMutableList()
+        val l0Sstables = snapshot.l0SstableIds.toMutableList()
         val levels = snapshot.levels.toMutableList()
         log.debug { "Simple Leveled compaction: l0($l0Sstables), levels($levels)" }
         val upperLevel = task.upperLevel
@@ -107,7 +114,7 @@ class SimpleLeveledCompactionController(
 
         return LsmCompactionResult(
             snapshot = LsmStorageSstableSnapshot(
-                l0Sstables = l0Sstables,
+                l0SstableIds = l0Sstables,
                 levels = levels,
             ),
             sstIdsToRemove = sstIdsToRemove,

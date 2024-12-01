@@ -746,7 +746,10 @@ class LsmStorageInner private constructor(
         }
 
         val snapshotForCompaction = state.diskSnapshot()
-        val task = compactionController.generateCompactionTask(snapshotForCompaction) ?: return
+        val task = compactionController.generateCompactionTask(
+            snapshot = snapshotForCompaction,
+            sstables = state.sstables
+        ) ?: return
         if (log.isDebugEnabled) {
             dumpStructure(snapshotForCompaction)
         }
@@ -760,8 +763,14 @@ class LsmStorageInner private constructor(
         }
 
         // changes are applied to the snapshot
-        val (compactionAppliedSnapshot, sstIdsToRemove) =
-            compactionController.applyCompaction(snapshotForCompaction, task, newSstIds, false)
+        val (compactionAppliedSnapshot, sstIdsToRemove, l0Compacted) =
+            compactionController.applyCompaction(
+                snapshot = snapshotForCompaction,
+                sstables = state.sstables,
+                task = task,
+                newSstIds = newSstIds,
+                inRecovery = false
+            )
         log.debug { "Compaction applied snapshot: $compactionAppliedSnapshot" }
         val sstablesToRemove = hashSetOf<Sstable>()
         for (sstId in sstIdsToRemove) {
@@ -770,16 +779,26 @@ class LsmStorageInner private constructor(
         }
 
         // TODO: should we extract it to a method such as compactionController.updateL0Sstables() ?
-        state.l0Sstables.withWriteLock { l0sstables ->
-            while (l0sstables.isNotEmpty()) {
-                if (!sstIdsToRemove.contains(l0sstables.last())) {
-                    break
+
+        if (l0Compacted) {
+            state.l0Sstables.withWriteLock { l0sstables ->
+                state.levels.withWriteLock { levels ->
+                    l0sstables.removeIf { sstIdsToRemove.contains(it) }
+                    compactionController.updateLevels(
+                        levels = levels,
+                        task = task,
+                        snapshot = compactionAppliedSnapshot
+                    )
                 }
-                l0sstables.removeLast()
             }
-        }
-        state.levels.withWriteLock { levels ->
-            compactionController.updateLevels(levels, task, compactionAppliedSnapshot)
+        } else {
+            state.levels.withWriteLock { levels ->
+                compactionController.updateLevels(
+                    levels = levels,
+                    task = task,
+                    snapshot = compactionAppliedSnapshot
+                )
+            }
         }
 
         manifest?.addRecord(Compaction(task = task, output = newSstIds))
@@ -811,7 +830,7 @@ class LsmStorageInner private constructor(
     }
 
     private fun dumpStructure(snapshot: LsmStorageSstableSnapshot) {
-        if (snapshot.l0Sstables.isNotEmpty()) {
+        if (snapshot.l0SstableIds.isNotEmpty()) {
             log.debug { "L0 (${state.l0Sstables.readValue().size}): ${state.l0Sstables.readValue()}" }
         }
 

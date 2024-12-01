@@ -2,13 +2,16 @@ package org.github.seonwkim.lsm.compaction.controller
 
 import mu.KotlinLogging
 import org.github.seonwkim.lsm.LsmStorageSstableSnapshot
+import org.github.seonwkim.lsm.LsmStorageState
 import org.github.seonwkim.lsm.SstLevel
 import org.github.seonwkim.lsm.compaction.LsmCompactionResult
 import org.github.seonwkim.lsm.compaction.option.TieredCompactionOptions
 import org.github.seonwkim.lsm.compaction.task.CompactionTask
 import org.github.seonwkim.lsm.compaction.task.Tier
 import org.github.seonwkim.lsm.compaction.task.TieredCompactionTask
+import org.github.seonwkim.lsm.sstable.Sstable
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 class TieredCompactionController(
     private val options: TieredCompactionOptions
@@ -17,9 +20,12 @@ class TieredCompactionController(
     private val log = KotlinLogging.logger { }
     private val maxSizeRatio = (100.0 + options.maxSizeRatio.toDouble()) / 100.0
 
-    override fun generateCompactionTask(snapshot: LsmStorageSstableSnapshot): CompactionTask? {
-        if (snapshot.l0Sstables.isNotEmpty()) {
-            throw Error("L0 sstables should be empty in tiered compaction: ${snapshot.l0Sstables}")
+    override fun generateCompactionTask(
+        snapshot: LsmStorageSstableSnapshot,
+        sstables: ConcurrentHashMap<Int, Sstable>
+    ): CompactionTask? {
+        if (snapshot.l0SstableIds.isNotEmpty()) {
+            throw Error("L0 sstables should be empty in tiered compaction: ${snapshot.l0SstableIds}")
         }
 
         if (snapshot.levels.size < options.minNumTiers) {
@@ -74,6 +80,7 @@ class TieredCompactionController(
 
     override fun applyCompaction(
         snapshot: LsmStorageSstableSnapshot,
+        sstables: ConcurrentHashMap<Int, Sstable>,
         task: CompactionTask,
         newSstIds: List<Int>,
         inRecovery: Boolean
@@ -82,8 +89,8 @@ class TieredCompactionController(
             throw Error("task($task) should be of type TieredCompactionTask")
         }
 
-        if (snapshot.l0Sstables.isNotEmpty()) {
-            throw Error("L0 sstables should be empty in tiered compaction: ${snapshot.l0Sstables}")
+        if (snapshot.l0SstableIds.isNotEmpty()) {
+            throw Error("L0 sstables should be empty in tiered compaction: ${snapshot.l0SstableIds}")
         }
 
         val removeTargetSstIdsByTierId = task.tiers.associate { it.id to it.sstIds }.toMutableMap()
@@ -119,7 +126,7 @@ class TieredCompactionController(
 
         return LsmCompactionResult(
             snapshot = LsmStorageSstableSnapshot(
-                l0Sstables = emptyList(),
+                l0SstableIds = emptyList(),
                 levels = tiers,
             ),
             sstIdsToRemove = sstIdsToRemove
