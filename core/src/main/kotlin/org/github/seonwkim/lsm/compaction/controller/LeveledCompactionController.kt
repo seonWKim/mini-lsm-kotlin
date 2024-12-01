@@ -25,7 +25,7 @@ class LeveledCompactionController(
         snapshot: LsmStorageSstableSnapshot,
         sstables: ConcurrentHashMap<Int, Sstable>
     ): CompactionTask? {
-        val targetLevelSize = LongArray(options.maxLevel) { 0L }
+        val targetLevelSize = MutableList(options.maxLevel) { 0L }
         val realLevelSize = mutableListOf<Long>()
         var baseLevel = options.maxLevel
         for (i in 0 until options.maxLevel) {
@@ -57,29 +57,13 @@ class LeveledCompactionController(
                     levels = snapshot.levels,
                     sstIds = snapshot.l0SstableIds,
                     sstables = sstables,
-                    baseLevel = baseLevel),
+                    baseLevel = baseLevel
+                ),
                 lowerLevelBottomLevel = baseLevel == options.maxLevel
             )
         }
 
-        val priorities = mutableListOf<PriorityAndLevel>()
-        for (level in 0 until options.maxLevel) {
-            val priority = realLevelSize[level].toDouble() / targetLevelSize[level].toDouble()
-            if (priority > 1.0) {
-                priorities.add(
-                    PriorityAndLevel(
-                        priority = priority,
-                        level = level + 1
-                    )
-                )
-            }
-        }
-
-        val sortedPriorities = priorities.sortedWith(
-            compareByDescending<PriorityAndLevel> { it.priority }.thenByDescending { it.level }
-        )
-        val firstPriority = sortedPriorities.firstOrNull() ?: return null
-        val (_, level) = firstPriority
+        val level = decideLevelToCompact(realLevelSize, targetLevelSize) ?: return null
         val targetLevelSizesFormatted =
             targetLevelSize.map { String.format("%.3fMB", it.toDouble() / 1024.0 / 1024.0) }
         val realLevelSizesFormatted =
@@ -88,9 +72,8 @@ class LeveledCompactionController(
             "target level sizes: $targetLevelSizesFormatted, real level sizes: $realLevelSizesFormatted, base level: $baseLevel"
         }
 
-        // select oldest sst  to compact
+        // TODO: maybe we can add better algorithms to select sst e.g. sst with most number of tombstones. Currently, we select the oldest sst
         val selectedSstIds = snapshot.levels[level - 1].sstIds.minOrNull()!!
-        log.debug { "compaction triggered by priority: $level out of $priorities, select $selectedSstIds for compaction" }
         return LeveledCompactionTask(
             upperLevel = level,
             upperLevelSstIds = listOf(selectedSstIds),
@@ -124,6 +107,23 @@ class LeveledCompactionController(
         }
 
         return overlapSsts
+    }
+
+    private fun decideLevelToCompact(realLevelSize: List<Long>, targetLevelSize: List<Long>): Int? {
+        val priorities = mutableListOf<Pair<Double, Int>>()
+        for (level in 0 until options.maxLevel) {
+            val priority = realLevelSize[level].toDouble() / targetLevelSize[level].toDouble()
+            if (priority > 1.0) {
+                priorities.add(Pair(priority, level + 1))
+            }
+        }
+        val sortedPriorities = priorities.sortedWith(
+            compareByDescending<Pair<Double, Int>> { it.first }.thenByDescending { it.second }
+        )
+
+        val (priority, level) = sortedPriorities.firstOrNull() ?: return null
+        log.debug { "compaction triggered by priority: $priorities, selected $level with priority $priority" }
+        return level
     }
 
     override fun applyCompaction(

@@ -32,6 +32,9 @@ subprojects {
 
     tasks.test {
         useJUnitPlatform()
+
+        // run test in parallel
+        maxParallelForks = minOf(Runtime.getRuntime().availableProcessors(), 4)
     }
 
     kotlin {
