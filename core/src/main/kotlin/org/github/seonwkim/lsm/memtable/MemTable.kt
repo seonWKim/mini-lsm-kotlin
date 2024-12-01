@@ -70,10 +70,6 @@ class MemTable(
         return approximateSize.get()
     }
 
-    fun countEntries(): Int {
-        return map.size
-    }
-
     fun flush(builder: SsTableBuilder) {
         for ((key, value) in map.entries) {
             builder.add(key, value.value)
