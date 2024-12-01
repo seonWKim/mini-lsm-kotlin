@@ -100,6 +100,9 @@ class Day5 {
             assertEquals(it.get("0"), "v20")
             assertEquals(it.get("1"), "v20")
             assertEquals(it.get("2"), null)
+
+            Thread.sleep(1000)
+
         }
     }
 }

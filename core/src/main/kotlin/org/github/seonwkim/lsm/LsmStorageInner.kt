@@ -838,11 +838,6 @@ class LsmStorageInner private constructor(
         sstablesToRemove.forEach { sst ->
             Files.delete(sstPath(path = path, id = sst.id))
         }
-
-        if (log.isDebugEnabled) {
-            log.debug { "AFTER COMPACTION" }
-            dumpStructure()
-        }
     }
 
     fun getImmutableMemTablesSize(): Int {
