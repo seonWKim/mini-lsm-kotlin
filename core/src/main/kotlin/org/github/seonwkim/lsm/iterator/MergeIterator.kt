@@ -5,7 +5,10 @@ import org.github.seonwkim.common.ComparableByteArray
 import java.util.*
 
 /**
- * Merge iterators of same type
+ * MergeIterator merges multiple iterators of the same type.
+ *
+ * @param T the type of StorageIterator being merged
+ * @property iterators the list of iterators to be merged
  */
 class MergeIterator<T : StorageIterator>(
     private val iterators: List<T>
@@ -13,6 +16,12 @@ class MergeIterator<T : StorageIterator>(
 
     private val log = KotlinLogging.logger { }
 
+    /**
+     * Data class representing a key in the priority queue.
+     *
+     * @property idx the index of the iterator in the list
+     * @property iterator the iterator instance
+     */
     data class PriorityQueueKey(
         val idx: Int,
         val iterator: StorageIterator,
@@ -56,6 +65,11 @@ class MergeIterator<T : StorageIterator>(
         removeSameKeys(currKey)
     }
 
+    /**
+     * Removes entries with the same key from the priority queue.
+     *
+     * @param key the key to be removed
+     */
     private fun removeSameKeys(key: ComparableByteArray) {
         while (priorityQueue.isNotEmpty()) {
             if (priorityQueue.first().iterator.key() == key) {

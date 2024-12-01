@@ -3,34 +3,48 @@ package org.github.seonwkim.lsm.iterator
 import org.github.seonwkim.common.*
 import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.memtable.MemtableValue
-import org.github.seonwkim.lsm.memtable.isDeleted
 
-class MemTableIterator(
+/**
+ * Iterator for traversing the entries in a MemTable.
+ * This iterator supports bounded iteration with specified lower and upper bounds.
+ *
+ * @property memTable the MemTable to iterate over
+ * @property lower the lower bound for iteration
+ * @property upper the upper bound for iteration
+ */
+class MemTableIterator private constructor(
     private val memTable: MemTable,
-    lower: Bound,
-    upper: Bound
+    private val lower: Bound,
+    private val upper: Bound,
 ) : StorageIterator {
-
     private var current: Map.Entry<TimestampedKey, MemtableValue>? = null
     private val iter: Iterator<Map.Entry<TimestampedKey, MemtableValue>>
-    private val lower: Bound
-    private val upper: Bound
 
     init {
         val iter = memTable.map.iterator()
         current = iter.asSequence()
             .firstOrNull {
-                val b = when (lower) {
+                when (lower) {
                     is Unbounded -> true
                     is Included -> it.key.bytes >= lower.key
                     is Excluded -> it.key.bytes > lower.key
                 }
-                b
             }
         this.iter = iter
-        this.lower = lower
-        this.upper = upper
     }
+
+    companion object {
+        /**
+         * Creates a new MemTableIterator.
+         *
+         * @param memTable the MemTable to iterate over
+         * @param lower the lower bound for iteration
+         * @param upper the upper bound for iteration
+         * @return a new MemTableIterator
+         */
+        fun create(memTable: MemTable, lower: Bound, upper: Bound): MemTableIterator {
+            return MemTableIterator(memTable, lower, upper)
+        }    }
 
     override fun key(): ComparableByteArray {
         return current?.key?.bytes
@@ -60,9 +74,11 @@ class MemTableIterator(
                 is Included -> {
                     if (current!!.key.bytes > upper.key) current = null
                 }
+
                 is Excluded -> {
                     if (current!!.key.bytes >= upper.key) current = null
                 }
+
                 Unbounded -> {}
             }
         }

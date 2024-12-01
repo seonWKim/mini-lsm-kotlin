@@ -3,11 +3,13 @@ package org.github.seonwkim.lsm.iterator
 import org.github.seonwkim.common.ComparableByteArray
 
 /**
- * A wrapper around existing iterator.
- *
- * Prevents users from calling [next] when the iterator is invalid.
+ * FusedIterator is a wrapper around an existing iterator.
+ * It prevents users from calling [next] when the iterator is invalid.
  * If an iterator is already invalid, [next] doesn't do anything.
- * If underlying [next] throws an exception, [isValid] should return false, and following calls on [next] should always throw an [Error].
+ * If the underlying [next] throws an exception, [isValid] should return false, and following calls on [next] should always throw an [Error].
+ *
+ * @property iter the underlying storage iterator
+ * @property hasErrored a flag indicating whether an error has occurred
  */
 class FusedIterator(
     private val iter: StorageIterator,

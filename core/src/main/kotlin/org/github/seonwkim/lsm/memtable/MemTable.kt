@@ -51,7 +51,7 @@ class MemTable(
     }
 
     fun iterator(lower: Bound, upper: Bound): MemTableIterator {
-        return MemTableIterator(this, lower, upper)
+        return MemTableIterator.create(this, lower, upper)
     }
 
     fun forTestingGetSlice(key: ComparableByteArray): MemtableValue? {
@@ -63,7 +63,7 @@ class MemTable(
     }
 
     fun forTestingScanSlice(lower: Bound, upper: Bound): MemTableIterator {
-        return MemTableIterator(this, lower, upper)
+        return MemTableIterator.create(this, lower, upper)
     }
 
     fun approximateSize(): Int {

@@ -2,10 +2,15 @@ package org.github.seonwkim.lsm.iterator
 
 import org.github.seonwkim.common.*
 
-typealias LsmIteratorInner = TwoMergeIterator<
-        TwoMergeIterator<MergeIterator<MemTableIterator>, MergeIterator<SsTableIterator>>,
-        MergeIterator<SstConcatIterator>>
 
+/**
+ * LsmIterator is an iterator for traversing entries in an LSM tree.
+ * It supports iteration over key-value pairs with bounds checking.
+ *
+ * @property inner the inner iterator that merges multiple iterators
+ * @property endBound the end bound for the iterator
+ * @property isValid a flag indicating whether the iterator is valid
+ */
 class LsmIterator(
     private val inner: LsmIteratorInner,
     private val endBound: Bound,
@@ -23,7 +28,7 @@ class LsmIterator(
         }
     }
 
-    fun nextInner() {
+    private fun nextInner() {
         inner.next()
         if (!inner.isValid()) {
             isValid = false
@@ -77,3 +82,7 @@ class LsmIterator(
         return result
     }
 }
+
+typealias LsmIteratorInner = TwoMergeIterator<
+        TwoMergeIterator<MergeIterator<MemTableIterator>, MergeIterator<SsTableIterator>>,
+        MergeIterator<SstConcatIterator>>

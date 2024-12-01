@@ -3,15 +3,22 @@ package org.github.seonwkim.lsm.iterator
 import org.github.seonwkim.common.ComparableByteArray
 
 /**
- * Used to merge two iterators of different type.
+ * TwoMergeIterator is used to merge two iterators of different types.
+ * It supports iteration over key-value pairs from both iterators in sorted order.
+ *
+ * @param A the type of the first iterator
+ * @param B the type of the second iterator
+ * @property first the first iterator
+ * @property second the second iterator
+ * @property chooseFirst a flag indicating whether to choose the first iterator
  */
-class TwoMergeIterator<A: StorageIterator, B: StorageIterator>(
+class TwoMergeIterator<A : StorageIterator, B : StorageIterator>(
     private val first: A,
     private val second: B,
     private var chooseFirst: Boolean
 ) : StorageIterator {
     companion object {
-        fun <A: StorageIterator, B: StorageIterator> create(first: A, second: B): TwoMergeIterator<A, B> {
+        fun <A : StorageIterator, B : StorageIterator> create(first: A, second: B): TwoMergeIterator<A, B> {
             val iter = TwoMergeIterator(
                 first = first,
                 second = second,
