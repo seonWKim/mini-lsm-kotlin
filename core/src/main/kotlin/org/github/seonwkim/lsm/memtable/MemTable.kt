@@ -69,6 +69,10 @@ class MemTable(
         return MemTableIterator.create(this, lower, upper)
     }
 
+    fun isEmpty(): Boolean {
+        return entriesSize() == 0
+    }
+
     fun entriesSize(): Int {
         return map.size
     }

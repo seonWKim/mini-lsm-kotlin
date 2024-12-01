@@ -75,7 +75,7 @@ class MiniLsm private constructor(
             // TODO
         }
 
-        if (inner.state.memTable.readValue().entriesSize() > 0) {
+        if (!inner.state.memTable.readValue().isEmpty()) {
             inner.switchMemTable(MemTable.create(inner.getNextSstId()))
         }
 

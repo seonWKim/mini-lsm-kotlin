@@ -22,6 +22,7 @@ import org.github.seonwkim.lsm.memtable.isValid
 import org.github.seonwkim.lsm.sstable.*
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.path.exists
 
@@ -53,7 +54,7 @@ class LsmStorageInner private constructor(
                 }
             }
 
-            val state = customState ?: LsmStorageState.create(options)
+            var state = customState ?: LsmStorageState.create(options)
             val compactionOptions = options.compactionOptions
             val compactionController =
                 CompactionController.createCompactionController(
@@ -101,7 +102,21 @@ class LsmStorageInner private constructor(
                         }
 
                         is CompactionRecord -> {
-                            TODO()
+                            val (snapshot, _) = compactionController.applyCompaction(
+                                snapshot = state.diskSnapshot(),
+                                sstables = state.sstables, // we don't actually need sstables in recovery mode
+                                task = record.task,
+                                newSstIds = record.output,
+                                inRecovery = true
+                            )
+                            state = LsmStorageState.create(
+                                memTable = state.memTable.readValue(),
+                                immutableMemTables = state.immutableMemTables.readValue(),
+                                l0Sstables = LinkedList(snapshot.l0SstableIds),
+                                levels = LinkedList(snapshot.levels),
+                                sstables = state.sstables
+                            )
+                            nextSstId = maxOf(nextSstId, record.output.maxOrNull() ?: 1)
                         }
                     }
                 }
