@@ -11,10 +11,10 @@ import org.github.seonwkim.lsm.compaction.controller.LeveledCompactionController
 import org.github.seonwkim.lsm.compaction.option.NoCompaction
 import org.github.seonwkim.lsm.compaction.task.*
 import org.github.seonwkim.lsm.iterator.*
-import org.github.seonwkim.lsm.manifest.Compaction
-import org.github.seonwkim.lsm.manifest.Flush
+import org.github.seonwkim.lsm.manifest.CompactionRecord
+import org.github.seonwkim.lsm.manifest.FlushRecord
 import org.github.seonwkim.lsm.manifest.Manifest
-import org.github.seonwkim.lsm.manifest.NewMemTable
+import org.github.seonwkim.lsm.manifest.NewMemTableRecord
 import org.github.seonwkim.lsm.memtable.MemTable
 import org.github.seonwkim.lsm.memtable.MemtableValue
 import org.github.seonwkim.lsm.memtable.isDeleted
@@ -74,13 +74,13 @@ class LsmStorageInner private constructor(
                 } catch (e: Exception) {
                     throw Error("Failed to create manifest file: $e")
                 }
-                manifest.addRecord(NewMemTable(state.memTable.readValue().id))
+                manifest.addRecord(NewMemTableRecord(state.memTable.readValue().id))
             } else {
                 val (m, records) = Manifest.recover(manifestPath)
                 val memTables = mutableSetOf<Int>()
                 for (record in records) {
                     when (record) {
-                        is Flush -> {
+                        is FlushRecord -> {
                             val sstId = record.sstId
                             val removed = memTables.remove(sstId)
                             if (!removed) {
@@ -95,12 +95,12 @@ class LsmStorageInner private constructor(
                             nextSstId = maxOf(nextSstId, sstId)
                         }
 
-                        is NewMemTable -> {
+                        is NewMemTableRecord -> {
                             nextSstId = maxOf(nextSstId, record.memTableId)
                             memTables.add(record.memTableId)
                         }
 
-                        is Compaction -> {
+                        is CompactionRecord -> {
                             TODO()
                         }
                     }
@@ -138,7 +138,7 @@ class LsmStorageInner private constructor(
                 } else {
                     state.setMemTable(MemTable.create(nextSstId))
                 }
-                m.addRecord(NewMemTable(state.memTable.readValue().id))
+                m.addRecord(NewMemTableRecord(state.memTable.readValue().id))
                 nextSstId++
                 manifest = m
             }
@@ -483,7 +483,7 @@ class LsmStorageInner private constructor(
             }
             state.setMemTable(newMemTable)
 
-            manifest?.addRecord(NewMemTable(newMemTableId))
+            manifest?.addRecord(NewMemTableRecord(newMemTableId))
         }
     }
 
@@ -537,7 +537,7 @@ class LsmStorageInner private constructor(
                 TODO("remove wal file")
             }
 
-            manifest?.addRecord(Flush(flushedMemTableId))
+            manifest?.addRecord(FlushRecord(flushedMemTableId))
         }
     }
 
@@ -588,7 +588,7 @@ class LsmStorageInner private constructor(
                     throw Error("compactedL0SstableIds($compactedL0SstableIds) should be empty after iterating l0Sstables!!")
                 }
 
-                manifest?.addRecord(Compaction(compactionTask, newSstableIds))
+                manifest?.addRecord(CompactionRecord(compactionTask, newSstableIds))
             }
         }
 
@@ -829,7 +829,7 @@ class LsmStorageInner private constructor(
             }
         }
 
-        manifest?.addRecord(Compaction(task = task, output = newSstIds))
+        manifest?.addRecord(CompactionRecord(task = task, output = newSstIds))
         log.debug { "Compaction finished: ${sstIdsToRemove.size} files removed, ${newSstIds.size} files added, newSstIds=${newSstIds}, oldSstIDs=${sstIdsToRemove}" }
         sstablesToRemove.forEach { sst ->
             Files.delete(sstPath(path = path, id = sst.id))

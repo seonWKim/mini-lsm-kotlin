@@ -15,9 +15,9 @@ class ManifestTest {
         val manifestPath = dir.resolve("MANIFEST")
         val manifest = Manifest.create(manifestPath)
 
-        val record0 = NewMemTable(1)
-        val record1 = Flush(2)
-        val record2 = Compaction(
+        val record0 = NewMemTableRecord(1)
+        val record1 = FlushRecord(2)
+        val record2 = CompactionRecord(
             task = LeveledCompactionTask(
                 upperLevel = 10,
                 upperLevelSstIds = listOf(1),
@@ -27,14 +27,14 @@ class ManifestTest {
             ),
             output = listOf(1, 2, 3)
         )
-        val record3 = Compaction(
+        val record3 = CompactionRecord(
             task = org.github.seonwkim.lsm.compaction.task.TieredCompactionTask(
                 tiers = emptyList(),
                 bottomTierIncluded = false
             ),
             output = listOf(1, 2, 3)
         )
-        val record4 = Compaction(
+        val record4 = CompactionRecord(
             task = SimpleLeveledCompactionTask(
                 upperLevel = 10,
                 upperLevelSstIds = listOf(1),
@@ -44,7 +44,7 @@ class ManifestTest {
             ),
             output = listOf(1, 2, 3)
         )
-        val record5 = Compaction(
+        val record5 = CompactionRecord(
             task = ForceFullCompactionTask(
                 l0Sstables = listOf(1, 2),
                 l1Sstables = listOf(3, 4)

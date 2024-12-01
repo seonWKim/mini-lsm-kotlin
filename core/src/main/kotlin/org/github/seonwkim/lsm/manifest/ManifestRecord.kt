@@ -9,8 +9,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     property = "type"
 )
 @JsonSubTypes(
-    JsonSubTypes.Type(value = Flush::class, name = "Flush"),
-    JsonSubTypes.Type(value = NewMemTable::class, name = "NewMemTable"),
-    JsonSubTypes.Type(value = Compaction::class, name = "Compaction")
+    JsonSubTypes.Type(value = FlushRecord::class, name = "Flush"),
+    JsonSubTypes.Type(value = NewMemTableRecord::class, name = "NewMemTable"),
+    JsonSubTypes.Type(value = CompactionRecord::class, name = "Compaction")
 )
 sealed interface ManifestRecord
