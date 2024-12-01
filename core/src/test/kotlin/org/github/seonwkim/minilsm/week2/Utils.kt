@@ -165,9 +165,9 @@ object Utils {
             }
 
             is TieredCompactionOptions -> {
-                val sizeRatioTrigger = (100.0 + compactionOptions.sizeRatio.toDouble()) / 100.0
+                val sizeRatioTrigger = (100.0 + compactionOptions.maxSizeRatio.toDouble()) / 100.0
                 assertEquals(l0SstNum, 0)
-                assertTrue { levelSize.size <= compactionOptions.numTiers }
+                assertTrue { levelSize.size <= compactionOptions.minNumTiers }
 
                 var sumSize = levelSize[0]
                 for (idx in 1 until levelSize.size) {
@@ -193,8 +193,8 @@ object Utils {
                 }
 
                 assertTrue(
-                    "we found $numIters iterators in your implementation, (numMemTables=${numMemTables}, numTiers=${compactionOptions.numTiers} did you use concat iterators?"
-                ) { numIters <= numMemTables + compactionOptions.numTiers + extraIterators }
+                    "we found $numIters iterators in your implementation, (numMemTables=${numMemTables}, numTiers=${compactionOptions.minNumTiers} did you use concat iterators?"
+                ) { numIters <= numMemTables + compactionOptions.minNumTiers + extraIterators }
             }
         }
     }

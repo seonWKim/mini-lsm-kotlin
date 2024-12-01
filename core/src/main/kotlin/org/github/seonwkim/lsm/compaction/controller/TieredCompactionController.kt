@@ -15,14 +15,14 @@ class TieredCompactionController(
 ) : CompactionController {
 
     private val log = KotlinLogging.logger { }
-    private val sizeRatioLimit = (100.0 + options.sizeRatio.toDouble()) / 100.0
+    private val maxSizeRatio = (100.0 + options.maxSizeRatio.toDouble()) / 100.0
 
     override fun generateCompactionTask(snapshot: LsmStorageSstableSnapshot): CompactionTask? {
         if (snapshot.l0Sstables.isNotEmpty()) {
             throw Error("L0 sstables should be empty in tiered compaction: ${snapshot.l0Sstables}")
         }
 
-        if (snapshot.levels.size < options.numTiers) {
+        if (snapshot.levels.size < options.minNumTiers) {
             return null
         }
 
@@ -45,8 +45,8 @@ class TieredCompactionController(
             sumPreviousTiersSize += snapshot.levels[id].sstIds.size
             val currentTierSize = snapshot.levels[id + 1].sstIds.size
             val sizeRatio = currentTierSize.toDouble() / sumPreviousTiersSize.toDouble()
-            if (sizeRatio > sizeRatioLimit) {
-                log.debug { "Compaction triggered by size ratio: ${sizeRatio * 100.0}% > ${sizeRatioLimit * 100.0}%" }
+            if (sizeRatio > maxSizeRatio) {
+                log.debug { "Compaction triggered by size ratio: ${sizeRatio * 100.0}% > ${maxSizeRatio * 100.0}%" }
                 return TieredCompactionTask(
                     tiers = snapshot.levels.take(tiersCount).map { it.deepCopy().toTier() },
                     bottomTierIncluded = tiersCount >= snapshot.levels.size

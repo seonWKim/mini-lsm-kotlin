@@ -71,9 +71,9 @@ class Day3 {
                 blockSize = 4096,
                 targetSstSize = 1 shl 20,
                 compactionOptions = TieredCompactionOptions(
-                    numTiers = 3,
+                    minNumTiers = 3,
                     maxSizeAmplificationPercent = 200,
-                    sizeRatio = 1,
+                    maxSizeRatio = 1,
                     minMergeWidth = 2,
                     maxMergeWidth = null
                 ),
