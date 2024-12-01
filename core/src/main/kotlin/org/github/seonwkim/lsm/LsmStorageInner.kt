@@ -136,7 +136,7 @@ class LsmStorageInner private constructor(
                 if (options.enableWal) {
                     TODO()
                 } else {
-                    state.setMemTable(MemTable.create(nextSstId))
+                    state.memTable.replace(MemTable.create(nextSstId))
                 }
                 m.addRecord(NewMemTableRecord(state.memTable.readValue().id()))
                 nextSstId++
@@ -466,24 +466,28 @@ class LsmStorageInner private constructor(
      * A new memTable is then created and set as the current memTable.
      */
     fun forceFreezeMemTable(enableCheck: Boolean = false) {
-        state.memTable.withWriteLock { prevMemTable ->
+        state.memTable.withWriteLock {
             if (enableCheck) {
                 if (!shouldFreezeMemTable()) return@withWriteLock
             }
 
-            val newMemTableId = nextSstId.incrementAndGet()
+            val newMemTableId = getNextSstId()
             val newMemTable = if (options.enableWal) {
                 TODO("should be implemented after WAL is supported")
             } else {
                 MemTable.create(newMemTableId)
             }
 
-            state.immutableMemTables.withWriteLock {
-                it.addFirst(prevMemTable)
-            }
-            state.setMemTable(newMemTable)
+            switchMemTable(newMemTable)
 
             manifest?.addRecord(NewMemTableRecord(newMemTableId))
+        }
+    }
+
+    fun switchMemTable(newMemTable: MemTable) {
+        val oldMemTable = state.memTable.replace(newMemTable)
+        state.immutableMemTables.withWriteLock {
+            it.addFirst(oldMemTable)
         }
     }
 
@@ -719,7 +723,7 @@ class LsmStorageInner private constructor(
             iter.next()
 
             if (builder.estimatedSize() >= options.targetSstSize) {
-                val sstId = nextSstId.incrementAndGet()
+                val sstId = getNextSstId()
                 newSst.add(
                     builder.build(
                         id = sstId,
@@ -732,7 +736,7 @@ class LsmStorageInner private constructor(
         }
 
         if (builder != null) {
-            val sstId = nextSstId.incrementAndGet()
+            val sstId = getNextSstId()
             val sst = builder.build(
                 id = sstId,
                 blockCache = blockCache.copy(),
@@ -851,6 +855,10 @@ class LsmStorageInner private constructor(
 
     fun getL0SstablesSize(): Int {
         return state.sstables.size
+    }
+
+    fun getNextSstId(): Int {
+        return nextSstId.incrementAndGet()
     }
 
     fun dumpStructure() {

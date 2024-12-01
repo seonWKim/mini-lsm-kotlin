@@ -6,8 +6,10 @@ class MutexLock<T>(
     var value: T
 ) : RwLock<T> {
     private val lock = ReentrantLock()
-    override fun switchValue(value: T) {
+    override fun replace(value: T): T {
+        val prev = this.value
         this.value = value
+        return prev
     }
 
     override fun readValue(): T {

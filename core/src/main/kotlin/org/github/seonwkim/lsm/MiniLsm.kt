@@ -10,8 +10,11 @@ import org.github.seonwkim.lsm.compaction.option.NoCompaction
 import org.github.seonwkim.lsm.compaction.option.SimpleLeveledCompactionOptions
 import org.github.seonwkim.lsm.compaction.option.TieredCompactionOptions
 import org.github.seonwkim.lsm.iterator.FusedIterator
+import org.github.seonwkim.lsm.memtable.MemTable
 import java.nio.file.Path
-import java.util.concurrent.*
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 class MiniLsm private constructor(
     val inner: LsmStorageInner,
@@ -65,7 +68,20 @@ class MiniLsm private constructor(
     }
 
     fun close() {
+        compactionScheduler.close()
+        flushScheduler.close()
 
+        if (inner.options.enableWal) {
+            // TODO
+        }
+
+        if (inner.state.memTable.readValue().entriesSize() > 0) {
+            inner.switchMemTable(MemTable.create(inner.getNextSstId()))
+        }
+
+        while (inner.state.immutableMemTables.readValue().isNotEmpty()) {
+            inner.forceFlushNextImmMemTable()
+        }
     }
 
     @VisibleForTesting
@@ -82,7 +98,7 @@ class MiniLsm private constructor(
                     log.error { "Flush operation failed: $e" }
                 }
             },
-            inner.options.flushIntervalMillis,
+            0,
             inner.options.flushIntervalMillis,
             TimeUnit.MILLISECONDS
         )
@@ -101,7 +117,7 @@ class MiniLsm private constructor(
                             log.error { "Compaction operation failed: $e" }
                         }
                     },
-                    inner.options.compactionIntervalMillis,
+                    0,
                     inner.options.compactionIntervalMillis,
                     TimeUnit.MILLISECONDS
                 )

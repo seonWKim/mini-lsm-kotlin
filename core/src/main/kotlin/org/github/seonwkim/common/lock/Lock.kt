@@ -11,8 +11,9 @@ interface RwLock<T> {
      * Switches the current value protected by the lock to a new value.
      *
      * @param value the new value to be set
+     * @return previous value
      */
-    fun switchValue(value: T)
+    fun replace(value: T): T
 
     /**
      * Reads the current value protected by the lock.

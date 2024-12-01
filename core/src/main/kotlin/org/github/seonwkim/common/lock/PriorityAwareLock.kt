@@ -22,8 +22,10 @@ class PriorityAwareLock<T>(
     /**
      * Note that explicit write lock should be acquired using [withWriteLock].
      */
-    override fun switchValue(value: T) {
+    override fun replace(value: T): T {
+        val prev = this.value
         this.value = value
+        return prev
     }
 
     override fun readValue(): T {

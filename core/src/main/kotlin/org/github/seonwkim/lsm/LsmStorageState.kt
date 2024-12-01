@@ -93,10 +93,6 @@ class LsmStorageState private constructor(
         }
     }
 
-    fun setMemTable(memTable: MemTable) {
-        this.memTable.switchValue(memTable)
-    }
-
     fun diskSnapshot(): LsmStorageSstableSnapshot {
         return l0Sstables.withReadLock { l0Sstables ->
             levels.withReadLock { levels ->
