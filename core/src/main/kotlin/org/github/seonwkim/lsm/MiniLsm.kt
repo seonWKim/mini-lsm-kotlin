@@ -19,19 +19,16 @@ class MiniLsm private constructor(
 
     private val log = KotlinLogging.logger { }
 
-//    class LimitedScheduledThreadPoolExecutor(corePoolSize: Int) : ScheduledThreadPoolExecutor(corePoolSize) {
-//        private val queue = LinkedBlockingQueue<Runnable>(10)
-//
-//        override fun getQueue(): LinkedBlockingQueue<Runnable> {
-//            return queue
-//        }
-//    }
-//
-//    private val flushScheduler = LimitedScheduledThreadPoolExecutor(1)
-//    private val compactionScheduler = LimitedScheduledThreadPoolExecutor(1)
+    class SingleThreadedScheduler(capacity: Int) : ScheduledThreadPoolExecutor(1) {
+        private val queue = LinkedBlockingQueue<Runnable>(capacity)
 
-    private val flushScheduler = Executors.newSingleThreadScheduledExecutor()
-    private val compactionScheduler = Executors.newSingleThreadScheduledExecutor()
+        override fun getQueue(): LinkedBlockingQueue<Runnable> {
+            return queue
+        }
+    }
+
+    private val flushScheduler = SingleThreadedScheduler(10)
+    private val compactionScheduler = SingleThreadedScheduler(10)
 
     companion object {
         fun open(path: Path, options: LsmStorageOptions): MiniLsm {
