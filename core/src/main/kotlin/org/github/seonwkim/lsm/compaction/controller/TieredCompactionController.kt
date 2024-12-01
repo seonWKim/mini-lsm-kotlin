@@ -146,7 +146,7 @@ class TieredCompactionController(
         // tier ids included in snapshot has 2 types
         // 1. newly created tier ids
         // 2. existing tier ids which didn't participate in the compaction process
-        // because we are going to append tiers included in snapshot at the end of levels, we first exclude them all it from current level
+        // because we are going to append tiers included in snapshot at the end of levels, we first exclude them all from current level
         snapshot.levels.forEach { tierIdsToExclude.add(it.id) }
 
         levels.removeIf { tierIdsToExclude.contains(it.id) }

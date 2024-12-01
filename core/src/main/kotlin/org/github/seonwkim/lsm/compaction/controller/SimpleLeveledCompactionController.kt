@@ -37,7 +37,6 @@ class SimpleLeveledCompactionController(
                 continue
             }
 
-
             // We don't have to compact when we don't have any sstables to compact
             if (levelSizes[upperLevel] == 0) {
                 continue
