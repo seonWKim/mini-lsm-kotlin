@@ -1,5 +1,12 @@
 package org.github.seonwkim.common
 
+/**
+ * Clamps this integer to the specified range.
+ *
+ * @param min the minimum value to clamp to
+ * @param max the maximum value to clamp to
+ * @return the clamped value
+ */
 fun Int.clamp(min: Int, max: Int): Int {
     return when {
         this < min -> min
@@ -8,16 +15,31 @@ fun Int.clamp(min: Int, max: Int): Int {
     }
 }
 
+/**
+ * Converts this integer to a `ComparableByteArray` representing an unsigned 8-bit integer.
+ *
+ * @return a `ComparableByteArray` containing the byte representation of this integer
+ */
 fun Int.toU8ByteArray(): ComparableByteArray {
     return ComparableByteArray(listOf(this.toByte()))
 }
 
+/**
+ * Converts this integer to a `ComparableByteArray` representing an unsigned 16-bit integer.
+ *
+ * @return a `ComparableByteArray` containing the byte representation of this integer
+ */
 fun Int.toU16ByteArray(): ComparableByteArray {
     val highByte = (this shr 8).toByte()
     val lowByte = this.toByte()
     return ComparableByteArray(listOf(highByte, lowByte))
 }
 
+/**
+ * Converts this integer to a `ComparableByteArray` representing an unsigned 32-bit integer.
+ *
+ * @return a `ComparableByteArray` containing the byte representation of this integer
+ */
 fun Int.toU32ByteArray(): ComparableByteArray {
     return ComparableByteArray(
         listOf(
@@ -29,6 +51,11 @@ fun Int.toU32ByteArray(): ComparableByteArray {
     )
 }
 
+/**
+ * Converts this long to a `ComparableByteArray` representing an unsigned 64-bit integer.
+ *
+ * @return a `ComparableByteArray` containing the byte representation of this long
+ */
 fun Long.toU64ByteArray(): ComparableByteArray {
     return ComparableByteArray(
         listOf(
