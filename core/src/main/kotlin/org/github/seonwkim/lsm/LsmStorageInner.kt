@@ -9,10 +9,7 @@ import org.github.seonwkim.lsm.compaction.Prefix
 import org.github.seonwkim.lsm.compaction.controller.CompactionController
 import org.github.seonwkim.lsm.compaction.controller.LeveledCompactionController
 import org.github.seonwkim.lsm.compaction.option.NoCompaction
-import org.github.seonwkim.lsm.compaction.task.CompactionTask
-import org.github.seonwkim.lsm.compaction.task.ForceFullCompactionTask
-import org.github.seonwkim.lsm.compaction.task.SimpleLeveledCompactionTask
-import org.github.seonwkim.lsm.compaction.task.TieredCompactionTask
+import org.github.seonwkim.lsm.compaction.task.*
 import org.github.seonwkim.lsm.iterator.*
 import org.github.seonwkim.lsm.manifest.Compaction
 import org.github.seonwkim.lsm.manifest.Flush
@@ -659,12 +656,43 @@ class LsmStorageInner private constructor(
                 }
                 compactGenerateSstFromIter(
                     iter = MergeIterator(iters),
-                    task.compactToBottomLevel()
+                    compactToBottomLevel = task.compactToBottomLevel()
                 )
             }
 
-            else -> {
-                TODO()
+            is LeveledCompactionTask -> {
+                if (task.upperLevel != null) {
+                    val upperSsts = mutableListOf<Sstable>()
+                    for (id in task.upperLevelSstIds) {
+                        upperSsts.add(state.sstables[id]!!)
+                    }
+                    val upperIter = SstConcatIterator.createAndSeekToFirst(upperSsts)
+                    val lowerSsts = mutableListOf<Sstable>()
+                    for (id in task.lowerLevelSstIds) {
+                        lowerSsts.add(state.sstables[id]!!)
+                    }
+                    val lowerIter = SstConcatIterator.createAndSeekToFirst(lowerSsts)
+                    compactGenerateSstFromIter(
+                        iter = TwoMergeIterator.create(upperIter, lowerIter),
+                        compactToBottomLevel = task.compactToBottomLevel()
+                    )
+                } else {
+                    val upperIters = mutableListOf<SsTableIterator>()
+                    for (id in task.upperLevelSstIds) {
+                        upperIters.add(SsTableIterator.createAndSeekToFirst(state.sstables[id]!!))
+                    }
+                    val upperIter = MergeIterator(upperIters)
+
+                    val lowerSsts = mutableListOf<Sstable>()
+                    for (id in task.lowerLevelSstIds) {
+                        lowerSsts.add(state.sstables[id]!!)
+                    }
+                    val lowerIter = SstConcatIterator.createAndSeekToFirst(lowerSsts)
+                    compactGenerateSstFromIter(
+                        iter = TwoMergeIterator.create(upperIter, lowerIter),
+                        compactToBottomLevel = task.compactToBottomLevel()
+                    )
+                }
             }
         }
     }

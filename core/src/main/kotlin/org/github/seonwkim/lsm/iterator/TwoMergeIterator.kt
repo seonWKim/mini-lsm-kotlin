@@ -50,10 +50,8 @@ class TwoMergeIterator<A : StorageIterator, B : StorageIterator>(
 
     override fun key(): ComparableByteArray {
         return if (chooseFirst) {
-            require(first.isValid()) { "first iterator is not valid" }
             first.key()
         } else {
-            require(second.isValid()) { "second iterator is not valid" }
             second.key()
         }
     }

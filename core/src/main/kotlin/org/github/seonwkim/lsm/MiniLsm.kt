@@ -84,7 +84,11 @@ class MiniLsm private constructor(
             is TieredCompactionOptions -> {
                 compactionScheduler.scheduleWithFixedDelay(
                     {
-                        inner.triggerCompaction()
+                        try {
+                            inner.triggerCompaction()
+                        } catch (e: Exception) {
+                            log.error { "Compaction operation failed: $e" }
+                        }
                     },
                     inner.options.compactionIntervalMillis,
                     inner.options.compactionIntervalMillis,
