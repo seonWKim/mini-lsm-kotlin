@@ -112,18 +112,18 @@ object Utils {
         val extraIterators = if (Configuration.TS_ENABLED) 1 else 0
         val levelSize = mutableListOf<Long>()
         val l0SstNum = state.l0Sstables.readValue().size
-        for ((_, files) in state.levels.readValue()) {
+        for ((_, levels) in state.levels.readValue()) {
             val size = when (compactionOptions) {
                 is SimpleLeveledCompactionOptions -> {
-                    files.size.toLong()
+                    levels.size.toLong()
                 }
 
                 is TieredCompactionOptions -> {
-                    files.size.toLong()
+                    levels.size.toLong()
                 }
 
                 is LeveledCompactionOptions -> {
-                    TODO()
+                    levels.sumOf { state.sstables[it]?.file?.size ?: 0 }
                 }
 
                 else -> {
@@ -162,6 +162,24 @@ object Utils {
             }
 
             is LeveledCompactionOptions -> {
+                assertTrue { l0SstNum < compactionOptions.level0FileNumCompactionTrigger }
+                assertTrue { levelSize.size <= compactionOptions.maxLevel }
+                val lastLevelSize = levelSize.last()
+                var multiplier = 1.0
+                for (idx in (1 until levelSize.size).reversed()) {
+                    multiplier *= compactionOptions.levelSizeMultiplier.toDouble()
+                    val thisSize = levelSize[idx - 1]
+                    val temp = thisSize.toDouble() / lastLevelSize.toDouble()
+                    assertTrue(
+                        "L${state.levels.readValue()[idx - 1].id}/L_max, ${thisSize}/${lastLevelSize}>>1.0/${multiplier}"
+                    ) { temp <= (1.0 / multiplier) + 0.5 }
+                }
+
+                assertTrue(
+                    "we found $numIters iterators in your implementation, (l0SstNum=$l0SstNum, numMemTables=$numMemTables, maxLevels=$${compactionOptions.maxLevel}) did you use concat iterators?"
+                ) {
+                    numIters <= l0SstNum + numMemTables + compactionOptions.maxLevel + extraIterators
+                }
             }
 
             is TieredCompactionOptions -> {
