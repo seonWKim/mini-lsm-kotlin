@@ -2,7 +2,18 @@ package org.github.seonwkim.lsm.block
 
 import org.github.seonwkim.common.*
 
+/**
+ * Utility object for encoding and decoding block metadata.
+ */
 object BlockMetaUtil {
+
+    /**
+     * Encodes a list of block metadata and a maximum timestamp into a buffer.
+     *
+     * @param blockMeta the list of block metadata to encode
+     * @param maxTimestamp the maximum timestamp to encode
+     * @param buf the buffer to encode the metadata into
+     */
     fun encodeBlockMeta(blockMeta: List<BlockMeta>, maxTimestamp: Long, buf: ComparableByteArray) {
         val originalLength = buf.size()
 
@@ -28,6 +39,13 @@ object BlockMetaUtil {
         buf += crcHash(buf.slice(checksumCalculationStartOffset..<buf.size())).toU32ByteArray()
     }
 
+    /**
+     * Decodes block metadata from a buffer.
+     *
+     * @param buf the buffer containing the encoded metadata
+     * @return the decoded block metadata and maximum timestamp
+     * @throws IllegalStateException if the checksum does not match
+     */
     fun decodeBlockMeta(buf: ComparableByteArray): BlockMetaDecodedResult {
         val blockMeta = mutableListOf<BlockMeta>()
 

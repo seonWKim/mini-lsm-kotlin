@@ -3,9 +3,9 @@ package org.github.seonwkim.common
 import com.google.common.hash.Hashing
 
 /**
- * Computes the CRC32 hash of the given `ComparableByteArray`.
+ * Computes the CRC32 hash of the given [ComparableByteArray].
  *
- * @param key the `ComparableByteArray` to hash
+ * @param key the [ComparableByteArray] to hash
  * @return the CRC32 hash as an integer
  */
 fun crcHash(key: ComparableByteArray): Int {
@@ -23,9 +23,9 @@ fun crcHash(key: ByteArray): Int {
 }
 
 /**
- * Computes the FarmHash fingerprint (32-bit) of the given `ComparableByteArray`.
+ * Computes the FarmHash fingerprint (32-bit) of the given [ComparableByteArray].
  *
- * @param key the `ComparableByteArray` to hash
+ * @param key the [ComparableByteArray] to hash
  * @return the FarmHash fingerprint as an unsigned integer
  */
 fun farmHashFingerPrintU32(key: ComparableByteArray): UInt {

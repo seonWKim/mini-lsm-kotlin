@@ -2,17 +2,21 @@ package org.github.seonwkim.lsm.block
 
 import org.github.seonwkim.common.*
 
+/**
+ * A builder class for constructing blocks of key-value pairs.
+ *
+ * @property blockSize the expected size of the block
+ */
 class BlockBuilder(
-    // expected block size
     private val blockSize: Int,
 ) {
-    // offsets of each key-value entries
+    // Offsets of each key-value entry
     private val offset: ComparableByteArray = ComparableByteArray.new()
 
-    // all serialized key-value pairs in the block
+    // All serialized key-value pairs in the block
     private val data: ComparableByteArray = ComparableByteArray.new()
 
-    // first key in the block
+    // First key in the block
     private var firstKey: TimestampedKey? = null
 
     companion object {
@@ -20,7 +24,12 @@ class BlockBuilder(
     }
 
     /**
-     * Adds a key-value pair to the block. Returns false when the block is full.
+     * Adds a key-value pair to the block.
+     *
+     * @param key the key to add
+     * @param value the value to add
+     * @return false if the block is full, true otherwise
+     * @throws IllegalArgumentException if the key is empty
      */
     fun add(key: TimestampedKey, value: ComparableByteArray): Boolean {
         if (key.isEmpty()) {
@@ -60,6 +69,13 @@ class BlockBuilder(
         return true
     }
 
+    /**
+     * Checks if adding a key-value pair is allowed based on the estimated size.
+     *
+     * @param key the key to add
+     * @param value the value to add
+     * @return true if the addition is allowed, false otherwise
+     */
     private fun additionAllowed(key: TimestampedKey, value: ComparableByteArray): Boolean {
         if (isEmpty()) return true
 
@@ -69,6 +85,8 @@ class BlockBuilder(
     }
 
     /**
+     * Estimates the size of the block. Sum of following:
+     *
      * 1. number of key-value pairs in the block
      * 2. offsets
      * 3. key-value pairs
@@ -78,14 +96,19 @@ class BlockBuilder(
     }
 
     /**
-     * Check if there are no key-value paris in this block
+     * Checks if there are no key-value pairs in this block.
+     *
+     * @return true if the block is empty, false otherwise
      */
     private fun isEmpty(): Boolean {
         return offset.isEmpty()
     }
 
     /**
-     * Finalize the block
+     * Finalizes the block and returns it.
+     *
+     * @return the constructed block
+     * @throws Error if the block is empty
      */
     fun build(): Block {
         if (isEmpty()) {

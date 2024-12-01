@@ -179,7 +179,7 @@ class LsmStorageInner private constructor(
      * If the key is not found or is marked as deleted, it then checks the immutable memTables.
      * If the key is still not found, it finally checks the SSTables.
      *
-     * @param key The key to be retrieved. It must be a `ComparableByteArray`.
+     * @param key The key to be retrieved. It must be a [ComparableByteArray].
      * @return The value associated with the key, or `null` if the key is not found or is marked as deleted.
      */
     fun get(key: ComparableByteArray): ComparableByteArray? {
@@ -430,8 +430,8 @@ class LsmStorageInner private constructor(
      *
      * This method adds the specified key-value pair to the current memTable.
      *
-     * @param key The key to be inserted. It must be a `ComparableByteArray` to ensure proper ordering.
-     * @param value The value to be associated with the key. It must be a `ComparableByteArray`.
+     * @param key The key to be inserted. It must be a [ComparableByteArray] to ensure proper ordering.
+     * @param value The value to be associated with the key. It must be a [ComparableByteArray].
      */
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
         put(key, MemtableValue(value))
@@ -442,7 +442,7 @@ class LsmStorageInner private constructor(
      *
      * This method marks the specified key as deleted in the current memTable.
      *
-     * @param key The key to be deleted. It must be a `ComparableByteArray`.
+     * @param key The key to be deleted. It must be a [ComparableByteArray].
      */
     fun delete(key: ComparableByteArray) {
         put(key, MemtableValue(ComparableByteArray.new()))

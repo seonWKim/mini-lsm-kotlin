@@ -48,7 +48,7 @@ class TimestampedKey(
      * Returns a slice of the key's byte array.
      *
      * @param range the range of indices to include in the slice
-     * @return a new `ComparableByteArray` containing the specified range
+     * @return a new [ComparableByteArray] containing the specified range
      */
     fun slice(range: IntRange): ComparableByteArray {
         return bytes.slice(range)
