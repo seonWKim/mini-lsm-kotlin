@@ -21,7 +21,7 @@ class MemTableIterator private constructor(
     private val iter: Iterator<Map.Entry<TimestampedKey, MemtableValue>>
 
     init {
-        val iter = memTable.map.iterator()
+        val iter = memTable.iterator()
         current = iter.asSequence()
             .firstOrNull {
                 when (lower) {

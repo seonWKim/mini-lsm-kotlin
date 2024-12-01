@@ -10,11 +10,10 @@ import java.util.concurrent.ConcurrentSkipListMap
 import java.util.concurrent.atomic.AtomicInteger
 
 class MemTable(
-    val map: ConcurrentSkipListMap<TimestampedKey, MemtableValue>,
-    val wal: Wal?,
-
+    private val map: ConcurrentSkipListMap<TimestampedKey, MemtableValue>,
+    private val wal: Wal?,
     // memTable id, used as SSTable id as well
-    val id: Int,
+    private val id: Int,
 ) {
     companion object {
         fun create(id: Int): MemTable {
@@ -27,6 +26,10 @@ class MemTable(
     }
 
     private val approximateSize: AtomicInteger = AtomicInteger(0)
+
+    fun id(): Int {
+        return id
+    }
 
     fun get(key: ComparableByteArray): MemtableValue? {
         return get(TimestampedKey(key))
@@ -66,6 +69,10 @@ class MemTable(
         return MemTableIterator.create(this, lower, upper)
     }
 
+    fun entriesSize(): Int {
+        return map.size
+    }
+
     fun approximateSize(): Int {
         return approximateSize.get()
     }
@@ -82,5 +89,9 @@ class MemTable(
             wal = wal,
             id = id
         )
+    }
+
+    fun iterator(): MutableIterator<MutableMap.MutableEntry<TimestampedKey, MemtableValue>> {
+        return this.map.iterator()
     }
 }

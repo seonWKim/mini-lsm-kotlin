@@ -74,7 +74,7 @@ class LsmStorageInner private constructor(
                 } catch (e: Exception) {
                     throw Error("Failed to create manifest file: $e")
                 }
-                manifest.addRecord(NewMemTableRecord(state.memTable.readValue().id))
+                manifest.addRecord(NewMemTableRecord(state.memTable.readValue().id()))
             } else {
                 val (m, records) = Manifest.recover(manifestPath)
                 val memTables = mutableSetOf<Int>()
@@ -138,7 +138,7 @@ class LsmStorageInner private constructor(
                 } else {
                     state.setMemTable(MemTable.create(nextSstId))
                 }
-                m.addRecord(NewMemTableRecord(state.memTable.readValue().id))
+                m.addRecord(NewMemTableRecord(state.memTable.readValue().id()))
                 nextSstId++
                 manifest = m
             }
@@ -506,16 +506,16 @@ class LsmStorageInner private constructor(
 
         val builder = SsTableBuilder(options.blockSize)
         flushTargetMemTable.flush(builder)
-        val flushedMemTableId = flushTargetMemTable.id
+        val flushedMemTableId = flushTargetMemTable.id()
         val sst = builder.build(
             id = flushedMemTableId, blockCache = blockCache.copy(), path = sstPath(path, flushedMemTableId)
         )
 
         state.immutableMemTables.withWriteLock {
             val immutableMemTable = it.peekLast()
-            if (immutableMemTable?.id != flushedMemTableId) {
+            if (immutableMemTable?.id() != flushedMemTableId) {
                 // in case where forceFlushNextImmMemTable() is called concurrently, it can enter this block
-                log.debug { "Sst id($flushedMemTableId) and immutable memTable id(${immutableMemTable?.id}) mismatch. There might be concurrent calls to flush immMemTable" }
+                log.debug { "Sst id($flushedMemTableId) and immutable memTable id(${immutableMemTable?.id()}) mismatch. There might be concurrent calls to flush immMemTable" }
                 return@withWriteLock
             } else {
                 // we can safely remove the oldest immutableMemTable
@@ -896,11 +896,11 @@ class LsmStorageInner private constructor(
 
     @VisibleForTesting
     fun getMemTableId(): Int {
-        return state.memTable.readValue().id
+        return state.memTable.readValue().id()
     }
 
     @VisibleForTesting
     fun getImmutableMemTableIds(): List<Int> {
-        return state.immutableMemTables.readValue().map { it.id }
+        return state.immutableMemTables.readValue().map { it.id() }
     }
 }

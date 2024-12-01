@@ -11,14 +11,24 @@ import org.github.seonwkim.lsm.compaction.option.SimpleLeveledCompactionOptions
 import org.github.seonwkim.lsm.compaction.option.TieredCompactionOptions
 import org.github.seonwkim.lsm.iterator.FusedIterator
 import java.nio.file.Path
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
 
 class MiniLsm private constructor(
     val inner: LsmStorageInner,
 ) {
 
     private val log = KotlinLogging.logger { }
+
+//    class LimitedScheduledThreadPoolExecutor(corePoolSize: Int) : ScheduledThreadPoolExecutor(corePoolSize) {
+//        private val queue = LinkedBlockingQueue<Runnable>(10)
+//
+//        override fun getQueue(): LinkedBlockingQueue<Runnable> {
+//            return queue
+//        }
+//    }
+//
+//    private val flushScheduler = LimitedScheduledThreadPoolExecutor(1)
+//    private val compactionScheduler = LimitedScheduledThreadPoolExecutor(1)
 
     private val flushScheduler = Executors.newSingleThreadScheduledExecutor()
     private val compactionScheduler = Executors.newSingleThreadScheduledExecutor()
@@ -55,6 +65,10 @@ class MiniLsm private constructor(
 
     fun scan(lower: Bound, upper: Bound): FusedIterator {
         return inner.scan(lower, upper)
+    }
+
+    fun close() {
+
     }
 
     @VisibleForTesting

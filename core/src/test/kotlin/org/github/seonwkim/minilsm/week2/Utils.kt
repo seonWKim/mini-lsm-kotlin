@@ -12,6 +12,8 @@ import org.github.seonwkim.lsm.compaction.option.NoCompaction
 import org.github.seonwkim.lsm.compaction.option.SimpleLeveledCompactionOptions
 import org.github.seonwkim.lsm.compaction.option.TieredCompactionOptions
 import org.github.seonwkim.lsm.iterator.StorageIterator
+import java.nio.file.Files
+import java.nio.file.Path
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -213,6 +215,16 @@ object Utils {
                 assertTrue(
                     "we found $numIters iterators in your implementation, (numMemTables=${numMemTables}, numTiers=${compactionOptions.minNumTiers} did you use concat iterators?"
                 ) { numIters <= numMemTables + compactionOptions.minNumTiers + extraIterators }
+            }
+        }
+    }
+
+    fun dumpFilesInDir(path: Path) {
+        log.info { "--- DIR DUMP ---" }
+        Files.newDirectoryStream(path).use { stream ->
+            for (entry in stream) {
+                val sizeInKB = Files.size(entry).toDouble() / 1024.0
+                log.info { "${entry.toAbsolutePath()}, size=${"%.3f".format(sizeInKB)}KB" }
             }
         }
     }
