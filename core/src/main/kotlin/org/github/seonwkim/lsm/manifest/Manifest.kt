@@ -26,7 +26,7 @@ class Manifest(
                 StandardOpenOption.READ,
                 StandardOpenOption.CREATE_NEW,
                 StandardOpenOption.WRITE,
-                StandardOpenOption.SYNC // TODO: is there a way to handle sync manually?
+                StandardOpenOption.SYNC // TODO: is there a better way to handle sync?
             ).use {
                 File(path.toString())
             }
@@ -39,7 +39,7 @@ class Manifest(
                 path,
                 StandardOpenOption.READ,
                 StandardOpenOption.WRITE,
-                StandardOpenOption.SYNC, // TODO: is there a way to handle sync manually?
+                StandardOpenOption.SYNC, // TODO: is there a better way to handle sync?
             ).use {
                 File(path.toString())
             }

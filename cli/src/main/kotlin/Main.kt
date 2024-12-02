@@ -7,11 +7,12 @@ import kotlinx.cli.Subcommand
 import org.github.seonwkim.lsm.LsmStorageOptions
 import org.github.seonwkim.lsm.MiniLsm
 import org.github.seonwkim.lsm.compaction.option.NoCompaction
-import java.nio.file.Paths
+import java.nio.file.Path
+
 
 @OptIn(ExperimentalCli::class)
 fun main() {
-    val path = Paths.get("").toAbsolutePath().resolve("cli-output")
+    val path = Path.of("").toAbsolutePath().resolve("cli-output")
     val miniLsm = MiniLsm.open(
         path = path,
         options = LsmStorageOptions(
@@ -22,6 +23,12 @@ fun main() {
             compactionOptions = NoCompaction,
         )
     )
+
+    Runtime.getRuntime().addShutdownHook(Thread {
+        println()
+        println("Shutdown hook triggered.")
+        miniLsm.close()
+    })
 
     class GetCommand : Subcommand("get", "Get command") {
         val key by argument(ArgType.String, "key", description = "key")
