@@ -1,7 +1,5 @@
 package org.github.seonwkim.minilsm.week2
 
-import org.github.seonwkim.common.ComparableByteArray
-import org.github.seonwkim.common.toU32ByteArray
 import org.github.seonwkim.lsm.LsmStorageOptions
 import org.github.seonwkim.lsm.MiniLsm
 import org.github.seonwkim.lsm.compaction.option.CompactionOptions
@@ -9,14 +7,12 @@ import org.github.seonwkim.lsm.compaction.option.LeveledCompactionOptions
 import org.github.seonwkim.lsm.compaction.option.SimpleLeveledCompactionOptions
 import org.github.seonwkim.lsm.compaction.option.TieredCompactionOptions
 import org.github.seonwkim.minilsm.week2.Utils.dumpFilesInDir
-import org.github.seonwkim.minilsm.week2.Utils.waitUntilCompactionEnds
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class Day5 {
-
+class Day6 {
     @Test
     fun `simple leveled compaction integration test`() {
         integrationTest(
@@ -56,61 +52,13 @@ class Day5 {
         )
     }
 
-    @Test
-    fun `test multiple compacted sst leveled`() {
-        val compactionOptions = LeveledCompactionOptions(
-            levelSizeMultiplier = 4,
-            level0FileNumCompactionTrigger = 2,
-            maxLevel = 2,
-            baseLevelSizeMB = 2
-        )
-
-        val lsmStorageOptions = LsmStorageOptions(
-            blockSize = 4096,
-            targetSstSize = 2 shl 20,
-            compactionOptions = compactionOptions,
-            enableWal = false,
-            numMemTableLimit = 2,
-            serializable = false
-        )
-
-        val dir = createTempDirectory("test_multiple_compacted_sst_leveled")
-        val storage = MiniLsm.open(path = dir, options = lsmStorageOptions)
-
-        // Insert approximately 10MB of data to ensure that at least one compaction is triggered by priority
-        // Insert 500 key-value pairs where each pair is 2KB
-        for (i in 0 until 500) {
-            val (key, value) = keyValueWithTargetSize(i, 20 * 1024)
-            storage.put(key, value)
-        }
-
-        waitUntilCompactionEnds(storage)
-
-        storage.close()
-        assertTrue { storage.inner.state.memTable.readValue().isEmpty() }
-        assertTrue { storage.inner.state.immutableMemTables.readValue().isEmpty() }
-
-        storage.dumpStructure()
-        dumpFilesInDir(dir)
-
-        MiniLsm.open(
-            path = dir,
-            options = lsmStorageOptions
-        ).let {
-            for (i in 0 until 500) {
-                val (key, value) = keyValueWithTargetSize(i, 20 * 1024)
-                assertEquals(it.get(key), value)
-            }
-        }
-    }
-
     private fun integrationTest(dirName: String, compactionOptions: CompactionOptions) {
         val dir = createTempDirectory(dirName)
         val options = LsmStorageOptions(
             blockSize = 4096,
             targetSstSize = 1 shl 20,
             compactionOptions = compactionOptions,
-            enableWal = false,
+            enableWal = true,
             numMemTableLimit = 2,
             serializable = false
         )
@@ -154,18 +102,5 @@ class Day5 {
 
             Thread.sleep(1000)
         }
-    }
-
-    private fun keyValueWithTargetSize(
-        seed: Int,
-        targetSizeByte: Int
-    ): Pair<ComparableByteArray, ComparableByteArray> {
-        val key = seed.toU32ByteArray()
-        key += ComparableByteArray(List(targetSizeByte - 4) { 0 })
-
-        val value = seed.toU32ByteArray()
-        value += ComparableByteArray(List(targetSizeByte - 4) { 0 })
-
-        return Pair(key, value)
     }
 }

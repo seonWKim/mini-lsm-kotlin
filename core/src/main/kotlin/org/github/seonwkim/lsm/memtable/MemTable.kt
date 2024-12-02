@@ -6,21 +6,36 @@ import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.lsm.Wal
 import org.github.seonwkim.lsm.iterator.MemTableIterator
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
+import java.nio.file.Path
 import java.util.concurrent.ConcurrentSkipListMap
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * Represents an in-memory table (MemTable) in the LSM storage system.
+ *
+ * @property id The unique identifier for this MemTable.
+ * @property map The underlying data structure that stores the key-value pairs.
+ * @property wal The Write-Ahead Log (WAL) associated with this MemTable.
+ */
 class MemTable(
+    private val id: Int,
     private val map: ConcurrentSkipListMap<TimestampedKey, MemtableValue>,
     private val wal: Wal?,
-    // memTable id, used as SSTable id as well
-    private val id: Int,
 ) {
     companion object {
         fun create(id: Int): MemTable {
             return MemTable(
+                id = id,
                 map = ConcurrentSkipListMap(),
-                wal = Wal.default(),
-                id = id
+                wal = null,
+            )
+        }
+
+        fun createWithWal(id: Int, path: Path): MemTable {
+            return MemTable(
+                id = id,
+                map = ConcurrentSkipListMap(),
+                wal = Wal.create(path),
             )
         }
     }
