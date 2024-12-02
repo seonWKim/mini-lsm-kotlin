@@ -2,7 +2,6 @@ package org.github.seonwkim.lsm.iterator
 
 import org.github.seonwkim.common.*
 import org.github.seonwkim.lsm.memtable.MemTable
-import org.github.seonwkim.lsm.memtable.MemtableValue
 
 /**
  * Iterator for traversing the entries in a MemTable.
@@ -17,8 +16,8 @@ class MemTableIterator private constructor(
     private val lower: Bound,
     private val upper: Bound,
 ) : StorageIterator {
-    private var current: Map.Entry<TimestampedKey, MemtableValue>? = null
-    private val iter: Iterator<Map.Entry<TimestampedKey, MemtableValue>>
+    private var current: Map.Entry<TimestampedKey, ComparableByteArray>? = null
+    private val iter: Iterator<Map.Entry<TimestampedKey, ComparableByteArray>>
 
     init {
         val iter = memTable.iterator()
@@ -52,7 +51,7 @@ class MemTableIterator private constructor(
     }
 
     override fun value(): ComparableByteArray {
-        return current?.value?.value
+        return current?.value
             ?: throw Error("Use isValid() function before calling this function")
     }
 

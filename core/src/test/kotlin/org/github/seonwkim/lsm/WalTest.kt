@@ -1,8 +1,9 @@
 package org.github.seonwkim.lsm
 
+import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.common.toComparableByteArray
-import org.github.seonwkim.lsm.memtable.MemtableValue
+
 import org.junit.jupiter.api.Assertions.*
 import java.util.concurrent.ConcurrentSkipListMap
 import kotlin.io.path.createTempDirectory
@@ -18,15 +19,15 @@ class WalTest {
         // Create WAL and put keys
         val wal = Wal.create(walPath)
         val key1 = TimestampedKey("key1".toComparableByteArray())
-        val value1 = MemtableValue("value1".toComparableByteArray())
+        val value1 = "value1".toComparableByteArray()
         wal.put(key1, value1)
 
         val key2 = TimestampedKey("key2".toComparableByteArray())
-        val value2 = MemtableValue("value2".toComparableByteArray())
+        val value2 = "value2".toComparableByteArray()
         wal.put(key2, value2)
 
         // Retrieve keys from WAL
-        val map = ConcurrentSkipListMap<TimestampedKey, MemtableValue>()
+        val map = ConcurrentSkipListMap<TimestampedKey, ComparableByteArray>()
         Wal.recover(walPath, map)
 
         assertEquals(2, map.size)

@@ -16,9 +16,7 @@ import org.github.seonwkim.lsm.manifest.FlushRecord
 import org.github.seonwkim.lsm.manifest.Manifest
 import org.github.seonwkim.lsm.manifest.NewMemTableRecord
 import org.github.seonwkim.lsm.memtable.MemTable
-import org.github.seonwkim.lsm.memtable.MemtableValue
-import org.github.seonwkim.lsm.memtable.isDeleted
-import org.github.seonwkim.lsm.memtable.isValid
+
 import org.github.seonwkim.lsm.sstable.*
 import java.nio.file.Files
 import java.nio.file.Path
@@ -225,7 +223,7 @@ class LsmStorageInner private constructor(
     fun get(key: TimestampedKey): ComparableByteArray? {
         getFromMemTable(key).let {
             when {
-                it.isValid() -> return it!!.value
+                it.isValid() -> return it!!
                 it.isDeleted() -> return null
                 else -> {
                     // find from immutable memTables
@@ -235,7 +233,7 @@ class LsmStorageInner private constructor(
 
         getFromImmutableMemTables(key).let {
             when {
-                it.isValid() -> return it!!.value
+                it.isValid() -> return it!!
                 it.isDeleted() -> return null
                 else -> {
                     // find from l0 sstables
@@ -246,11 +244,11 @@ class LsmStorageInner private constructor(
         return getFromSstables(key)
     }
 
-    private fun getFromMemTable(key: TimestampedKey): MemtableValue? {
+    private fun getFromMemTable(key: TimestampedKey): ComparableByteArray? {
         return state.memTable.withReadLock { it.get(key) }
     }
 
-    private fun getFromImmutableMemTables(key: TimestampedKey): MemtableValue? {
+    private fun getFromImmutableMemTables(key: TimestampedKey): ComparableByteArray? {
         return state.immutableMemTables.withReadLock {
             for (immMemTable in it) {
                 val result = immMemTable.get(key)
@@ -460,7 +458,11 @@ class LsmStorageInner private constructor(
      * @param value The value to be associated with the key. It must be a [ComparableByteArray].
      */
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
-        put(key, MemtableValue(value))
+        if (shouldFreezeMemTable()) {
+            forceFreezeMemTable(enableCheck = true)
+        }
+
+        state.memTable.withReadLock { it.put(key, value) }
     }
 
     /**
@@ -471,15 +473,7 @@ class LsmStorageInner private constructor(
      * @param key The key to be deleted. It must be a [ComparableByteArray].
      */
     fun delete(key: ComparableByteArray) {
-        put(key, MemtableValue(ComparableByteArray.new()))
-    }
-
-    fun put(key: ComparableByteArray, value: MemtableValue) {
-        if (shouldFreezeMemTable()) {
-            forceFreezeMemTable(enableCheck = true)
-        }
-
-        state.memTable.withReadLock { it.put(key, value) }
+        put(key, ComparableByteArray.new())
     }
 
     private fun shouldFreezeMemTable(): Boolean {

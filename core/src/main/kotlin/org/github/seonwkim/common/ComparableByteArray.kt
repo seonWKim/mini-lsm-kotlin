@@ -191,3 +191,11 @@ class ComparableByteArray(
 fun String.toComparableByteArray(): ComparableByteArray {
     return ComparableByteArray(this.map { it.code.toByte() })
 }
+
+fun ComparableByteArray?.isValid(): Boolean {
+    return this != null && this.array.isNotEmpty()
+}
+
+fun ComparableByteArray?.isDeleted(): Boolean {
+    return this != null && this.array.isEmpty()
+}

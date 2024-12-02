@@ -19,15 +19,15 @@ class Day1 {
         memTable.forTestingPutSlice("key2".toComparableByteArray(), "value2".toComparableByteArray())
         memTable.forTestingPutSlice("key3".toComparableByteArray(), "value3".toComparableByteArray())
         assertEquals(
-            memTable.forTestingGetSlice("key1".toComparableByteArray())?.value,
+            memTable.forTestingGetSlice("key1".toComparableByteArray()),
             "value1".toComparableByteArray()
         )
         assertEquals(
-            memTable.forTestingGetSlice("key2".toComparableByteArray())?.value,
+            memTable.forTestingGetSlice("key2".toComparableByteArray()),
             "value2".toComparableByteArray()
         )
         assertEquals(
-            memTable.forTestingGetSlice("key3".toComparableByteArray())?.value,
+            memTable.forTestingGetSlice("key3".toComparableByteArray()),
             "value3".toComparableByteArray()
         )
     }
@@ -42,15 +42,15 @@ class Day1 {
         memTable.forTestingPutSlice("key2".toComparableByteArray(), "value22".toComparableByteArray())
         memTable.forTestingPutSlice("key3".toComparableByteArray(), "value33".toComparableByteArray())
         assertEquals(
-            memTable.forTestingGetSlice("key1".toComparableByteArray())?.value,
+            memTable.forTestingGetSlice("key1".toComparableByteArray()),
             "value11".toComparableByteArray()
         )
         assertEquals(
-            memTable.forTestingGetSlice("key2".toComparableByteArray())?.value,
+            memTable.forTestingGetSlice("key2".toComparableByteArray()),
             "value22".toComparableByteArray()
         )
         assertEquals(
-            memTable.forTestingGetSlice("key3".toComparableByteArray())?.value,
+            memTable.forTestingGetSlice("key3".toComparableByteArray()),
             "value33".toComparableByteArray()
         )
     }

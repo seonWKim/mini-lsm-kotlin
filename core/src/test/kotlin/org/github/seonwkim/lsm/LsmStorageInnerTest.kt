@@ -62,6 +62,11 @@ class LsmStorageInnerTest {
         // check uniqueness of IDs
         assertTrue { immutableMemTableIds.size == immutableMemTableIdsSet.size }
         assertTrue { !immutableMemTableIdsSet.contains(memTableId) }
+
+        // check key, values
+        for (i in 1..<100_000) {
+            assertEquals(storage.get(genKey(i).toComparableByteArray()), genValue(i).toComparableByteArray())
+        }
     }
 
     @Test

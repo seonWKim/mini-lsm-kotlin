@@ -3,7 +3,7 @@ package org.github.seonwkim.lsm
 import mu.KotlinLogging
 import org.github.seonwkim.common.*
 import org.github.seonwkim.common.lock.MutexLock
-import org.github.seonwkim.lsm.memtable.MemtableValue
+
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.file.Files
@@ -30,7 +30,7 @@ class Wal(private val file: MutexLock<File>) {
             )
         }
 
-        fun recover(path: Path, map: ConcurrentSkipListMap<TimestampedKey, MemtableValue>): Wal {
+        fun recover(path: Path, map: ConcurrentSkipListMap<TimestampedKey, ComparableByteArray>): Wal {
             val file = Files.newByteChannel(
                 path,
                 StandardOpenOption.READ,
@@ -70,7 +70,7 @@ class Wal(private val file: MutexLock<File>) {
                 if (checksum == calculatedChecksum) {
                     // TODO: for now, set the key's timestamp to 0
                     val timestampedKey = TimestampedKey(key)
-                    map[timestampedKey] = MemtableValue(value)
+                    map[timestampedKey] = value
                     log.debug { "[$timestampedKey, $value] recovered from WAL"}
                 } else {
                     throw IllegalStateException("Checksum mismatch")
@@ -83,14 +83,14 @@ class Wal(private val file: MutexLock<File>) {
         }
     }
 
-    fun put(key: TimestampedKey, value: MemtableValue) {
+    fun put(key: TimestampedKey, value: ComparableByteArray) {
         this.file.withWriteLock {
             val buf = ComparableByteArray.new()
 
             buf += key.size().toU16ByteArray()
             buf += key.bytes
             buf += value.size().toU16ByteArray()
-            buf += value.value
+            buf += value
 
             buf += crcHash(buf).toU32ByteArray()
             it.appendBytes(buf.getByteArray())
