@@ -280,7 +280,7 @@ class LsmStorageInner private constructor(
     private fun getL0SsTableIterators(key: TimestampedKey): List<SsTableIterator> {
         return state.l0Sstables.withReadLock {
             it.mapNotNull { l0SstableIdx ->
-                val table = state.sstables[l0SstableIdx]!!
+                val table = state.sstables[l0SstableIdx] ?: return@mapNotNull null
                 if (table.firstKey <= key && key <= table.lastKey) {
                     SsTableIterator.createAndSeekToKey(table, key)
                 } else {
