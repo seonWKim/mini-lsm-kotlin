@@ -91,6 +91,7 @@ object Utils {
     fun waitUntilCompactionEnds(storage: LsmStorageInner) {
         var (prevL0Sstables, prevLevels) = storage.state.diskSnapshot()
         while (true) {
+            // When running test in multi-threaded environment, compaction thread might not get it's chance to run compaction, thereby stopping in the middle of whole compaction process.
             Thread.sleep(4000)
             val (currentL0Sstables, currentLevels) = storage.state.diskSnapshot()
             if (prevL0Sstables == currentL0Sstables && prevLevels == currentLevels) {
