@@ -13,7 +13,7 @@ class WalTest {
 
     @Test
     fun `test WAL put and recover`() {
-        val tempDir = createTempDirectory("wal_test")
+        val tempDir = createTempDirectory()
         val walPath = tempDir.resolve("test.wal")
 
         // Create WAL and put keys

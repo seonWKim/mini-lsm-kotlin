@@ -21,7 +21,7 @@ class Day1 {
 
     @Test
     fun `test task1 full compaction`() {
-        val dir = createTempDirectory("test_task1_full_compaction")
+        val dir = createTempDirectory()
         val storage = LsmStorageInner.open(
             path = dir,
             options = LsmStorageOptions(
@@ -162,7 +162,7 @@ class Day1 {
 
     @Test
     fun `test task2 concat iterator`() {
-        val dir = createTempDirectory("test_task2_concat_iterator")
+        val dir = createTempDirectory()
         val sstables = mutableListOf<Sstable>()
         for (id in 1..10) {
             sstables.add(
@@ -197,7 +197,7 @@ class Day1 {
 
     @Test
     fun `test task3 integration`() {
-        val dir = createTempDirectory("test_task3_integration")
+        val dir = createTempDirectory()
         val storage = LsmStorageInner.open(
             path = dir,
             options = lsmStorageOptionForTest()
@@ -247,7 +247,7 @@ class Day1 {
     }
 
     private fun sync(storage: LsmStorageInner) {
-        storage.forceFreezeMemTable()
+        storage.forceFreezeMemTableWithLock()
         storage.forceFlushNextImmMemTable()
     }
 

@@ -54,7 +54,7 @@ fun main() {
 
     class FreezeCommand : Subcommand("freeze", "Freeze memTable") {
         override fun execute() {
-            miniLsm.inner.forceFreezeMemTable()
+            miniLsm.inner.forceFreezeMemTableWithLock()
         }
     }
 

@@ -449,6 +449,50 @@ class LsmStorageInner private constructor(
         return false
     }
 
+    fun writeBatch(batch: List<WriteBatchRecord>) {
+        for (record in batch) {
+            when (record) {
+                is Delete -> {
+                    val key = record.key
+                    if (key.isEmpty()) {
+                        throw IllegalArgumentException("key cannot be empty")
+                    }
+
+                    var size: Int? = null
+                    state.memTable.withReadLock { memTable ->
+                        memTable.put(key, "".toComparableByteArray())
+                        size = memTable.approximateSize()
+                    }
+
+                    if (size!! >= options.targetSstSize) {
+                        forceFreezeMemTableWithLock(true)
+                    }
+                }
+
+                is Put -> {
+                    val key = record.key
+                    val value = record.value
+                    if (key.isEmpty()) {
+                        throw IllegalArgumentException("key cannot be empty")
+                    }
+                    if (value.isEmpty()) {
+                        throw IllegalArgumentException("value cannot be empty")
+                    }
+
+                    var size: Int? = null
+                    state.memTable.withReadLock { memTable ->
+                        memTable.put(key, value)
+                        size = memTable.approximateSize()
+                    }
+
+                    if (size!! >= options.targetSstSize) {
+                        forceFreezeMemTableWithLock(true)
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Inserts a key-value pair into the current memTable.
      *
@@ -458,11 +502,15 @@ class LsmStorageInner private constructor(
      * @param value The value to be associated with the key. It must be a [ComparableByteArray].
      */
     fun put(key: ComparableByteArray, value: ComparableByteArray) {
-        if (shouldFreezeMemTable()) {
-            forceFreezeMemTable(enableCheck = true)
+        var shouldFreezeMemTable: Boolean = false
+        state.memTable.withReadLock { memTable ->
+            memTable.put(key, value)
+            shouldFreezeMemTable = memTable.approximateSize() >= options.targetSstSize
         }
 
-        state.memTable.withReadLock { it.put(key, value) }
+        if (shouldFreezeMemTable) {
+            forceFreezeMemTableWithLock(enableCheck = true)
+        }
     }
 
     /**
@@ -476,38 +524,36 @@ class LsmStorageInner private constructor(
         put(key, ComparableByteArray.new())
     }
 
-    private fun shouldFreezeMemTable(): Boolean {
-        return state.memTable.withReadLock {
-            it.approximateSize() > options.targetSstSize
-        }
-    }
-
     /**
-     * Freezes the current memTable and creates a new one.
+     * Freezes the current memTable and creates a new one by acquiring write lock.
      *
      * This method forces the current memTable to be frozen and moved to the list of immutable memTables.
      * A new memTable is then created and set as the current memTable.
      */
-    fun forceFreezeMemTable(enableCheck: Boolean = false) {
+    fun forceFreezeMemTableWithLock(enableCheck: Boolean = false) {
         state.memTable.withWriteLock {
             if (enableCheck) {
-                if (!shouldFreezeMemTable()) return@withWriteLock
+                if (it.approximateSize() < options.targetSstSize) return@withWriteLock
             }
 
-            val newMemTableId = getNextSstId()
-            val newMemTable = if (options.enableWal) {
-                MemTable.createWithWal(
-                    id = newMemTableId,
-                    path = walPath(path = path, id = newMemTableId)
-                )
-            } else {
-                MemTable.create(newMemTableId)
-            }
-
-            switchMemTable(newMemTable)
-
-            manifest?.addRecord(NewMemTableRecord(newMemTableId))
+            forceFreezeMemTable()
         }
+    }
+
+    private fun forceFreezeMemTable() {
+        val newMemTableId = getNextSstId()
+        val newMemTable = if (options.enableWal) {
+            MemTable.createWithWal(
+                id = newMemTableId,
+                path = walPath(path = path, id = newMemTableId)
+            )
+        } else {
+            MemTable.create(newMemTableId)
+        }
+
+        switchMemTable(newMemTable)
+
+        manifest?.addRecord(NewMemTableRecord(newMemTableId))
     }
 
     fun switchMemTable(newMemTable: MemTable) {
@@ -934,5 +980,13 @@ class LsmStorageInner private constructor(
     @VisibleForTesting
     fun getImmutableMemTableIds(): List<Int> {
         return state.immutableMemTables.readValue().map { it.id() }
+    }
+
+    @VisibleForTesting
+    fun compactionRequired(): Boolean {
+        return compactionController.generateCompactionTask(
+            snapshot = state.diskSnapshot(),
+            sstables = state.sstables
+        ) != null
     }
 }

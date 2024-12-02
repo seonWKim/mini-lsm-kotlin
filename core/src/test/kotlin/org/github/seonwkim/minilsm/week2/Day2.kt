@@ -16,7 +16,7 @@ class Day2 {
 
     @Test
     fun `simple leveled compaction integration test`() {
-        val storage = createSimpleLeveledCompactionMiniLsm("simple_leveled_compaction_integration_test")
+        val storage = createSimpleLeveledCompactionMiniLsm()
         compactionBench(storage)
         checkCompactionRatio(storage)
     }
@@ -24,7 +24,7 @@ class Day2 {
     @Test
     fun `simple leveled compaction concurrent write and read test`() {
         val storage =
-            createSimpleLeveledCompactionMiniLsm("simple_leveled_compaction_concurrent_write_and_read_test")
+            createSimpleLeveledCompactionMiniLsm()
         val availableProcessors = maxOf(Runtime.getRuntime().availableProcessors(), 5)
         val executors = (1..availableProcessors).map {
             Executors.newSingleThreadExecutor()
@@ -64,8 +64,8 @@ class Day2 {
         }
     }
 
-    private fun createSimpleLeveledCompactionMiniLsm(dirName: String): MiniLsm {
-        val dir = createTempDirectory(dirName)
+    private fun createSimpleLeveledCompactionMiniLsm(): MiniLsm {
+        val dir = createTempDirectory()
         return MiniLsm.open(
             path = dir,
             options = LsmStorageOptions(

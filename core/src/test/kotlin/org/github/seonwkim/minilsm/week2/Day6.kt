@@ -16,7 +16,6 @@ class Day6 {
     @Test
     fun `simple leveled compaction integration test`() {
         integrationTest(
-            dirName = "simple_leveled_compaction_integration_test",
             compactionOptions = SimpleLeveledCompactionOptions(
                 sizeRatioPercent = 200,
                 level0FileNumCompactionTrigger = 2,
@@ -28,7 +27,6 @@ class Day6 {
     @Test
     fun `leveled compaction integration test`() {
         integrationTest(
-            dirName = "leveled_compaction_integration_test",
             compactionOptions = LeveledCompactionOptions(
                 levelSizeMultiplier = 2,
                 level0FileNumCompactionTrigger = 2,
@@ -41,7 +39,6 @@ class Day6 {
     @Test
     fun `tiered compaction integration test`() {
         integrationTest(
-            dirName = "tiered_compaction_integration_test",
             compactionOptions = TieredCompactionOptions(
                 minNumTiers = 3,
                 maxSizeAmplificationPercent = 200,
@@ -52,8 +49,8 @@ class Day6 {
         )
     }
 
-    private fun integrationTest(dirName: String, compactionOptions: CompactionOptions) {
-        val dir = createTempDirectory(dirName)
+    private fun integrationTest(compactionOptions: CompactionOptions) {
+        val dir = createTempDirectory()
         val options = LsmStorageOptions(
             blockSize = 4096,
             targetSstSize = 1 shl 20,
@@ -81,7 +78,7 @@ class Day6 {
                 storage.delete("2")
             }
 
-            storage.inner.forceFreezeMemTable()
+            storage.inner.forceFreezeMemTableWithLock()
         }
 
         storage.close()

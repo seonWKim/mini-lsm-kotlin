@@ -13,7 +13,7 @@ class SstConcatIteratorTest {
 
     @Test
     fun `test find nearest sstable idx key exists`() {
-        val dir = createTempDirectory("test_find_nearest_sstable_idx_key_exists")
+        val dir = createTempDirectory()
         val sstables = listOf(
             generateConcatSst(0, 10, dir, 1),
             generateConcatSst(10, 20, dir, 2),
@@ -26,7 +26,7 @@ class SstConcatIteratorTest {
 
     @Test
     fun `test find nearest sstable idx key between elements`() {
-        val dir = createTempDirectory("test_find_nearest_sstable_idx_key_between_elements")
+        val dir = createTempDirectory()
         val sstables = listOf(
             generateConcatSst(0, 10, dir, 1),
             generateConcatSst(10, 20, dir, 2),
@@ -39,7 +39,7 @@ class SstConcatIteratorTest {
 
     @Test
     fun `test find nearest sstable idx key smaller than first element`() {
-        val dir = createTempDirectory("test_find_nearest_sstable_idx_key_smaller_than_first_element")
+        val dir = createTempDirectory()
         val sstables = listOf(
             generateConcatSst(10, 20, dir, 1),
             generateConcatSst(20, 30, dir, 2),
@@ -52,7 +52,7 @@ class SstConcatIteratorTest {
 
     @Test
     fun `test find nearest sstable idx key larger than last element`() {
-        val dir = createTempDirectory("test_find_nearest_sstable_idx_key_larget_than_last_element")
+        val dir = createTempDirectory()
         val sstables = listOf(
             generateConcatSst(0, 10, dir, 1),
             generateConcatSst(10, 20, dir, 2),

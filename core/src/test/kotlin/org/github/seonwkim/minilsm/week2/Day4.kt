@@ -16,14 +16,14 @@ class Day4 {
 
     @Test
     fun `leveled compaction integration test`() {
-        val storage = createTieredCompactionMiniLsm("leveled_compaction_integration_test")
+        val storage = createTieredCompactionMiniLsm()
         compactionBench(storage)
         checkCompactionRatio(storage)
     }
 
     @Test
     fun `leveled compaction concurrent write and read test`() {
-        val storage = createTieredCompactionMiniLsm("leveled_compaction_concurrent_write_and_read_test")
+        val storage = createTieredCompactionMiniLsm()
         val availableProcessors = maxOf(Runtime.getRuntime().availableProcessors(), 5)
         val executors = (1..availableProcessors).map {
             Executors.newVirtualThreadPerTaskExecutor()
@@ -63,8 +63,8 @@ class Day4 {
         }
     }
 
-    private fun createTieredCompactionMiniLsm(dirName: String): MiniLsm {
-        val dir = createTempDirectory(dirName)
+    private fun createTieredCompactionMiniLsm(): MiniLsm {
+        val dir = createTempDirectory()
         return MiniLsm.open(
             path = dir,
             options = LsmStorageOptions(

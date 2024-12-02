@@ -259,18 +259,18 @@ class Day2 {
 
     @Test
     fun `test task4 integration`() {
-        val dir = createTempDirectory("test_task4_integration")
+        val dir = createTempDirectory()
         val storage = LsmStorageInner.open(dir, lsmStorageOptionForTest())
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.forceFreezeMemTable()
+        storage.forceFreezeMemTableWithLock()
 
         storage.delete("1".toComparableByteArray())
         storage.delete("2".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("4".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.forceFreezeMemTable()
+        storage.forceFreezeMemTableWithLock()
 
         storage.put("1".toComparableByteArray(), "233333".toComparableByteArray())
         storage.put("3".toComparableByteArray(), "233333".toComparableByteArray())

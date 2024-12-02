@@ -11,7 +11,7 @@ class ManifestTest {
 
     @Test
     fun `create manifest file and recover`() {
-        val dir = createTempDirectory("create_manifest_file_and_recover")
+        val dir = createTempDirectory()
         val manifestPath = dir.resolve("MANIFEST")
         val manifest = Manifest.create(manifestPath)
 

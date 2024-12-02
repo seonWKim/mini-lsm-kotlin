@@ -14,7 +14,7 @@ class Day6 {
 
     @Test
     fun `test task1 storage scan`() {
-        val dir = createTempDirectory("test_task1_storage_scan")
+        val dir = createTempDirectory()
         val storage = LsmStorageInner.open(
             path = dir,
             options = LsmStorageOptions(
@@ -33,10 +33,10 @@ class Day6 {
 
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.forceFreezeMemTable()
+        storage.forceFreezeMemTableWithLock()
 
         storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.forceFreezeMemTable()
+        storage.forceFreezeMemTableWithLock()
 
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toComparableByteArray())
@@ -77,7 +77,7 @@ class Day6 {
 
     @Test
     fun `test task1 storage get`() {
-        val dir = createTempDirectory("test_task1_storage_get")
+        val dir = createTempDirectory()
         val storage = LsmStorageInner.open(
             path = dir,
             options = LsmStorageOptions(
@@ -96,10 +96,10 @@ class Day6 {
 
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.forceFreezeMemTable()
+        storage.forceFreezeMemTableWithLock()
 
         storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.forceFreezeMemTable()
+        storage.forceFreezeMemTableWithLock()
 
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toComparableByteArray())
@@ -118,7 +118,7 @@ class Day6 {
 
     @Test
     fun `test task2 auto flush`() {
-        val dir = createTempDirectory("test_task2_auto_flush")
+        val dir = createTempDirectory()
         val storage = MiniLsm.open(
             path = dir,
             options = LsmStorageOptions(
@@ -141,7 +141,7 @@ class Day6 {
 
     @Test
     fun `test task3 sst filter`() {
-        val dir = createTempDirectory("test_task3_sst_filter")
+        val dir = createTempDirectory()
         val storage = LsmStorageInner.open(
             path = dir,
             options = LsmStorageOptions(
@@ -195,7 +195,7 @@ class Day6 {
     }
 
     private fun sync(storage: LsmStorageInner) {
-        storage.forceFreezeMemTable()
+        storage.forceFreezeMemTableWithLock()
         storage.forceFlushNextImmMemTable()
     }
 

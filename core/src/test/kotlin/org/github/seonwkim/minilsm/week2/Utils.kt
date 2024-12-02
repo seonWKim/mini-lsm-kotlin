@@ -91,7 +91,7 @@ object Utils {
     fun waitUntilCompactionEnds(storage: LsmStorageInner) {
         var (prevL0Sstables, prevLevels) = storage.state.diskSnapshot()
         while (true) {
-            Thread.sleep(1000)
+            Thread.sleep(4000)
             val (currentL0Sstables, currentLevels) = storage.state.diskSnapshot()
             if (prevL0Sstables == currentL0Sstables && prevLevels == currentLevels) {
                 break

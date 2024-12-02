@@ -20,7 +20,7 @@ open class MiniLsmPutRequestBenchmarkTest {
     @Setup
     fun setUp() {
         log.debug { "Initializing LSM!!" }
-        val path = createTempDirectory("minilsm_benchmark").toAbsolutePath().resolve("benchmark-output")
+        val path = createTempDirectory()
         lsm = MiniLsm.open(
             path = path,
             options = LsmStorageOptions(

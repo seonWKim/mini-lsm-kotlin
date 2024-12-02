@@ -4,6 +4,7 @@ import com.google.common.annotations.VisibleForTesting
 import mu.KotlinLogging
 import org.github.seonwkim.common.Bound
 import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.WriteBatchRecord
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.compaction.option.LeveledCompactionOptions
 import org.github.seonwkim.lsm.compaction.option.NoCompaction
@@ -49,6 +50,10 @@ class MiniLsm private constructor(
 
     fun get(key: ComparableByteArray): ComparableByteArray? {
         return inner.get(key)
+    }
+
+    fun writeBatch(batch: List<WriteBatchRecord>) {
+        inner.writeBatch(batch)
     }
 
     fun put(key: String, value: String) {

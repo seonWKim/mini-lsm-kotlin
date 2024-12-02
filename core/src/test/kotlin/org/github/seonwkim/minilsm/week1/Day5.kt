@@ -145,12 +145,12 @@ class Day5 {
 
     @Test
     fun `test task2 storage scan`() {
-        val dir = createTempDirectory("test_task2_storage_scan")
+        val dir = createTempDirectory()
         val storage = LsmStorageInner.open(dir, lsmStorageOptionForTest())
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.forceFreezeMemTable()
+        storage.forceFreezeMemTableWithLock()
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toComparableByteArray())
         val sst1 = generateSst(
@@ -232,7 +232,7 @@ class Day5 {
 
     @Test
     fun `test task3 storage get`() {
-        val dir = createTempDirectory("test_task3_storage_get")
+        val dir = createTempDirectory()
         val storage = LsmStorageInner.open(
             path = dir,
             options = lsmStorageOptionForTest()
@@ -240,7 +240,7 @@ class Day5 {
         storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
         storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
         storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.forceFreezeMemTable()
+        storage.forceFreezeMemTableWithLock()
 
         storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toComparableByteArray())

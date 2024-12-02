@@ -22,7 +22,7 @@ class Day4 {
     fun `test sst build single key`() {
         val builder = SsTableBuilder(16)
         builder.add("233".toTimestampedKey(), "233333".toComparableByteArray())
-        val dir = createTempDirectory("test_Sst_build_single_key")
+        val dir = createTempDirectory()
         builder.buildForTest(dir.resolve("1.sst"))
     }
 
@@ -36,7 +36,7 @@ class Day4 {
         builder.add("55".toTimestampedKey(), "11".toComparableByteArray())
         builder.add("66".toTimestampedKey(), "22".toComparableByteArray())
         assertTrue { builder.meta.size >= 2 }
-        val dir = createTempDirectory("test_set_build_two_blocks")
+        val dir = createTempDirectory()
         builder.buildForTest(dir.resolve("1.sst"))
     }
 
@@ -111,7 +111,7 @@ class Day4 {
             val value = createValue(idx)
             builder.add(TimestampedKey(key.toComparableByteArray()), value.toComparableByteArray())
         }
-        val dir = createTempDirectory("temp")
+        val dir = createTempDirectory()
         val path = dir.resolve("1.sst")
         return Pair(dir, builder.buildForTest(path))
     }
