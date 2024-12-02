@@ -68,7 +68,11 @@ class LsmStorageInner private constructor(
             var nextSstId = 0
             if (!manifestPath.exists()) {
                 if (options.enableWal) {
-                    // TODO("create with WAL")
+                    val walAppliedMemTable = MemTable.createWithWal(
+                        id = state.memTable.readValue().id(),
+                        path = walPath(path, state.memTable.readValue().id())
+                    )
+                    state.memTable.replace(walAppliedMemTable)
                 }
                 manifest = try {
                     Manifest.create(manifestPath)
@@ -149,7 +153,17 @@ class LsmStorageInner private constructor(
 
                 // Recover memTables
                 if (options.enableWal) {
-                    TODO()
+                    var walCount = 0
+                    for (id in memTables) {
+                        val memTable = MemTable.recoverFromWal(id, walPath(path, id))
+                        if (!memTable.isEmpty()) {
+                            state.immutableMemTables.readValue().addFirst(memTable)
+                            walCount++
+                        }
+                    }
+
+                    log.info { "$walCount WALs recovered" }
+                    state.memTable.replace(MemTable.createWithWal(nextSstId, walPath(path, nextSstId)))
                 } else {
                     state.memTable.replace(MemTable.create(nextSstId))
                 }
@@ -488,7 +502,10 @@ class LsmStorageInner private constructor(
 
             val newMemTableId = getNextSstId()
             val newMemTable = if (options.enableWal) {
-                TODO("should be implemented after WAL is supported")
+                MemTable.createWithWal(
+                    id = newMemTableId,
+                    path = walPath(path = path, id = newMemTableId)
+                )
             } else {
                 MemTable.create(newMemTableId)
             }
@@ -553,7 +570,7 @@ class LsmStorageInner private constructor(
             log.debug { "Flushed $flushedMemTableId.sst with size ${sst.file.size}" }
 
             if (options.enableWal) {
-                TODO("remove wal file")
+                Files.delete(walPath(path = path, id = sst.id))
             }
 
             manifest?.addRecord(FlushRecord(flushedMemTableId))
@@ -871,6 +888,10 @@ class LsmStorageInner private constructor(
         return nextSstId.incrementAndGet()
     }
 
+    fun sync() {
+        state.memTable.withWriteLock { it.syncWal() }
+    }
+
     fun dumpStructure() {
         dumpStructure(state.diskSnapshot())
     }
@@ -884,7 +905,6 @@ class LsmStorageInner private constructor(
             log.debug { "L${level} (${files.size}): $files" }
         }
     }
-
 
     @VisibleForTesting
     fun addL0Sstable(sstId: Int) {

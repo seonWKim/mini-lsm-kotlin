@@ -72,7 +72,8 @@ class MiniLsm private constructor(
         flushScheduler.close()
 
         if (inner.options.enableWal) {
-            // TODO
+            inner.sync()
+            return
         }
 
         if (!inner.state.memTable.readValue().isEmpty()) {

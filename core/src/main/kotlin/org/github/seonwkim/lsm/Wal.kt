@@ -1,5 +1,6 @@
 package org.github.seonwkim.lsm
 
+import mu.KotlinLogging
 import org.github.seonwkim.common.*
 import org.github.seonwkim.common.lock.MutexLock
 import org.github.seonwkim.lsm.memtable.MemtableValue
@@ -10,11 +11,11 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.util.concurrent.ConcurrentSkipListMap
 
-class Wal(
-    private val file: MutexLock<File>
+class Wal(private val file: MutexLock<File>) {
 
-) {
     companion object {
+        private val log = KotlinLogging.logger { }
+
         fun create(path: Path): Wal {
             return Wal(
                 file = Files.newByteChannel(
@@ -68,7 +69,9 @@ class Wal(
 
                 if (checksum == calculatedChecksum) {
                     // TODO: for now, set the key's timestamp to 0
-                    map[TimestampedKey(key)] = MemtableValue(value)
+                    val timestampedKey = TimestampedKey(key)
+                    map[timestampedKey] = MemtableValue(value)
+                    log.debug { "[$timestampedKey, $value] recovered from WAL"}
                 } else {
                     throw IllegalStateException("Checksum mismatch")
                 }
@@ -97,4 +100,8 @@ class Wal(
     fun sync() {
         // TODO: enhance buffering and sync logic
     }
+}
+
+fun walPath(path: Path, id: Int): Path {
+    return path.resolve("%05d.wal".format(id))
 }

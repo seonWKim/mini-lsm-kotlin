@@ -21,6 +21,7 @@ class MemTable(
     private val id: Int,
     private val map: ConcurrentSkipListMap<TimestampedKey, MemtableValue>,
     private val wal: Wal?,
+    private val approximateSize: AtomicInteger = AtomicInteger(0)
 ) {
     companion object {
         fun create(id: Int): MemTable {
@@ -38,9 +39,20 @@ class MemTable(
                 wal = Wal.create(path),
             )
         }
-    }
 
-    private val approximateSize: AtomicInteger = AtomicInteger(0)
+        fun recoverFromWal(id: Int, path: Path): MemTable {
+            val map = ConcurrentSkipListMap<TimestampedKey, MemtableValue>()
+            val wal = Wal.recover(path, map)
+            var approximateSize = 0
+            map.forEach { (key, value) -> approximateSize += (key.size() + value.size()) }
+            return MemTable(
+                id = id,
+                map = map,
+                wal = wal,
+                approximateSize = AtomicInteger(approximateSize)
+            )
+        }
+    }
 
     fun id(): Int {
         return id
@@ -64,8 +76,9 @@ class MemTable(
         }
 
         // TODO: what if map already contains same key? should we only add value size?
-        approximateSize.addAndGet(key.size() + value.size())
         map[key] = value
+        approximateSize.addAndGet(key.size() + value.size())
+        wal?.put(key, value)
     }
 
     fun iterator(lower: Bound, upper: Bound): MemTableIterator {
@@ -100,6 +113,10 @@ class MemTable(
         for ((key, value) in map.entries) {
             builder.add(key, value.value)
         }
+    }
+
+    fun syncWal() {
+        wal?.sync()
     }
 
     fun copy(): MemTable {

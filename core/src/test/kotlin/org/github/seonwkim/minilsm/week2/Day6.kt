@@ -86,8 +86,11 @@ class Day6 {
 
         storage.close()
 
-        assertTrue { storage.inner.state.memTable.readValue().entriesSize() == 0 }
-        assertTrue { storage.inner.state.immutableMemTables.readValue().isEmpty() }
+        // ensure some SSTs are not flushed
+        assertTrue {
+            !storage.inner.state.memTable.readValue().isEmpty() ||
+                    !storage.inner.state.immutableMemTables.readValue().isEmpty()
+        }
 
         storage.dumpStructure()
         dumpFilesInDir(dir)
