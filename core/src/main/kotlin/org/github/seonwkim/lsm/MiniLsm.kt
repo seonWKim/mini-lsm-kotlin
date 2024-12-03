@@ -52,10 +52,6 @@ class MiniLsm private constructor(
         return inner.get(key)
     }
 
-    fun writeBatch(batch: List<WriteBatchRecord>) {
-        inner.writeBatch(batch)
-    }
-
     fun put(key: String, value: String) {
         inner.put(key.toComparableByteArray(), value.toComparableByteArray())
     }
@@ -66,6 +62,10 @@ class MiniLsm private constructor(
 
     fun delete(key: String) {
         inner.delete(key.toComparableByteArray())
+    }
+
+    fun writeBatch(batch: List<WriteBatchRecord>) {
+        inner.writeBatch(batch)
     }
 
     fun scan(lower: Bound, upper: Bound): FusedIterator {

@@ -449,6 +449,29 @@ class LsmStorageInner private constructor(
         return false
     }
 
+    /**
+     * Inserts a key-value pair into the current memTable.
+     *
+     * This method adds the specified key-value pair to the current memTable.
+     *
+     * @param key The key to be inserted. It must be a [ComparableByteArray] to ensure proper ordering.
+     * @param value The value to be associated with the key. It must be a [ComparableByteArray].
+     */
+    fun put(key: ComparableByteArray, value: ComparableByteArray) {
+        writeBatch(listOf(Put(key, value)))
+    }
+
+    /**
+     * Deletes a key from the current memTable.
+     *
+     * This method marks the specified key as deleted in the current memTable.
+     *
+     * @param key The key to be deleted. It must be a [ComparableByteArray].
+     */
+    fun delete(key: ComparableByteArray) {
+        writeBatch(listOf(Delete(key)))
+    }
+
     fun writeBatch(batch: List<WriteBatchRecord>) {
         for (record in batch) {
             when (record) {
@@ -458,13 +481,13 @@ class LsmStorageInner private constructor(
                         throw IllegalArgumentException("key cannot be empty")
                     }
 
-                    var size: Int? = null
+                    var shouldFreezeMemTable = false
                     state.memTable.withReadLock { memTable ->
                         memTable.put(key, "".toComparableByteArray())
-                        size = memTable.approximateSize()
+                        shouldFreezeMemTable = memTable.approximateSize() >= options.targetSstSize
                     }
 
-                    if (size!! >= options.targetSstSize) {
+                    if (shouldFreezeMemTable) {
                         forceFreezeMemTableWithLock(true)
                     }
                 }
@@ -479,49 +502,18 @@ class LsmStorageInner private constructor(
                         throw IllegalArgumentException("value cannot be empty")
                     }
 
-                    var size: Int? = null
+                    var shouldFreezeMemTable = false
                     state.memTable.withReadLock { memTable ->
                         memTable.put(key, value)
-                        size = memTable.approximateSize()
+                        shouldFreezeMemTable = memTable.approximateSize() >= options.targetSstSize
                     }
 
-                    if (size!! >= options.targetSstSize) {
+                    if (shouldFreezeMemTable) {
                         forceFreezeMemTableWithLock(true)
                     }
                 }
             }
         }
-    }
-
-    /**
-     * Inserts a key-value pair into the current memTable.
-     *
-     * This method adds the specified key-value pair to the current memTable.
-     *
-     * @param key The key to be inserted. It must be a [ComparableByteArray] to ensure proper ordering.
-     * @param value The value to be associated with the key. It must be a [ComparableByteArray].
-     */
-    fun put(key: ComparableByteArray, value: ComparableByteArray) {
-        var shouldFreezeMemTable: Boolean = false
-        state.memTable.withReadLock { memTable ->
-            memTable.put(key, value)
-            shouldFreezeMemTable = memTable.approximateSize() >= options.targetSstSize
-        }
-
-        if (shouldFreezeMemTable) {
-            forceFreezeMemTableWithLock(enableCheck = true)
-        }
-    }
-
-    /**
-     * Deletes a key from the current memTable.
-     *
-     * This method marks the specified key as deleted in the current memTable.
-     *
-     * @param key The key to be deleted. It must be a [ComparableByteArray].
-     */
-    fun delete(key: ComparableByteArray) {
-        put(key, ComparableByteArray.new())
     }
 
     /**
