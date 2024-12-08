@@ -844,7 +844,6 @@ class LsmStorageInner private constructor(
         newSstables.forEach { newSstable ->
             newSstIds.add(newSstable.id)
             state.sstables[newSstable.id] = newSstable
-            println("SStable(id: $${newSstable.id}) of size(${state.sstables[newSstable.id]?.file?.size}) added.")
         }
 
         // changes are applied to the snapshot
@@ -859,7 +858,6 @@ class LsmStorageInner private constructor(
         log.debug { "Compaction applied snapshot: $compactionAppliedSnapshot" }
         val sstablesToRemove = hashSetOf<Sstable>()
         for (sstId in sstIdsToRemove) {
-            println("SStable(id: $sstId) of size(${state.sstables[sstId]?.file?.size}) remove.")
             val sstable = state.sstables.remove(sstId) ?: throw Error("Sstable(id: $sstId) doesn't exist!!")
             sstablesToRemove.add(sstable)
         }
