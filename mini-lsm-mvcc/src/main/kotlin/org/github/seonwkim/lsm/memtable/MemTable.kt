@@ -59,7 +59,8 @@ class MemTable(
     }
 
     fun get(key: TimestampedByteArray): ComparableByteArray? {
-        return map[key]
+        // get entries with same key.bytes, but with lower timetsamps
+        return map.subMap(key, TimestampedByteArray(key.copyBytes(), org.github.seonwkim.common.MAX_TIMESTAMP)).firstEntry()?.value
     }
 
     fun put(key: TimestampedByteArray, value: ComparableByteArray) {

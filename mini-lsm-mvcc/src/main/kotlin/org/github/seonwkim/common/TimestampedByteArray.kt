@@ -1,5 +1,9 @@
 package org.github.seonwkim.common
 
+
+const val MIN_TIMESTAMP = 0L
+const val MAX_TIMESTAMP = Long.MAX_VALUE
+
 /**
  * A class representing a byte array with a timestamp.
  *
@@ -193,16 +197,19 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
      * @return a negative integer, zero, or a positive integer as this byte array is less than, equal to, or greater than the specified byte array
      */
     override fun compareTo(other: TimestampedByteArray): Int {
-        if (this.bytes.size > other.bytes.size) {
-            return -other.compareTo(this)
+        val minLength = minOf(this.bytes.size, other.bytes.size)
+
+        for (idx in 0 until minLength) {
+            if (this.bytes[idx] != other.bytes[idx]) {
+                return this.bytes[idx] - other.bytes[idx]
+            }
         }
 
-        for (idx in bytes.indices) {
-            if (bytes[idx] == other.bytes[idx]) continue
-            return bytes[idx] - other.bytes[idx]
+        return if (this.bytes.size != other.bytes.size) {
+            this.bytes.size - other.bytes.size
+        } else {
+            other.timestamp.compareTo(this.timestamp)
         }
-
-        return if (bytes.size == other.bytes.size) 0 else -1
     }
 
     override fun equals(other: Any?): Boolean {
@@ -228,7 +235,7 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
  *
  * @return a new [TimestampedByteArray] containing the bytes of the string
  */
-fun String.toTimestampedByteArray(timestamp: Long = 0L): TimestampedByteArray {
+fun String.toTimestampedByteArray(timestamp: Long = System.currentTimeMillis()): TimestampedByteArray {
     return TimestampedByteArray(this.map { it.code.toByte() }, timestamp)
 }
 
