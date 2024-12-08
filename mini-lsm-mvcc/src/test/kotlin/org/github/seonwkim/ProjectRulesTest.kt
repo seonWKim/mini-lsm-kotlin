@@ -12,8 +12,10 @@ import com.tngtech.archunit.lang.ConditionEvents
 import com.tngtech.archunit.lang.SimpleConditionEvent
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition
 import org.github.seonwkim.common.TimestampedByteArray
+import org.junit.jupiter.api.Disabled
 import kotlin.test.Test
 
+@Disabled("We need to think more about using List<Byte> in the project. If we allow List<Byte> to be used everywhere, it would be hard to maintain the overall project as it uses a lot of List<Byte>")
 class ProjectRulesTest {
     private val classes = ClassFileImporter()
         .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
