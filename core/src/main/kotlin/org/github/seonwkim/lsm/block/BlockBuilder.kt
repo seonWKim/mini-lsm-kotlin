@@ -53,8 +53,7 @@ class BlockBuilder(
         // encode key content
         data += key.slice(overlap..<key.size())
 
-        // encode key ts
-        // data += key.timestamp().toU64ByteArray()
+        // TODO(TIMESTAMP: encode key ts to u64 byte array)
 
         // encode value length
         data += value.size().toU16ByteArray()

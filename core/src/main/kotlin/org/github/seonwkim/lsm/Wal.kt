@@ -68,10 +68,7 @@ class Wal(private val file: MutexLock<File>) {
                 val calculatedChecksum = crcHash(combined)
 
                 if (checksum == calculatedChecksum) {
-                    // val timestampedKey = TimestampedKey(key)
-                    // map[timestampedKey] = value
-                    // log.debug { "[$timestampedKey, $value] recovered from WAL"}
-
+                    // TODO(TIMESTAMP: should be able to recover from map with key with timestamp)
                     map[key] = value
                 } else {
                     throw IllegalStateException("Checksum mismatch")

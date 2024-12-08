@@ -147,9 +147,8 @@ class BlockIterator(
         this.key.append(this.firstKey.slice(0..<overlapLength)) // overlapping key
         this.key.append(key) // non-overlapping key
         currentOffset += keyLength
-        // val timestamp = block.data.slice(currentOffset, currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
-        // this.key.setTimestamp(timestamp)
-        // currentOffset += SIZE_OF_U64_IN_BYTE
+
+        // TODO(TIMESTAMP: retrieve u64 timestamp from block and set the timestamp to key)
         val valueLength = block.data.slice(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
         currentOffset += SIZE_OF_U16_IN_BYTE
         val valueOffsetBegin = currentOffset

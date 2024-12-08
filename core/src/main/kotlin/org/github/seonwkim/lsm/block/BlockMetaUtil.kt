@@ -8,7 +8,8 @@ import org.github.seonwkim.common.*
 object BlockMetaUtil {
 
     /**
-     * Encodes a list of block metadata and a maximum timestamp into a buffer.
+     * Encodes a list of block metadata.
+     * TODO(TIMESTAMP: should encode maxTimestamp)
      *
      * @param blockMeta the list of block metadata to encode
      * @param buf the buffer to encode the metadata into
@@ -24,14 +25,13 @@ object BlockMetaUtil {
             buf += meta.offset.toU32ByteArray()
             buf += meta.firstKey.size().toU16ByteArray()
             buf += meta.firstKey
-            // buf += meta.firstKey.timestamp().toU64ByteArray()
+            // TODO(TIMESTAMP: add firstKey's timestamp to buffer)
             buf += meta.lastKey.size().toU16ByteArray()
             buf += meta.lastKey
-            // buf += meta.lastKey.timestamp().toU64ByteArray()
+            // TODO(TIMESTAMP: add lastKey's timestamp to buffer)
         }
 
-        // TODO add timestamp
-        // buf += maxTimestamp.toU64ByteArray()
+        // TODO(TIMESTAMP: add maxTimestamp to buffer)
 
         // add hash
         val checksumCalculationStartOffset = originalLength + SIZE_OF_U32_IN_BYTE
@@ -42,7 +42,7 @@ object BlockMetaUtil {
      * Decodes block metadata from a buffer.
      *
      * @param buf the buffer containing the encoded metadata
-     * @return the decoded block metadata and maximum timestamp
+     * @return the decoded block metadata
      * @throws IllegalStateException if the checksum does not match
      */
     fun decodeBlockMeta(buf: ComparableByteArray): BlockMetaDecodedResult {
@@ -65,16 +65,15 @@ object BlockMetaUtil {
             currentOffset += SIZE_OF_U16_IN_BYTE
             val firstKey = buf.slice(currentOffset, currentOffset + firstKeyLength)
             currentOffset += firstKeyLength
-            // val firstKeyTimestamp = buf.slice(currentOffset, currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
-            // currentOffset += SIZE_OF_U64_IN_BYTE
+            // TODO(TIMESTAMP: retrieve firstKey's u64 timestamp from the buffer)
 
             val lastKeyLength = buf.slice(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
             currentOffset += SIZE_OF_U16_IN_BYTE
             val lastKey = buf.slice(currentOffset, currentOffset + lastKeyLength)
             currentOffset += lastKeyLength
-            // val lastKeyTimestamp = buf.slice(currentOffset, currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
-            // currentOffset += SIZE_OF_U64_IN_BYTE
+            // TODO(TIMESTAMP: retrieve lastKey's u64 timestamp from the buffer)
 
+            // TODO(TIMESTAMP: firstKey and lastKey should contain timestamp information)
             blockMeta.add(
                 BlockMeta(
                     offset = offset,
@@ -82,18 +81,9 @@ object BlockMetaUtil {
                     lastKey = lastKey
                 )
             )
-
-            // blockMeta.add(
-            //     BlockMeta(
-            //         offset = offset,
-            //         firstKey = TimestampedKey(bytes = firstKey, timestamp = firstKeyTimestamp),
-            //         lastKey = TimestampedKey(bytes = lastKey, timestamp = lastKeyTimestamp)
-            //     )
-            // )
         }
 
-        // val maxTimestamp = buf.slice(currentOffset, currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
-        // currentOffset += SIZE_OF_U64_IN_BYTE
+        // TODO(TIMESTAMP: retrieve u64 maxTimestamp information from the buffer)
 
         val savedChecksum = buf.slice(currentOffset, currentOffset + SIZE_OF_U32_IN_BYTE).toU32Int()
         if (checksum != savedChecksum) {
@@ -102,7 +92,6 @@ object BlockMetaUtil {
 
         return BlockMetaDecodedResult(
             blockMeta = blockMeta,
-            // maxTimestamp = maxTimestamp
         )
     }
 }

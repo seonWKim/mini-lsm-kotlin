@@ -1,6 +1,5 @@
 package org.github.seonwkim.lsm.iterator
 
-import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
 import org.github.seonwkim.lsm.sstable.Sstable

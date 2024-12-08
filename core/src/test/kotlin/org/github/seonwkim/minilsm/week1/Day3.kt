@@ -1,6 +1,5 @@
 package org.github.seonwkim.minilsm.week1
 
-import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.block.*
 import kotlin.test.Test

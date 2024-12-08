@@ -1,7 +1,6 @@
 package org.github.seonwkim.minilsm.week1
 
 import org.github.seonwkim.common.ComparableByteArray
-import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.common.farmHashFingerPrintU32
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.bloom.Bloom

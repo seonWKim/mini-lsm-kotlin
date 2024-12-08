@@ -1,7 +1,6 @@
 package org.github.seonwkim.lsm
 
 import org.github.seonwkim.common.ComparableByteArray
-import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.common.toComparableByteArray
 
 import org.junit.jupiter.api.Assertions.*

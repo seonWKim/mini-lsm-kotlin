@@ -19,7 +19,8 @@ class SsTableBuilder(
 
     val meta: MutableList<BlockMeta>
     private val keyHashes: MutableList<UInt>
-    private var maxTimestamp: Long
+
+    // TODO(TIMESTAMP: add support for maxTimestamp)
 
     init {
         this.builder = BlockBuilder(blockSize)
@@ -28,7 +29,6 @@ class SsTableBuilder(
         this.data = ComparableByteArray.new()
         this.meta = mutableListOf()
         this.keyHashes = mutableListOf()
-        this.maxTimestamp = 0L
     }
 
     fun add(key: ComparableByteArray, value: ComparableByteArray) {
@@ -36,9 +36,7 @@ class SsTableBuilder(
             firstKey.setFromByteArray(key)
         }
 
-        // if (key.timestamp() > maxTimestamp) {
-        //     maxTimestamp = key.timestamp()
-        // }
+        // TODO(TIMESTAMP: should compare the key's timestamp and set the maxTimestamp if necessary)
 
         keyHashes.add(farmHashFingerPrintU32(key))
 
@@ -87,7 +85,6 @@ class SsTableBuilder(
         val buf = data
         val metaOffset = buf.size()
         BlockMetaUtil.encodeBlockMeta(meta, buf)
-        // BlockMetaUtil.encodeBlockMeta(meta, maxTimestamp, buf)
         buf += metaOffset.toU32ByteArray()
 
         val bloom = Bloom.fromKeyHashes(

@@ -197,13 +197,13 @@ class LsmStorageInner private constructor(
     }
 
     /**
-     * Retrieves the value associated with the specified timestamped key from the storage.
+     * Retrieves the value associated with the specified key from the storage.
      *
      * This method first attempts to retrieve the value from the current memTable.
      * If the key is not found or is marked as deleted, it then checks the immutable memTables.
      * If the key is still not found, it finally checks the SSTables.
      *
-     * @param key The timestamped key to be retrieved. It must be a `TimestampedKey`.
+     * @param key The key to be retrieved.
      * @return The value associated with the key, or `null` if the key is not found or is marked as deleted.
      */
     fun get(key: ComparableByteArray): ComparableByteArray? {
@@ -254,7 +254,8 @@ class LsmStorageInner private constructor(
             first = l0Iter, second = levelIters
         )
 
-        if (totalMergedIter.isValid() && totalMergedIter.key() == key && // TODO: timestamp comparison between keys
+        if (totalMergedIter.isValid() &&
+            totalMergedIter.key() == key &&
             !totalMergedIter.value().isEmpty()
         ) {
             return totalMergedIter.value()
@@ -753,7 +754,6 @@ class LsmStorageInner private constructor(
         }
     }
 
-    // TODO: Add support for timestamp comparison
     private fun compactGenerateSstFromIter(
         iter: StorageIterator,
         compactToBottomLevel: Boolean
