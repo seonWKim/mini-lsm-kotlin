@@ -7,3 +7,5 @@ include("core")
 include("cli")
 include("mini-lsm-mvcc")
 include("mini-lsm-starter")
+
+project(":core").projectDir = file("mini-lsm-mvcc")
