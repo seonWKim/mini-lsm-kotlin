@@ -1,7 +1,7 @@
 package org.github.seonwkim.lsm.iterator
 
 import mu.KotlinLogging
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 import java.util.*
 
 /**
@@ -45,12 +45,12 @@ class MergeIterator<T : StorageIterator>(
         }
     }
 
-    override fun key(): ComparableByteArray {
+    override fun key(): TimestampedByteArray {
         return current()?.iterator?.key()
             ?: throw Error("Use isValid() function before calling this function")
     }
 
-    override fun value(): ComparableByteArray {
+    override fun value(): TimestampedByteArray {
         return current()?.iterator?.value()
             ?: throw Error("Use isValid() function before calling this function")
     }
@@ -70,7 +70,7 @@ class MergeIterator<T : StorageIterator>(
      *
      * @param key the key to be removed
      */
-    private fun removeSameKeys(key: ComparableByteArray) {
+    private fun removeSameKeys(key: TimestampedByteArray) {
         while (priorityQueue.isNotEmpty()) {
             if (priorityQueue.first().iterator.key() == key) {
                 val (nextIdx, nextIter) = priorityQueue.poll()

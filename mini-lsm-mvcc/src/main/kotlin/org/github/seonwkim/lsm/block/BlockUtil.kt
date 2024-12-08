@@ -13,7 +13,7 @@ object BlockUtil {
      * @param block the block to retrieve the first key from
      * @return the first key in the block
      */
-    fun getFirstKey(block: Block): ComparableByteArray {
+    fun getFirstKey(block: Block): TimestampedByteArray {
         var currentOffset = 0
         currentOffset += SIZE_OF_U16_IN_BYTE
         val keyLength = block.data.slice(currentOffset..<currentOffset + 2).toU16Int()
@@ -29,23 +29,23 @@ object BlockUtil {
     }
 
     /**
-     * Encodes a block into a [ComparableByteArray].
+     * Encodes a block into a [TimestampedByteArray].
      *
      * @param block the block to encode
-     * @return the encoded block as a [ComparableByteArray]
+     * @return the encoded block as a [TimestampedByteArray]
      */
-    fun encode(block: Block): ComparableByteArray {
+    fun encode(block: Block): TimestampedByteArray {
         val offsetLength = block.offsets.size() / SIZE_OF_U16_IN_BYTE
         return block.data + block.offsets + offsetLength.toU16ByteArray()
     }
     
     /**
-     * Decodes a [ComparableByteArray] into a block.
+     * Decodes a [TimestampedByteArray] into a block.
      *
-     * @param data the [ComparableByteArray] to decode
+     * @param data the [TimestampedByteArray] to decode
      * @return the decoded block
      */
-    fun decode(data: ComparableByteArray): Block {
+    fun decode(data: TimestampedByteArray): Block {
         val entryOffsetLength = data.slice(data.size() - SIZE_OF_U16_IN_BYTE, data.size()).toU16Int()
 
         val dataEnd = data.size() - SIZE_OF_U16_IN_BYTE - entryOffsetLength * SIZE_OF_U16_IN_BYTE

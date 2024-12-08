@@ -1,7 +1,7 @@
 package org.github.seonwkim.minilsm.week2
 
 import org.github.seonwkim.common.Unbounded
-import org.github.seonwkim.common.toComparableByteArray
+import org.github.seonwkim.common.toTimestampedByteArray
 import org.github.seonwkim.lsm.Configuration
 import org.github.seonwkim.lsm.LsmStorageInner
 import org.github.seonwkim.lsm.LsmStorageOptions
@@ -33,16 +33,16 @@ class Day1 {
             )
         )
 
-        storage.put("0".toComparableByteArray(), "v1".toComparableByteArray())
+        storage.put("0".toTimestampedByteArray(), "v1".toTimestampedByteArray())
         sync(storage)
 
-        storage.put("0".toComparableByteArray(), "v2".toComparableByteArray())
-        storage.put("1".toComparableByteArray(), "v2".toComparableByteArray())
-        storage.put("2".toComparableByteArray(), "v2".toComparableByteArray())
+        storage.put("0".toTimestampedByteArray(), "v2".toTimestampedByteArray())
+        storage.put("1".toTimestampedByteArray(), "v2".toTimestampedByteArray())
+        storage.put("2".toTimestampedByteArray(), "v2".toTimestampedByteArray())
         sync(storage)
 
-        storage.delete("0".toComparableByteArray())
-        storage.delete("2".toComparableByteArray())
+        storage.delete("0".toTimestampedByteArray())
+        storage.delete("2".toTimestampedByteArray())
         sync(storage)
 
         assertEquals(storage.getL0SstablesSize(), 3)
@@ -51,21 +51,21 @@ class Day1 {
                 checkIterator(
                     actual = iter,
                     expected = listOf(
-                        Pair("0".toComparableByteArray(), "".toComparableByteArray()),
-                        Pair("0".toComparableByteArray(), "v2".toComparableByteArray()),
-                        Pair("0".toComparableByteArray(), "v1".toComparableByteArray()),
-                        Pair("1".toComparableByteArray(), "v2".toComparableByteArray()),
-                        Pair("2".toComparableByteArray(), "".toComparableByteArray()),
-                        Pair("2".toComparableByteArray(), "v2".toComparableByteArray()),
+                        Pair("0".toTimestampedByteArray(), "".toTimestampedByteArray()),
+                        Pair("0".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
+                        Pair("0".toTimestampedByteArray(), "v1".toTimestampedByteArray()),
+                        Pair("1".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
+                        Pair("2".toTimestampedByteArray(), "".toTimestampedByteArray()),
+                        Pair("2".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
                     )
                 )
             } else {
                 checkIterator(
                     actual = iter,
                     expected = listOf(
-                        Pair("0".toComparableByteArray(), "".toComparableByteArray()),
-                        Pair("1".toComparableByteArray(), "v2".toComparableByteArray()),
-                        Pair("2".toComparableByteArray(), "".toComparableByteArray()),
+                        Pair("0".toTimestampedByteArray(), "".toTimestampedByteArray()),
+                        Pair("1".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
+                        Pair("2".toTimestampedByteArray(), "".toTimestampedByteArray()),
                     )
                 )
             }
@@ -78,52 +78,52 @@ class Day1 {
                 checkIterator(
                     actual = iter,
                     expected = listOf(
-                        Pair("0".toComparableByteArray(), "".toComparableByteArray()),
-                        Pair("0".toComparableByteArray(), "v2".toComparableByteArray()),
-                        Pair("0".toComparableByteArray(), "v1".toComparableByteArray()),
-                        Pair("1".toComparableByteArray(), "v2".toComparableByteArray()),
-                        Pair("2".toComparableByteArray(), "".toComparableByteArray()),
-                        Pair("2".toComparableByteArray(), "v2".toComparableByteArray()),
+                        Pair("0".toTimestampedByteArray(), "".toTimestampedByteArray()),
+                        Pair("0".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
+                        Pair("0".toTimestampedByteArray(), "v1".toTimestampedByteArray()),
+                        Pair("1".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
+                        Pair("2".toTimestampedByteArray(), "".toTimestampedByteArray()),
+                        Pair("2".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
                     )
                 )
             } else {
                 checkIterator(
                     actual = iter,
                     expected = listOf(
-                        Pair("1".toComparableByteArray(), "v2".toComparableByteArray()),
+                        Pair("1".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
                     )
                 )
             }
         }
 
-        storage.put("0".toComparableByteArray(), "v3".toComparableByteArray())
-        storage.put("2".toComparableByteArray(), "v3".toComparableByteArray())
+        storage.put("0".toTimestampedByteArray(), "v3".toTimestampedByteArray())
+        storage.put("2".toTimestampedByteArray(), "v3".toTimestampedByteArray())
         sync(storage)
-        storage.delete("1".toComparableByteArray())
+        storage.delete("1".toTimestampedByteArray())
         sync(storage)
         storage.constructMergeIterator().let { iter ->
             if (Configuration.TS_ENABLED) {
                 checkIterator(
                     actual = iter,
                     expected = listOf(
-                        Pair("0".toComparableByteArray(), "v3".toComparableByteArray()),
-                        Pair("0".toComparableByteArray(), "".toComparableByteArray()),
-                        Pair("0".toComparableByteArray(), "v2".toComparableByteArray()),
-                        Pair("0".toComparableByteArray(), "v1".toComparableByteArray()),
-                        Pair("1".toComparableByteArray(), "".toComparableByteArray()),
-                        Pair("1".toComparableByteArray(), "v2".toComparableByteArray()),
-                        Pair("2".toComparableByteArray(), "v3".toComparableByteArray()),
-                        Pair("2".toComparableByteArray(), "".toComparableByteArray()),
-                        Pair("2".toComparableByteArray(), "v2".toComparableByteArray()),
+                        Pair("0".toTimestampedByteArray(), "v3".toTimestampedByteArray()),
+                        Pair("0".toTimestampedByteArray(), "".toTimestampedByteArray()),
+                        Pair("0".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
+                        Pair("0".toTimestampedByteArray(), "v1".toTimestampedByteArray()),
+                        Pair("1".toTimestampedByteArray(), "".toTimestampedByteArray()),
+                        Pair("1".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
+                        Pair("2".toTimestampedByteArray(), "v3".toTimestampedByteArray()),
+                        Pair("2".toTimestampedByteArray(), "".toTimestampedByteArray()),
+                        Pair("2".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
                     )
                 )
             } else {
                 checkIterator(
                     actual = iter,
                     expected = listOf(
-                        Pair("0".toComparableByteArray(), "v3".toComparableByteArray()),
-                        Pair("1".toComparableByteArray(), "".toComparableByteArray()),
-                        Pair("2".toComparableByteArray(), "v3".toComparableByteArray()),
+                        Pair("0".toTimestampedByteArray(), "v3".toTimestampedByteArray()),
+                        Pair("1".toTimestampedByteArray(), "".toTimestampedByteArray()),
+                        Pair("2".toTimestampedByteArray(), "v3".toTimestampedByteArray()),
                     )
                 )
             }
@@ -136,23 +136,23 @@ class Day1 {
                 checkIterator(
                     actual = iter,
                     expected = listOf(
-                        Pair("0".toComparableByteArray(), "v3".toComparableByteArray()),
-                        Pair("0".toComparableByteArray(), "".toComparableByteArray()),
-                        Pair("0".toComparableByteArray(), "v2".toComparableByteArray()),
-                        Pair("0".toComparableByteArray(), "v1".toComparableByteArray()),
-                        Pair("1".toComparableByteArray(), "".toComparableByteArray()),
-                        Pair("1".toComparableByteArray(), "v2".toComparableByteArray()),
-                        Pair("2".toComparableByteArray(), "v3".toComparableByteArray()),
-                        Pair("2".toComparableByteArray(), "".toComparableByteArray()),
-                        Pair("2".toComparableByteArray(), "v2".toComparableByteArray()),
+                        Pair("0".toTimestampedByteArray(), "v3".toTimestampedByteArray()),
+                        Pair("0".toTimestampedByteArray(), "".toTimestampedByteArray()),
+                        Pair("0".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
+                        Pair("0".toTimestampedByteArray(), "v1".toTimestampedByteArray()),
+                        Pair("1".toTimestampedByteArray(), "".toTimestampedByteArray()),
+                        Pair("1".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
+                        Pair("2".toTimestampedByteArray(), "v3".toTimestampedByteArray()),
+                        Pair("2".toTimestampedByteArray(), "".toTimestampedByteArray()),
+                        Pair("2".toTimestampedByteArray(), "v2".toTimestampedByteArray()),
                     )
                 )
             } else {
                 checkIterator(
                     actual = iter,
                     expected = listOf(
-                        Pair("0".toComparableByteArray(), "v3".toComparableByteArray()),
-                        Pair("2".toComparableByteArray(), "v3".toComparableByteArray()),
+                        Pair("0".toTimestampedByteArray(), "v3".toTimestampedByteArray()),
+                        Pair("2".toTimestampedByteArray(), "v3".toTimestampedByteArray()),
                     )
                 )
             }
@@ -176,22 +176,22 @@ class Day1 {
         for (key in 0 until 120) {
             val iter = SstConcatIterator.createAndSeekToKey(
                 sstables = sstables,
-                key = "%05d".format(key).toComparableByteArray()
+                key = "%05d".format(key).toTimestampedByteArray()
             )
             if (key < 10) {
                 assertTrue { iter.isValid() }
-                assertEquals(iter.key(), "00010".toComparableByteArray())
+                assertEquals(iter.key(), "00010".toTimestampedByteArray())
             } else if (key >= 110) {
                 assertTrue { !iter.isValid() }
             } else {
                 assertTrue { iter.isValid() }
-                assertEquals(iter.key(), "%05d".format(key).toComparableByteArray())
+                assertEquals(iter.key(), "%05d".format(key).toTimestampedByteArray())
             }
         }
 
         val iter = SstConcatIterator.createAndSeekToFirst(sstables)
         assertTrue { iter.isValid() }
-        assertEquals(iter.key(), "00010".toComparableByteArray())
+        assertEquals(iter.key(), "00010".toTimestampedByteArray())
     }
 
     @Test
@@ -201,25 +201,25 @@ class Day1 {
             path = dir,
             options = lsmStorageOptionForTest()
         )
-        storage.put("0".toComparableByteArray(), "2333333".toComparableByteArray())
-        storage.put("00".toComparableByteArray(), "2333333".toComparableByteArray())
-        storage.put("4".toComparableByteArray(), "23".toComparableByteArray())
+        storage.put("0".toTimestampedByteArray(), "2333333".toTimestampedByteArray())
+        storage.put("00".toTimestampedByteArray(), "2333333".toTimestampedByteArray())
+        storage.put("4".toTimestampedByteArray(), "23".toTimestampedByteArray())
         sync(storage)
 
-        storage.delete("4".toComparableByteArray())
+        storage.delete("4".toTimestampedByteArray())
         sync(storage)
 
         storage.forceFullCompaction()
         assertTrue { storage.state.l0Sstables.readValue().isEmpty() }
         assertTrue { storage.state.levels.readValue()[0].sstIds.isNotEmpty() }
 
-        storage.put("1".toComparableByteArray(), "233".toComparableByteArray())
-        storage.put("2".toComparableByteArray(), "2333".toComparableByteArray())
+        storage.put("1".toTimestampedByteArray(), "233".toTimestampedByteArray())
+        storage.put("2".toTimestampedByteArray(), "2333".toTimestampedByteArray())
         sync(storage)
 
-        storage.put("00".toComparableByteArray(), "2333".toComparableByteArray())
-        storage.put("3".toComparableByteArray(), "23333".toComparableByteArray())
-        storage.delete("1".toComparableByteArray())
+        storage.put("00".toTimestampedByteArray(), "2333".toTimestampedByteArray())
+        storage.put("3".toTimestampedByteArray(), "23333".toTimestampedByteArray())
+        storage.delete("1".toTimestampedByteArray())
         sync(storage)
         storage.forceFullCompaction()
 
@@ -229,20 +229,20 @@ class Day1 {
         checkIterator(
             actual = storage.scan(Unbounded, Unbounded),
             expected = listOf(
-                Pair("0".toComparableByteArray(), "2333333".toComparableByteArray()),
-                Pair("00".toComparableByteArray(), "2333".toComparableByteArray()),
-                Pair("2".toComparableByteArray(), "2333".toComparableByteArray()),
-                Pair("3".toComparableByteArray(), "23333".toComparableByteArray()),
+                Pair("0".toTimestampedByteArray(), "2333333".toTimestampedByteArray()),
+                Pair("00".toTimestampedByteArray(), "2333".toTimestampedByteArray()),
+                Pair("2".toTimestampedByteArray(), "2333".toTimestampedByteArray()),
+                Pair("3".toTimestampedByteArray(), "23333".toTimestampedByteArray()),
             )
         )
 
-        assertEquals(storage.get("0".toComparableByteArray()), "2333333".toComparableByteArray())
-        assertEquals(storage.get("00".toComparableByteArray()), "2333".toComparableByteArray())
-        assertEquals(storage.get("2".toComparableByteArray()), "2333".toComparableByteArray())
-        assertEquals(storage.get("3".toComparableByteArray()), "23333".toComparableByteArray())
-        assertEquals(storage.get("4".toComparableByteArray()), null)
-        assertEquals(storage.get("--".toComparableByteArray()), null)
-        assertEquals(storage.get("555".toComparableByteArray()), null)
+        assertEquals(storage.get("0".toTimestampedByteArray()), "2333333".toTimestampedByteArray())
+        assertEquals(storage.get("00".toTimestampedByteArray()), "2333".toTimestampedByteArray())
+        assertEquals(storage.get("2".toTimestampedByteArray()), "2333".toTimestampedByteArray())
+        assertEquals(storage.get("3".toTimestampedByteArray()), "23333".toTimestampedByteArray())
+        assertEquals(storage.get("4".toTimestampedByteArray()), null)
+        assertEquals(storage.get("--".toTimestampedByteArray()), null)
+        assertEquals(storage.get("555".toTimestampedByteArray()), null)
     }
 
     private fun sync(storage: LsmStorageInner) {
@@ -259,7 +259,7 @@ class Day1 {
         val builder = SsTableBuilder(128)
         for (idx in startKey until endKey) {
             val key = "%05d".format(idx)
-            builder.add(key.toComparableByteArray(), "test".toComparableByteArray())
+            builder.add(key.toTimestampedByteArray(), "test".toTimestampedByteArray())
         }
         val path = dir.resolve("${id}.sst")
         return builder.buildForTest(path)

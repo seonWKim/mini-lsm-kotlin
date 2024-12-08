@@ -1,6 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.lsm.sstable.Sstable
 
 /**
@@ -50,7 +50,7 @@ class SstConcatIterator(
          * @param key the key to seek to
          * @return a new SstConcatIterator
          */
-        fun createAndSeekToKey(sstables: List<Sstable>, key: ComparableByteArray): SstConcatIterator {
+        fun createAndSeekToKey(sstables: List<Sstable>, key: TimestampedByteArray): SstConcatIterator {
             checkSstValid(sstables)
             val idx = findMinimumSstableIdxContainingKey(sstables, key)
             if (idx >= sstables.size) {
@@ -89,14 +89,14 @@ class SstConcatIterator(
         }
     }
 
-    override fun key(): ComparableByteArray {
+    override fun key(): TimestampedByteArray {
         if (current == null) {
             throw Error("Use isValid() function before calling this function")
         }
         return current!!.key()
     }
 
-    override fun value(): ComparableByteArray {
+    override fun value(): TimestampedByteArray {
         if (current == null) {
             throw Error("Use isValid() function before calling this function")
         }
@@ -128,7 +128,7 @@ class SstConcatIterator(
  * @param key the key to find
  * @return the index of the SSTable containing the key
  */
-fun findMinimumSstableIdxContainingKey(sstables: List<Sstable>, key: ComparableByteArray): Int {
+fun findMinimumSstableIdxContainingKey(sstables: List<Sstable>, key: TimestampedByteArray): Int {
     return sstables.binarySearch { it.firstKey.compareTo(key) }
         .let { idx ->
             if (idx < 0) maxOf(-idx - 2, 0)

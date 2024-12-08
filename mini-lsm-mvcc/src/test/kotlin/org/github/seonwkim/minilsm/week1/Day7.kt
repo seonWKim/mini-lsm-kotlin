@@ -1,8 +1,8 @@
 package org.github.seonwkim.minilsm.week1
 
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.common.farmHashFingerPrintU32
-import org.github.seonwkim.common.toComparableByteArray
+import org.github.seonwkim.common.toTimestampedByteArray
 import org.github.seonwkim.lsm.bloom.Bloom
 import org.github.seonwkim.lsm.bloom.BloomUtil
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
@@ -71,11 +71,11 @@ class Day7 {
         assertEquals(sst1.bloom?.filter, sst2.bloom?.filter)
     }
 
-    private fun createKey(idx: Int): ComparableByteArray {
-        return "key_%010d".format(idx * 5).toComparableByteArray()
+    private fun createKey(idx: Int): TimestampedByteArray {
+        return "key_%010d".format(idx * 5).toTimestampedByteArray()
     }
 
-    private fun createValue(idx: Int): ComparableByteArray {
-        return "value_%010d".format(idx).toComparableByteArray()
+    private fun createValue(idx: Int): TimestampedByteArray {
+        return "value_%010d".format(idx).toTimestampedByteArray()
     }
 }

@@ -30,7 +30,7 @@ class Wal(private val file: MutexLock<File>) {
             )
         }
 
-        fun recover(path: Path, map: ConcurrentSkipListMap<ComparableByteArray, ComparableByteArray>): Wal {
+        fun recover(path: Path, map: ConcurrentSkipListMap<TimestampedByteArray, TimestampedByteArray>): Wal {
             val file = Files.newByteChannel(
                 path,
                 StandardOpenOption.READ,
@@ -46,23 +46,23 @@ class Wal(private val file: MutexLock<File>) {
             while (bufPrt.hasRemaining()) {
                 val keyLenSlice = ByteArray(SIZE_OF_U16_IN_BYTE)
                 bufPrt.get(keyLenSlice)
-                val keyLen = keyLenSlice.toComparableByteArray().toU16Int()
+                val keyLen = keyLenSlice.toTimestampedByteArray().toU16Int()
 
                 val keySlice = ByteArray(keyLen)
                 bufPrt.get(keySlice)
-                val key = keySlice.toComparableByteArray()
+                val key = keySlice.toTimestampedByteArray()
 
                 val valueLenSlice = ByteArray(SIZE_OF_U16_IN_BYTE)
                 bufPrt.get(valueLenSlice)
-                val valueLen = valueLenSlice.toComparableByteArray().toU16Int()
+                val valueLen = valueLenSlice.toTimestampedByteArray().toU16Int()
 
                 val valueSlice = ByteArray(valueLen)
                 bufPrt.get(valueSlice)
-                val value = valueSlice.toComparableByteArray()
+                val value = valueSlice.toTimestampedByteArray()
 
                 val checksumSlice = ByteArray(SIZE_OF_U32_IN_BYTE)
                 bufPrt.get(checksumSlice)
-                val checksum = checksumSlice.toComparableByteArray().toU32Int()
+                val checksum = checksumSlice.toTimestampedByteArray().toU32Int()
 
                 val combined = keyLenSlice + keySlice + valueLenSlice + valueSlice
                 val calculatedChecksum = crcHash(combined)
@@ -81,9 +81,9 @@ class Wal(private val file: MutexLock<File>) {
         }
     }
 
-    fun put(key: ComparableByteArray, value: ComparableByteArray) {
+    fun put(key: TimestampedByteArray, value: TimestampedByteArray) {
         this.file.withWriteLock {
-            val buf = ComparableByteArray.new()
+            val buf = TimestampedByteArray.new()
 
             buf += key.size().toU16ByteArray()
             buf += key

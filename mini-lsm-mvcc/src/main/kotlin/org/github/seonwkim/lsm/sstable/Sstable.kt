@@ -1,6 +1,6 @@
 package org.github.seonwkim.lsm.sstable
 
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.common.SIZE_OF_U32_IN_BYTE
 import org.github.seonwkim.common.crcHash
 import org.github.seonwkim.common.toU32Int
@@ -17,8 +17,8 @@ class Sstable(
     val blockMetaOffset: Int,
     val id: Int,
     val blockCache: BlockCache?,
-    val firstKey: ComparableByteArray,
-    val lastKey: ComparableByteArray,
+    val firstKey: TimestampedByteArray,
+    val lastKey: TimestampedByteArray,
     val bloom: Bloom?,
     // val maxTs: Long
 ) {
@@ -79,7 +79,7 @@ class Sstable(
     /**
      * Find the block that may contain [key].
      */
-    fun findBlockIdx(key: ComparableByteArray): Int {
+    fun findBlockIdx(key: TimestampedByteArray): Int {
         return blockMeta.binarySearch { it.firstKey.compareTo(key) }
             .let { idx ->
                 if (idx < 0) maxOf(-idx - 2, 0)

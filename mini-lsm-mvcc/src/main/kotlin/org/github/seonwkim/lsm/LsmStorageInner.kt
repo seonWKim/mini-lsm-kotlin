@@ -178,7 +178,7 @@ class LsmStorageInner private constructor(
                 blockCache = blockCache,
                 compactionController = compactionController,
                 manifest = manifest,
-                compactionFilters = MutexLock(Prefix(ComparableByteArray.new()))
+                compactionFilters = MutexLock(Prefix(TimestampedByteArray.new()))
             )
         }
 
@@ -206,7 +206,7 @@ class LsmStorageInner private constructor(
      * @param key The key to be retrieved.
      * @return The value associated with the key, or `null` if the key is not found or is marked as deleted.
      */
-    fun get(key: ComparableByteArray): ComparableByteArray? {
+    fun get(key: TimestampedByteArray): TimestampedByteArray? {
         getFromMemTable(key).let {
             when {
                 it.isValid() -> return it!!
@@ -230,11 +230,11 @@ class LsmStorageInner private constructor(
         return getFromSstables(key)
     }
 
-    private fun getFromMemTable(key: ComparableByteArray): ComparableByteArray? {
+    private fun getFromMemTable(key: TimestampedByteArray): TimestampedByteArray? {
         return state.memTable.withReadLock { it.get(key) }
     }
 
-    private fun getFromImmutableMemTables(key: ComparableByteArray): ComparableByteArray? {
+    private fun getFromImmutableMemTables(key: TimestampedByteArray): TimestampedByteArray? {
         return state.immutableMemTables.withReadLock {
             for (immMemTable in it) {
                 val result = immMemTable.get(key)
@@ -247,7 +247,7 @@ class LsmStorageInner private constructor(
         }
     }
 
-    private fun getFromSstables(key: ComparableByteArray): ComparableByteArray? {
+    private fun getFromSstables(key: TimestampedByteArray): TimestampedByteArray? {
         val l0Iter = MergeIterator(getL0SsTableIterators(key))
         val levelIters = MergeIterator(getSstConcatIterator(key))
         val totalMergedIter = TwoMergeIterator.create(
@@ -264,7 +264,7 @@ class LsmStorageInner private constructor(
         return null
     }
 
-    private fun getL0SsTableIterators(key: ComparableByteArray): List<SsTableIterator> {
+    private fun getL0SsTableIterators(key: TimestampedByteArray): List<SsTableIterator> {
         return state.l0Sstables.withReadLock {
             it.mapNotNull { l0SstableIdx ->
                 val table = state.sstables[l0SstableIdx] ?: return@mapNotNull null
@@ -340,8 +340,8 @@ class LsmStorageInner private constructor(
     private fun rangeOverlap(
         userBegin: Bound,
         userEnd: Bound,
-        tableBegin: ComparableByteArray,
-        tableEnd: ComparableByteArray
+        tableBegin: TimestampedByteArray,
+        tableEnd: TimestampedByteArray
     ): Boolean {
         when (userEnd) {
             is Excluded -> if (userEnd.key <= tableBegin) {
@@ -412,7 +412,7 @@ class LsmStorageInner private constructor(
         }
     }
 
-    private fun getSstConcatIterator(key: ComparableByteArray): List<SstConcatIterator> {
+    private fun getSstConcatIterator(key: TimestampedByteArray): List<SstConcatIterator> {
         return state.levels.readValue().map { level ->
             val validLevelSsts = mutableListOf<Sstable>()
             level.sstIds.forEach { levelSstId ->
@@ -426,7 +426,7 @@ class LsmStorageInner private constructor(
         }
     }
 
-    private fun keepTable(key: ComparableByteArray, table: Sstable): Boolean {
+    private fun keepTable(key: TimestampedByteArray, table: Sstable): Boolean {
         if (table.firstKey <= key && key <= table.lastKey) {
             if (table.bloom == null) {
                 return true
@@ -444,10 +444,10 @@ class LsmStorageInner private constructor(
      *
      * This method adds the specified key-value pair to the current memTable.
      *
-     * @param key The key to be inserted. It must be a [ComparableByteArray] to ensure proper ordering.
-     * @param value The value to be associated with the key. It must be a [ComparableByteArray].
+     * @param key The key to be inserted. It must be a [TimestampedByteArray] to ensure proper ordering.
+     * @param value The value to be associated with the key. It must be a [TimestampedByteArray].
      */
-    fun put(key: ComparableByteArray, value: ComparableByteArray) {
+    fun put(key: TimestampedByteArray, value: TimestampedByteArray) {
         writeBatch(listOf(Put(key, value)))
     }
 
@@ -456,9 +456,9 @@ class LsmStorageInner private constructor(
      *
      * This method marks the specified key as deleted in the current memTable.
      *
-     * @param key The key to be deleted. It must be a [ComparableByteArray].
+     * @param key The key to be deleted. It must be a [TimestampedByteArray].
      */
-    fun delete(key: ComparableByteArray) {
+    fun delete(key: TimestampedByteArray) {
         writeBatch(listOf(Delete(key)))
     }
 
@@ -473,7 +473,7 @@ class LsmStorageInner private constructor(
 
                     var shouldFreezeMemTable = false
                     state.memTable.withReadLock { memTable ->
-                        memTable.put(key, "".toComparableByteArray())
+                        memTable.put(key, "".toTimestampedByteArray())
                         shouldFreezeMemTable = memTable.approximateSize() >= options.targetSstSize
                     }
 

@@ -16,32 +16,32 @@ fun Int.clamp(min: Int, max: Int): Int {
 }
 
 /**
- * Converts this integer to a [ComparableByteArray] representing an unsigned 8-bit integer.
+ * Converts this integer to a [TimestampedByteArray] representing an unsigned 8-bit integer.
  *
- * @return a [ComparableByteArray] containing the byte representation of this integer
+ * @return a [TimestampedByteArray] containing the byte representation of this integer
  */
-fun Int.toU8ByteArray(): ComparableByteArray {
-    return ComparableByteArray(listOf(this.toByte()))
+fun Int.toU8ByteArray(): TimestampedByteArray {
+    return TimestampedByteArray(listOf(this.toByte()))
 }
 
 /**
- * Converts this integer to a [ComparableByteArray] representing an unsigned 16-bit integer.
+ * Converts this integer to a [TimestampedByteArray] representing an unsigned 16-bit integer.
  *
- * @return a [ComparableByteArray] containing the byte representation of this integer
+ * @return a [TimestampedByteArray] containing the byte representation of this integer
  */
-fun Int.toU16ByteArray(): ComparableByteArray {
+fun Int.toU16ByteArray(): TimestampedByteArray {
     val highByte = (this shr 8).toByte()
     val lowByte = this.toByte()
-    return ComparableByteArray(listOf(highByte, lowByte))
+    return TimestampedByteArray(listOf(highByte, lowByte))
 }
 
 /**
- * Converts this integer to a [ComparableByteArray] representing an unsigned 32-bit integer.
+ * Converts this integer to a [TimestampedByteArray] representing an unsigned 32-bit integer.
  *
- * @return a [ComparableByteArray] containing the byte representation of this integer
+ * @return a [TimestampedByteArray] containing the byte representation of this integer
  */
-fun Int.toU32ByteArray(): ComparableByteArray {
-    return ComparableByteArray(
+fun Int.toU32ByteArray(): TimestampedByteArray {
+    return TimestampedByteArray(
         listOf(
             (this shr 24).toByte(),
             (this shr 16).toByte(),
@@ -52,12 +52,12 @@ fun Int.toU32ByteArray(): ComparableByteArray {
 }
 
 /**
- * Converts this long to a [ComparableByteArray] representing an unsigned 64-bit integer.
+ * Converts this long to a [TimestampedByteArray] representing an unsigned 64-bit integer.
  *
- * @return a [ComparableByteArray] containing the byte representation of this long
+ * @return a [TimestampedByteArray] containing the byte representation of this long
  */
-fun Long.toU64ByteArray(): ComparableByteArray {
-    return ComparableByteArray(
+fun Long.toU64ByteArray(): TimestampedByteArray {
+    return TimestampedByteArray(
         listOf(
             (this shr 56).toByte(),
             (this shr 48).toByte(),

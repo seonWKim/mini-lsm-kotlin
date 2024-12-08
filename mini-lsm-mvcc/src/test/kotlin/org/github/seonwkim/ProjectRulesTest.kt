@@ -11,7 +11,7 @@ import com.tngtech.archunit.lang.ArchRule
 import com.tngtech.archunit.lang.ConditionEvents
 import com.tngtech.archunit.lang.SimpleConditionEvent
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 import kotlin.test.Test
 
 class ProjectRulesTest {
@@ -19,7 +19,7 @@ class ProjectRulesTest {
         .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
         .importPackages("org.github.seonwkim")
 
-    private val allowedClasses = listOf(ComparableByteArray::class.java.name)
+    private val allowedClasses = listOf(TimestampedByteArray::class.java.name)
 
     @Test
     fun `only allowed classes can access List of type Byte`() {

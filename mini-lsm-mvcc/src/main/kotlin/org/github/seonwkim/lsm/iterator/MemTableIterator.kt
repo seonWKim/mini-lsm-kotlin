@@ -16,8 +16,8 @@ class MemTableIterator private constructor(
     private val lower: Bound,
     private val upper: Bound,
 ) : StorageIterator {
-    private var current: Map.Entry<ComparableByteArray, ComparableByteArray>? = null
-    private val iter: Iterator<Map.Entry<ComparableByteArray, ComparableByteArray>>
+    private var current: Map.Entry<TimestampedByteArray, TimestampedByteArray>? = null
+    private val iter: Iterator<Map.Entry<TimestampedByteArray, TimestampedByteArray>>
 
     init {
         val iter = memTable.iterator()
@@ -45,12 +45,12 @@ class MemTableIterator private constructor(
             return MemTableIterator(memTable, lower, upper)
         }    }
 
-    override fun key(): ComparableByteArray {
+    override fun key(): TimestampedByteArray {
         return current?.key
             ?: throw Error("Use isValid() function before calling this function")
     }
 
-    override fun value(): ComparableByteArray {
+    override fun value(): TimestampedByteArray {
         return current?.value
             ?: throw Error("Use isValid() function before calling this function")
     }

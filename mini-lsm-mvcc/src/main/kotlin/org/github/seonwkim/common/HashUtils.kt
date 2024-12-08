@@ -3,12 +3,12 @@ package org.github.seonwkim.common
 import com.google.common.hash.Hashing
 
 /**
- * Computes the CRC32 hash of the given [ComparableByteArray].
+ * Computes the CRC32 hash of the given [TimestampedByteArray].
  *
- * @param key the [ComparableByteArray] to hash
+ * @param key the [TimestampedByteArray] to hash
  * @return the CRC32 hash as an integer
  */
-fun crcHash(key: ComparableByteArray): Int {
+fun crcHash(key: TimestampedByteArray): Int {
     return crcHash(key.getByteArray())
 }
 
@@ -23,12 +23,12 @@ fun crcHash(key: ByteArray): Int {
 }
 
 /**
- * Computes the FarmHash fingerprint (32-bit) of the given [ComparableByteArray].
+ * Computes the FarmHash fingerprint (32-bit) of the given [TimestampedByteArray].
  *
- * @param key the [ComparableByteArray] to hash
+ * @param key the [TimestampedByteArray] to hash
  * @return the FarmHash fingerprint as an unsigned integer
  */
-fun farmHashFingerPrintU32(key: ComparableByteArray): UInt {
+fun farmHashFingerPrintU32(key: TimestampedByteArray): UInt {
     return farmHashFingerPrintU32(key.getByteArray())
 }
 

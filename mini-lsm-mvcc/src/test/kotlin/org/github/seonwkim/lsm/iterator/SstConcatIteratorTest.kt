@@ -1,6 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
-import org.github.seonwkim.common.toComparableByteArray
+import org.github.seonwkim.common.toTimestampedByteArray
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
 import org.github.seonwkim.lsm.sstable.Sstable
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -18,7 +18,7 @@ class SstConcatIteratorTest {
             generateConcatSst(10, 20, dir, 2),
             generateConcatSst(20, 30, dir, 3)
         )
-        val key = "00010".toComparableByteArray()
+        val key = "00010".toTimestampedByteArray()
         val idx = findMinimumSstableIdxContainingKey(sstables, key)
         assertEquals(1, idx)
     }
@@ -31,7 +31,7 @@ class SstConcatIteratorTest {
             generateConcatSst(10, 20, dir, 2),
             generateConcatSst(20, 30, dir, 3)
         )
-        val key = "00015".toComparableByteArray()
+        val key = "00015".toTimestampedByteArray()
         val idx = findMinimumSstableIdxContainingKey(sstables, key)
         assertEquals(1, idx)
     }
@@ -44,7 +44,7 @@ class SstConcatIteratorTest {
             generateConcatSst(20, 30, dir, 2),
             generateConcatSst(30, 40, dir, 3)
         )
-        val key = "00000".toComparableByteArray()
+        val key = "00000".toTimestampedByteArray()
         val idx = findMinimumSstableIdxContainingKey(sstables, key)
         assertEquals(0, idx)
     }
@@ -57,7 +57,7 @@ class SstConcatIteratorTest {
             generateConcatSst(10, 20, dir, 2),
             generateConcatSst(20, 30, dir, 3)
         )
-        val key = "00030".toComparableByteArray()
+        val key = "00030".toTimestampedByteArray()
         val idx = findMinimumSstableIdxContainingKey(sstables, key)
         assertEquals(2, idx)
     }
@@ -71,7 +71,7 @@ class SstConcatIteratorTest {
         val builder = SsTableBuilder(128)
         for (idx in startKey until endKey) {
             val key = "%05d".format(idx)
-            builder.add(key.toComparableByteArray(), "test".toComparableByteArray())
+            builder.add(key.toTimestampedByteArray(), "test".toTimestampedByteArray())
         }
         val path = dir.resolve("${id}.sst")
         return builder.buildForTest(path)

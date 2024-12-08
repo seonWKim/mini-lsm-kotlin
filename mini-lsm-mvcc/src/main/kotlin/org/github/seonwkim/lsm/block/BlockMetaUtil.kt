@@ -14,7 +14,7 @@ object BlockMetaUtil {
      * @param blockMeta the list of block metadata to encode
      * @param buf the buffer to encode the metadata into
      */
-    fun encodeBlockMeta(blockMeta: List<BlockMeta>, buf: ComparableByteArray) {
+    fun encodeBlockMeta(blockMeta: List<BlockMeta>, buf: TimestampedByteArray) {
         val originalLength = buf.size()
 
         // number of blocks
@@ -45,7 +45,7 @@ object BlockMetaUtil {
      * @return the decoded block metadata
      * @throws IllegalStateException if the checksum does not match
      */
-    fun decodeBlockMeta(buf: ComparableByteArray): BlockMetaDecodedResult {
+    fun decodeBlockMeta(buf: TimestampedByteArray): BlockMetaDecodedResult {
         val blockMeta = mutableListOf<BlockMeta>()
 
         var currentOffset = 0

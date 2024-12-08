@@ -1,6 +1,6 @@
 package org.github.seonwkim.minilsm.week2
 
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.common.toU32ByteArray
 import org.github.seonwkim.lsm.LsmStorageOptions
 import org.github.seonwkim.lsm.MiniLsm
@@ -156,12 +156,12 @@ class Day5 {
     private fun keyValueWithTargetSize(
         seed: Int,
         targetSizeByte: Int
-    ): Pair<ComparableByteArray, ComparableByteArray> {
+    ): Pair<TimestampedByteArray, TimestampedByteArray> {
         val key = seed.toU32ByteArray()
-        key += ComparableByteArray(List(targetSizeByte - 4) { 0 })
+        key += TimestampedByteArray(List(targetSizeByte - 4) { 0 })
 
         val value = seed.toU32ByteArray()
-        value += ComparableByteArray(List(targetSizeByte - 4) { 0 })
+        value += TimestampedByteArray(List(targetSizeByte - 4) { 0 })
 
         return Pair(key, value)
     }

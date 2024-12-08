@@ -1,6 +1,6 @@
 package org.github.seonwkim.lsm.block
 
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 
 /**
  * A data class representing metadata for a data block.
@@ -11,6 +11,6 @@ import org.github.seonwkim.common.ComparableByteArray
  */
 data class BlockMeta(
     val offset: Int,
-    val firstKey: ComparableByteArray,
-    val lastKey: ComparableByteArray
+    val firstKey: TimestampedByteArray,
+    val lastKey: TimestampedByteArray
 )

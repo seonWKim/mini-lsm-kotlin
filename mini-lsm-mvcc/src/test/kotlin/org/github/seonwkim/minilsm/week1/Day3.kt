@@ -1,6 +1,6 @@
 package org.github.seonwkim.minilsm.week1
 
-import org.github.seonwkim.common.toComparableByteArray
+import org.github.seonwkim.common.toTimestampedByteArray
 import org.github.seonwkim.lsm.block.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -12,30 +12,30 @@ class Day3 {
     @Test
     fun `test block build single key`() {
         val builder = BlockBuilder(16)
-        assertTrue { builder.add("233".toComparableByteArray(), "233333".toComparableByteArray()) }
+        assertTrue { builder.add("233".toTimestampedByteArray(), "233333".toTimestampedByteArray()) }
         builder.build()
     }
 
     @Test
     fun `test block build full`() {
         val builder = BlockBuilder(16)
-        assertTrue { builder.add("11".toComparableByteArray(), "11".toComparableByteArray()) }
-        assertFalse { builder.add("22".toComparableByteArray(), "22".toComparableByteArray()) }
+        assertTrue { builder.add("11".toTimestampedByteArray(), "11".toTimestampedByteArray()) }
+        assertFalse { builder.add("22".toTimestampedByteArray(), "22".toTimestampedByteArray()) }
         builder.build()
     }
 
     @Test
     fun `test block build large 1`() {
         val builder = BlockBuilder(16)
-        assertTrue { builder.add("11".toComparableByteArray(), "1".repeat(100).toComparableByteArray()) }
+        assertTrue { builder.add("11".toTimestampedByteArray(), "1".repeat(100).toTimestampedByteArray()) }
         builder.build()
     }
 
     @Test
     fun `test block build large 2`() {
         val builder = BlockBuilder(16)
-        assertTrue { builder.add("11".toComparableByteArray(), "1".toComparableByteArray()) }
-        assertFalse { builder.add("11".toComparableByteArray(), "1".repeat(100).toComparableByteArray()) }
+        assertTrue { builder.add("11".toTimestampedByteArray(), "1".toTimestampedByteArray()) }
+        assertFalse { builder.add("11".toTimestampedByteArray(), "1".repeat(100).toTimestampedByteArray()) }
         builder.build()
     }
 
@@ -66,13 +66,13 @@ class Day3 {
         for (unused in 0..<5) {
             for (i in 0..<100) {
                 val key = iter.key()
-                val expectedKey = createKey(i).toComparableByteArray()
+                val expectedKey = createKey(i).toTimestampedByteArray()
                 assertTrue("expected: $expectedKey, actual: $key") {
                     key.compareTo(expectedKey) == 0
                 }
 
                 val value = iter.value()
-                val expectedValue = createValue(i).toComparableByteArray()
+                val expectedValue = createValue(i).toTimestampedByteArray()
                 assertTrue("expected: $expectedValue, actual: $value") {
                     value.compareTo(expectedValue) == 0
                 }
@@ -85,31 +85,31 @@ class Day3 {
     @Test
     fun `test block seek key`() {
         val block = generateBlock()
-        val iter = BlockIterator.createAndSeekToKey(block, createKey(0).toComparableByteArray())
+        val iter = BlockIterator.createAndSeekToKey(block, createKey(0).toTimestampedByteArray())
         for (offset in 1..5) {
             for (i in 0..<100) {
                 val key = iter.key()
-                val expectedKey = createKey(i).toComparableByteArray()
+                val expectedKey = createKey(i).toTimestampedByteArray()
                 assertTrue("expected: $expectedKey, actual: $key") {
                     key.compareTo(expectedKey) == 0
                 }
 
                 val value = iter.value()
-                val expectedValue = createValue(i).toComparableByteArray()
+                val expectedValue = createValue(i).toTimestampedByteArray()
                 assertTrue("expected: $expectedValue, actual: $value") {
                     value.compareTo(expectedValue) == 0
                 }
-                iter.seekToKey("key_%03d".format(i * 5 + offset).toComparableByteArray())
+                iter.seekToKey("key_%03d".format(i * 5 + offset).toTimestampedByteArray())
             }
-            iter.seekToKey("k".toComparableByteArray())
+            iter.seekToKey("k".toTimestampedByteArray())
         }
     }
 
     private fun generateBlock(): Block {
         val builder = BlockBuilder(10000)
         for (idx in 0..<100) {
-            val key = createKey(idx).toComparableByteArray()
-            val value = createValue(idx).toComparableByteArray()
+            val key = createKey(idx).toTimestampedByteArray()
+            val value = createValue(idx).toTimestampedByteArray()
             assertTrue { builder.add(key, value) }
         }
         return builder.build()

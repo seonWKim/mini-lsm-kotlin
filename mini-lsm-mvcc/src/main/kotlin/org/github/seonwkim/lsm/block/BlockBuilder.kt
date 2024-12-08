@@ -11,13 +11,13 @@ class BlockBuilder(
     private val blockSize: Int,
 ) {
     // Offsets of each key-value entry
-    private val offset: ComparableByteArray = ComparableByteArray.new()
+    private val offset: TimestampedByteArray = TimestampedByteArray.new()
 
     // All serialized key-value pairs in the block
-    private val data: ComparableByteArray = ComparableByteArray.new()
+    private val data: TimestampedByteArray = TimestampedByteArray.new()
 
     // First key in the block
-    private var firstKey: ComparableByteArray? = null
+    private var firstKey: TimestampedByteArray? = null
 
     companion object {
         private const val OFFSET_KEY_VALUE_COUNT = 3
@@ -31,7 +31,7 @@ class BlockBuilder(
      * @return false if the block is full, true otherwise
      * @throws IllegalArgumentException if the key is empty
      */
-    fun add(key: ComparableByteArray, value: ComparableByteArray): Boolean {
+    fun add(key: TimestampedByteArray, value: TimestampedByteArray): Boolean {
         if (key.isEmpty()) {
             throw IllegalArgumentException("key should not be empty")
         }
@@ -75,7 +75,7 @@ class BlockBuilder(
      * @param value the value to add
      * @return true if the addition is allowed, false otherwise
      */
-    private fun additionAllowed(key: ComparableByteArray, value: ComparableByteArray): Boolean {
+    private fun additionAllowed(key: TimestampedByteArray, value: TimestampedByteArray): Boolean {
         if (isEmpty()) return true
 
         val nextEstimatedSize =

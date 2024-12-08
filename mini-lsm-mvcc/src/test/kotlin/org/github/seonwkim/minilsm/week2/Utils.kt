@@ -1,9 +1,9 @@
 package org.github.seonwkim.minilsm.week2
 
 import mu.KotlinLogging
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.common.Unbounded
-import org.github.seonwkim.common.toComparableByteArray
+import org.github.seonwkim.common.toTimestampedByteArray
 import org.github.seonwkim.lsm.Configuration
 import org.github.seonwkim.lsm.LsmStorageInner
 import org.github.seonwkim.lsm.MiniLsm
@@ -20,7 +20,7 @@ import kotlin.test.assertTrue
 object Utils {
     fun checkIterator(
         actual: StorageIterator,
-        expected: List<Pair<ComparableByteArray, ComparableByteArray>>
+        expected: List<Pair<TimestampedByteArray, TimestampedByteArray>>
     ) {
         for (e in expected) {
             assertTrue { actual.isValid() }
@@ -46,7 +46,7 @@ object Utils {
                 val version = keyMap.getOrDefault(i, 0) + 1
                 val value = genValue(version)
                 keyMap[i] = version
-                storage.put(key.toComparableByteArray(), value.toComparableByteArray())
+                storage.put(key.toTimestampedByteArray(), value.toTimestampedByteArray())
                 maxKey = maxOf(maxKey, i)
             }
         }
@@ -58,14 +58,14 @@ object Utils {
         }
 
         waitUntilCompactionEnds(storage)
-        val expectedKeyValuePairs = mutableListOf<Pair<ComparableByteArray, ComparableByteArray>>()
+        val expectedKeyValuePairs = mutableListOf<Pair<TimestampedByteArray, TimestampedByteArray>>()
         for (i in 0 until (maxKey + 40_000)) {
             val key = genKey(i)
             val actualValue = storage.get(key)
             if (keyMap.containsKey(i)) {
                 val expectedValue = genValue(keyMap[i]!!)
                 assertEquals(expectedValue, actualValue)
-                expectedKeyValuePairs.add(Pair(key.toComparableByteArray(), actualValue!!.toComparableByteArray()))
+                expectedKeyValuePairs.add(Pair(key.toTimestampedByteArray(), actualValue!!.toTimestampedByteArray()))
             } else {
                 assertTrue { actualValue == null }
             }

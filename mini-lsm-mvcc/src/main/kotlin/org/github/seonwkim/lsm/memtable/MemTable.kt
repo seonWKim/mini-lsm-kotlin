@@ -1,7 +1,7 @@
 package org.github.seonwkim.lsm.memtable
 
 import org.github.seonwkim.common.Bound
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.lsm.Wal
 import org.github.seonwkim.lsm.iterator.MemTableIterator
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class MemTable(
     private val id: Int,
-    private val map: ConcurrentSkipListMap<ComparableByteArray, ComparableByteArray>,
+    private val map: ConcurrentSkipListMap<TimestampedByteArray, TimestampedByteArray>,
     private val wal: Wal?,
     private val approximateSize: AtomicInteger = AtomicInteger(0)
 ) {
@@ -40,7 +40,7 @@ class MemTable(
         }
 
         fun recoverFromWal(id: Int, path: Path): MemTable {
-            val map = ConcurrentSkipListMap<ComparableByteArray, ComparableByteArray>()
+            val map = ConcurrentSkipListMap<TimestampedByteArray, TimestampedByteArray>()
             val wal = Wal.recover(path, map)
             var approximateSize = 0
             map.forEach { (key, value) -> approximateSize += (key.size() + value.size()) }
@@ -57,11 +57,11 @@ class MemTable(
         return id
     }
 
-    fun get(key: ComparableByteArray): ComparableByteArray? {
+    fun get(key: TimestampedByteArray): TimestampedByteArray? {
         return map[key]
     }
 
-    fun put(key: ComparableByteArray, value: ComparableByteArray) {
+    fun put(key: TimestampedByteArray, value: TimestampedByteArray) {
         if (key.isEmpty()) {
             throw IllegalArgumentException("key should not be empty")
         }
@@ -76,11 +76,11 @@ class MemTable(
         return MemTableIterator.create(this, lower, upper)
     }
 
-    fun forTestingGetSlice(key: ComparableByteArray): ComparableByteArray? {
+    fun forTestingGetSlice(key: TimestampedByteArray): TimestampedByteArray? {
         return get(key)
     }
 
-    fun forTestingPutSlice(key: ComparableByteArray, value: ComparableByteArray) {
+    fun forTestingPutSlice(key: TimestampedByteArray, value: TimestampedByteArray) {
         put(key, value)
     }
 
@@ -112,13 +112,13 @@ class MemTable(
 
     fun copy(): MemTable {
         return MemTable(
-            map = ConcurrentSkipListMap<ComparableByteArray, ComparableByteArray>(map),
+            map = ConcurrentSkipListMap<TimestampedByteArray, TimestampedByteArray>(map),
             wal = wal,
             id = id
         )
     }
 
-    fun iterator(): MutableIterator<MutableMap.MutableEntry<ComparableByteArray, ComparableByteArray>> {
+    fun iterator(): MutableIterator<MutableMap.MutableEntry<TimestampedByteArray, TimestampedByteArray>> {
         return this.map.iterator()
     }
 }

@@ -1,6 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 
 /**
  * FusedIterator is a wrapper around an existing iterator.
@@ -16,7 +16,7 @@ class FusedIterator(
 ) : StorageIterator {
     private var hasErrored = false
 
-    override fun key(): ComparableByteArray {
+    override fun key(): TimestampedByteArray {
         if (!isValid()) {
             throw Error("Use isValid() function before calling this function")
         }
@@ -24,7 +24,7 @@ class FusedIterator(
         return iter.key()
     }
 
-    override fun value(): ComparableByteArray {
+    override fun value(): TimestampedByteArray {
         if (!isValid()) {
             throw Error("Use isValid() function before calling this function")
         }

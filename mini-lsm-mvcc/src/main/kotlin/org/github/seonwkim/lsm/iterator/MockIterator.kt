@@ -1,6 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 
 /**
  * MockIterator is a mock implementation of the StorageIterator interface.
@@ -16,11 +16,11 @@ class MockIterator(
 
     private var currentIdx: Int = 0
 
-    override fun key(): ComparableByteArray {
+    override fun key(): TimestampedByteArray {
         return data[currentIdx].key
     }
 
-    override fun value(): ComparableByteArray {
+    override fun value(): TimestampedByteArray {
         return data[currentIdx].value
     }
 
@@ -41,6 +41,6 @@ class MockIterator(
 }
 
 data class MockIteratorData(
-    val key: ComparableByteArray,
-    val value: ComparableByteArray
+    val key: TimestampedByteArray,
+    val value: TimestampedByteArray
 )

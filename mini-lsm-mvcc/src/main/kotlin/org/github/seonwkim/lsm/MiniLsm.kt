@@ -3,9 +3,9 @@ package org.github.seonwkim.lsm
 import com.google.common.annotations.VisibleForTesting
 import mu.KotlinLogging
 import org.github.seonwkim.common.Bound
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.common.WriteBatchRecord
-import org.github.seonwkim.common.toComparableByteArray
+import org.github.seonwkim.common.toTimestampedByteArray
 import org.github.seonwkim.lsm.compaction.option.LeveledCompactionOptions
 import org.github.seonwkim.lsm.compaction.option.NoCompaction
 import org.github.seonwkim.lsm.compaction.option.SimpleLeveledCompactionOptions
@@ -45,23 +45,23 @@ class MiniLsm private constructor(
     }
 
     fun get(key: String): String? {
-        return inner.get(key.toComparableByteArray())?.toString()
+        return inner.get(key.toTimestampedByteArray())?.toString()
     }
 
-    fun get(key: ComparableByteArray): ComparableByteArray? {
+    fun get(key: TimestampedByteArray): TimestampedByteArray? {
         return inner.get(key)
     }
 
     fun put(key: String, value: String) {
-        inner.put(key.toComparableByteArray(), value.toComparableByteArray())
+        inner.put(key.toTimestampedByteArray(), value.toTimestampedByteArray())
     }
 
-    fun put(key: ComparableByteArray, value: ComparableByteArray) {
+    fun put(key: TimestampedByteArray, value: TimestampedByteArray) {
         inner.put(key, value)
     }
 
     fun delete(key: String) {
-        inner.delete(key.toComparableByteArray())
+        inner.delete(key.toTimestampedByteArray())
     }
 
     fun writeBatch(batch: List<WriteBatchRecord>) {

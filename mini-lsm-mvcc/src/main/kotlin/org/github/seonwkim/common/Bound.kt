@@ -15,11 +15,11 @@ data object Unbounded : Bound
  *
  * @property key the key that is included in the range
  */
-data class Included(val key: ComparableByteArray) : Bound
+data class Included(val key: TimestampedByteArray) : Bound
 
 /**
  * Represents a range that excludes the specified key.
  *
  * @property key the key that is excluded from the range
  */
-data class Excluded(val key: ComparableByteArray) : Bound
+data class Excluded(val key: TimestampedByteArray) : Bound

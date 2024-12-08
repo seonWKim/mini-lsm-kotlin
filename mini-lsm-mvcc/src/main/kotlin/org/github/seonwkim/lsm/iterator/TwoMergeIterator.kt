@@ -1,6 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 
 /**
  * TwoMergeIterator is used to merge two iterators of different types.
@@ -48,7 +48,7 @@ class TwoMergeIterator<A : StorageIterator, B : StorageIterator>(
         }
     }
 
-    override fun key(): ComparableByteArray {
+    override fun key(): TimestampedByteArray {
         return if (chooseFirst) {
             first.key()
         } else {
@@ -56,7 +56,7 @@ class TwoMergeIterator<A : StorageIterator, B : StorageIterator>(
         }
     }
 
-    override fun value(): ComparableByteArray {
+    override fun value(): TimestampedByteArray {
         return if (chooseFirst) {
             first.value()
         } else {

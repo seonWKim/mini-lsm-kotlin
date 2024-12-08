@@ -13,10 +13,10 @@ import org.github.seonwkim.common.*
  */
 class BlockIterator(
     private val block: Block,
-    private val key: ComparableByteArray,
+    private val key: TimestampedByteArray,
     private var valueRange: IntRange,
     private var idx: Int,
-    private val firstKey: ComparableByteArray
+    private val firstKey: TimestampedByteArray
 ) {
     companion object {
         /**
@@ -29,7 +29,7 @@ class BlockIterator(
             return BlockIterator(
                 firstKey = BlockUtil.getFirstKey(block),
                 block = block,
-                key = ComparableByteArray.new(),
+                key = TimestampedByteArray.new(),
                 valueRange = IntRange.EMPTY,
                 idx = 0
             )
@@ -54,7 +54,7 @@ class BlockIterator(
          * @param key the key to seek to
          * @return a new `BlockIterator` positioned at the specified key
          */
-        fun createAndSeekToKey(block: Block, key: ComparableByteArray): BlockIterator {
+        fun createAndSeekToKey(block: Block, key: TimestampedByteArray): BlockIterator {
             val iter = new(block)
             iter.seekToKey(key)
             return iter
@@ -67,7 +67,7 @@ class BlockIterator(
      * @return the key at the current iterator position
      * @throws IllegalStateException if the iterator is invalid
      */
-    fun key(): ComparableByteArray {
+    fun key(): TimestampedByteArray {
         if (key.isEmpty()) {
             throw IllegalStateException("Invalid iterator")
         }
@@ -80,7 +80,7 @@ class BlockIterator(
      * @return the value at the current iterator position
      * @throws IllegalStateException if the iterator is invalid
      */
-    fun value(): ComparableByteArray {
+    fun value(): TimestampedByteArray {
         if (key.isEmpty()) {
             throw IllegalStateException("Invalid iterator")
         }
@@ -161,7 +161,7 @@ class BlockIterator(
      *
      * @param key the key to seek to
      */
-    fun seekToKey(key: ComparableByteArray) {
+    fun seekToKey(key: TimestampedByteArray) {
         var low = 0
         var high = block.offsets.size()
         while (low < high) {

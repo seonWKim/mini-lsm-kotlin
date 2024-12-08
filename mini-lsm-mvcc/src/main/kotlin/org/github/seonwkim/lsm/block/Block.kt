@@ -1,6 +1,6 @@
 package org.github.seonwkim.lsm.block
 
-import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.TimestampedByteArray
 
 /**
  * A data class representing a block of key-value pairs.
@@ -9,6 +9,6 @@ import org.github.seonwkim.common.ComparableByteArray
  * @property offsets the offsets of each key-value entry
  */
 data class Block(
-    val data: ComparableByteArray,
-    val offsets: ComparableByteArray
+    val data: TimestampedByteArray,
+    val offsets: TimestampedByteArray
 )

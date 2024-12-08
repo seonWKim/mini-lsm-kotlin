@@ -10,7 +10,7 @@ import kotlin.experimental.or
  * @param setBit if true, the bit is set; if false, the bit is cleared
  * @throws IndexOutOfBoundsException if the index is out of range
  */
-fun ComparableByteArray.setBit(bitIds: UInt, setBit: Boolean) {
+fun TimestampedByteArray.setBit(bitIds: UInt, setBit: Boolean) {
     val pos = (bitIds / 8u).toInt()
     val offset = (bitIds % 8u).toInt()
     if (setBit) {
@@ -27,7 +27,7 @@ fun ComparableByteArray.setBit(bitIds: UInt, setBit: Boolean) {
  * @return true if the bit is set, false otherwise
  * @throws IndexOutOfBoundsException if the index is out of range
  */
-fun ComparableByteArray.isBitSet(bitIdx: UInt): Boolean {
+fun TimestampedByteArray.isBitSet(bitIdx: UInt): Boolean {
     val pos = (bitIdx / 8u).toInt()
     val offset = (bitIdx % 8u).toInt()
 
@@ -40,7 +40,7 @@ fun ComparableByteArray.isBitSet(bitIdx: UInt): Boolean {
  * @return the unsigned 16-bit integer value
  * @throws IllegalArgumentException if the byte array does not contain exactly 2 bytes
  */
-fun ComparableByteArray.toU16Int(): Int {
+fun TimestampedByteArray.toU16Int(): Int {
     require(this.size() == 2) { "List must contain exactly 2 bytes" }
     val highByte = this[0].toInt() and 0xFF
     val lowByte = this[1].toInt() and 0xFF
@@ -53,7 +53,7 @@ fun ComparableByteArray.toU16Int(): Int {
  * @return the unsigned 32-bit integer value
  * @throws IllegalArgumentException if the byte array does not contain exactly 4 bytes
  */
-fun ComparableByteArray.toU32Int(): Int {
+fun TimestampedByteArray.toU32Int(): Int {
     require(this.size() == 4) { "List must contain exactly 4 bytes" }
     return (this[0].toInt() and 0xFF shl 24) or
             (this[1].toInt() and 0xFF shl 16) or
@@ -67,7 +67,7 @@ fun ComparableByteArray.toU32Int(): Int {
  * @return the unsigned 64-bit long value
  * @throws IllegalArgumentException if the byte array does not contain exactly 8 bytes
  */
-fun ComparableByteArray.toU64Long(): Long {
+fun TimestampedByteArray.toU64Long(): Long {
     require(this.size() == 8) { "List must contain exactly 8 bytes" }
     return (this[0].toLong() and 0xFF shl 56) or
             (this[1].toLong() and 0xFF shl 48) or
@@ -77,8 +77,4 @@ fun ComparableByteArray.toU64Long(): Long {
             (this[5].toLong() and 0xFF shl 16) or
             (this[6].toLong() and 0xFF shl 8) or
             (this[7].toLong() and 0xFF)
-}
-
-fun ByteArray.toComparableByteArray(): ComparableByteArray {
-    return ComparableByteArray(this.toList())
 }
