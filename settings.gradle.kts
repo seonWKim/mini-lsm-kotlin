@@ -5,3 +5,4 @@ rootProject.name = "mini-lsm-kotlin"
 
 include("core")
 include("cli")
+include("mini-lsm-starter")
