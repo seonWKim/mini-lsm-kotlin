@@ -196,12 +196,21 @@ class ComparableByteArray(
 
 
 /**
- * Converts a string to a ComparableByteArray.
+ * Converts a string into [ComparableByteArray].
  *
- * @return a new ComparableByteArray containing the bytes of the string
+ * @return a new [ComparableByteArray] containing the bytes of the string
  */
 fun String.toComparableByteArray(): ComparableByteArray {
     return ComparableByteArray(this.map { it.code.toByte() })
+}
+
+/**
+ * Converts a ByteArray into [ComparableByteArray].
+ *
+ * @return a new [ComparableByteArray] containing the bytes of the string
+ */
+fun ByteArray.toComparableByteArray(): ComparableByteArray {
+    return ComparableByteArray(this.toList())
 }
 
 fun ComparableByteArray?.isValid(): Boolean {

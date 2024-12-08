@@ -78,7 +78,3 @@ fun ComparableByteArray.toU64Long(): Long {
             (this[6].toLong() and 0xFF shl 8) or
             (this[7].toLong() and 0xFF)
 }
-
-fun ByteArray.toComparableByteArray(): ComparableByteArray {
-    return ComparableByteArray(this.toList())
-}
