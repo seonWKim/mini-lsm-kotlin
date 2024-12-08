@@ -20,12 +20,10 @@ object BlockUtil {
         currentOffset += SIZE_OF_U16_IN_BYTE
         val keyBytes = block.data.slice(currentOffset..<currentOffset + keyLength)
         currentOffset += keyLength
-        return keyBytes
-        // TODO(timestamp)
-        // return TimestampedKey(
-        //     bytes = keyBytes,
-        //     timestamp = block.data.slice(currentOffset..<currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
-        // )
+        return TimestampedByteArray(
+            bytes = keyBytes.copyBytes(),
+            timestamp = block.data.slice(currentOffset..<currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
+        )
     }
 
     /**
@@ -38,7 +36,7 @@ object BlockUtil {
         val offsetLength = block.offsets.size() / SIZE_OF_U16_IN_BYTE
         return block.data + block.offsets + offsetLength.toU16ByteArray()
     }
-    
+
     /**
      * Decodes a [TimestampedByteArray] into a block.
      *

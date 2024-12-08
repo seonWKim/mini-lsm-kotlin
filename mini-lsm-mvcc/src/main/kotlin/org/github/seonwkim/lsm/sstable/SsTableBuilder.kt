@@ -8,6 +8,7 @@ import org.github.seonwkim.lsm.block.BlockUtil
 import org.github.seonwkim.lsm.bloom.Bloom
 import org.github.seonwkim.lsm.bloom.BloomUtil
 import java.nio.file.Path
+import kotlin.math.max
 
 class SsTableBuilder(
     private val blockSize: Int,
@@ -21,6 +22,7 @@ class SsTableBuilder(
     private val keyHashes: MutableList<UInt>
 
     // TODO(TIMESTAMP: add support for maxTimestamp)
+    private var maxTimestamp: Long
 
     init {
         this.builder = BlockBuilder(blockSize)
@@ -29,6 +31,7 @@ class SsTableBuilder(
         this.data = TimestampedByteArray.new()
         this.meta = mutableListOf()
         this.keyHashes = mutableListOf()
+        this.maxTimestamp = 0L
     }
 
     fun add(key: TimestampedByteArray, value: TimestampedByteArray) {
@@ -37,6 +40,7 @@ class SsTableBuilder(
         }
 
         // TODO(TIMESTAMP: should compare the key's timestamp and set the maxTimestamp if necessary)
+        maxTimestamp = maxOf(maxTimestamp, key.timestamp)
 
         keyHashes.add(farmHashFingerPrintU32(key))
 
@@ -84,7 +88,7 @@ class SsTableBuilder(
         finishBlock()
         val buf = data
         val metaOffset = buf.size()
-        BlockMetaUtil.encodeBlockMeta(meta, buf)
+        BlockMetaUtil.encodeBlockMeta(meta, buf, maxTimestamp)
         buf += metaOffset.toU32ByteArray()
 
         val bloom = Bloom.fromKeyHashes(

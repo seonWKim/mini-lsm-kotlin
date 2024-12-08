@@ -6,11 +6,11 @@ package org.github.seonwkim.common
  *
  * @property bytes the list of bytes in the array
  */
-class TimestampedByteArray(
-    bytes: List<Byte>,
-    val timestamp: Long = 0L,
-) : Comparable<TimestampedByteArray> {
+class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable<TimestampedByteArray> {
     private var bytes: MutableList<Byte> = bytes.toMutableList()
+    var timestamp: Long = timestamp
+        private set
+
 
     companion object {
         /**
@@ -112,12 +112,38 @@ class TimestampedByteArray(
         return TimestampedByteArray(bytes.slice(range))
     }
 
+    /**
+     * Clears the byte array.
+     */
     fun clear() {
         this.bytes.clear()
     }
 
+    /**
+     * Creates a copy of this `TimestampedByteArray`.
+     *
+     * @return a new `TimestampedByteArray` with the same bytes and timestamp
+     */
     fun copy(): TimestampedByteArray {
-        return TimestampedByteArray(this.bytes.toList())
+        return TimestampedByteArray(this.bytes.toList(), timestamp)
+    }
+
+    /**
+     * Returns a copy of the bytes in this `TimestampedByteArray`.
+     *
+     * @return a list of bytes
+     */
+    fun copyBytes(): List<Byte> {
+        return this.bytes.toList()
+    }
+
+    /**
+     * Sets the timestamp for this `TimestampedByteArray`.
+     *
+     * @param timestamp the new timestamp to set
+     */
+    fun setTimestamp(timestamp: Long) {
+        this.timestamp = timestamp
     }
 
     /**

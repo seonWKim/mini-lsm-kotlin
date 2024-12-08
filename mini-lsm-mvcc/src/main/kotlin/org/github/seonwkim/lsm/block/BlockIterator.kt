@@ -149,6 +149,10 @@ class BlockIterator(
         currentOffset += keyLength
 
         // TODO(TIMESTAMP: retrieve u64 timestamp from block and set the timestamp to key)
+        block.data.slice(currentOffset, currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long().let { timestamp ->
+            this.key().setTimestamp(timestamp)
+        }
+        currentOffset += SIZE_OF_U64_IN_BYTE
         val valueLength = block.data.slice(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
         currentOffset += SIZE_OF_U16_IN_BYTE
         val valueOffsetBegin = currentOffset
