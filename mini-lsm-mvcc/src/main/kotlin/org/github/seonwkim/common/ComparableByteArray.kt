@@ -1,15 +1,16 @@
 package org.github.seonwkim.common
 
+import java.sql.Timestamp
+
 /**
- * A class representing a byte array with a timestamp.
+ * A class representing a byte array that can be compared to other byte arrays.
  *
  * @property bytes the list of bytes in the array
  */
-class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable<TimestampedByteArray> {
+class ComparableByteArray(
+    bytes: List<Byte>
+) : Comparable<ComparableByteArray> {
     private var bytes: MutableList<Byte> = bytes.toMutableList()
-    var timestamp: Long = timestamp
-        private set
-
 
     companion object {
         /**
@@ -17,8 +18,8 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
          *
          * @return a new instance of ComparableByteArray
          */
-        fun new(): TimestampedByteArray {
-            return TimestampedByteArray(ArrayList())
+        fun new(): ComparableByteArray {
+            return ComparableByteArray(ArrayList())
         }
     }
 
@@ -46,7 +47,7 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
      * @param other the other byte array to compare with
      * @return the number of overlapping bytes
      */
-    fun computeOverlap(other: TimestampedByteArray): Int {
+    fun computeOverlap(other: ComparableByteArray): Int {
         var i = 0
         while (true) {
             if (i >= this.bytes.size || i >= other.bytes.size) {
@@ -62,15 +63,42 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
         return i
     }
 
-    fun setFromByteArray(bytes: TimestampedByteArray) {
+    fun setFromByteArray(bytes: ComparableByteArray) {
         clear()
+        append(bytes.bytes)
+    }
+
+    /**
+     * Appends another byte array to this byte array.
+     *
+     * @param bytes the byte array to append
+     */
+    fun append(bytes: ComparableByteArray) {
         this.bytes.addAll(bytes.bytes)
     }
 
     /**
-     * Returns the byte array as a ByteArray.
+     * Appends a list of bytes to this byte array.
      *
-     * @return the byte array as a ByteArray
+     * @param bytes the list of bytes to append
+     */
+    fun append(bytes: List<Byte>) {
+        this.bytes.addAll(bytes)
+    }
+
+    /**
+     * Returns the byte array as a list of bytes.
+     *
+     * @return the list of bytes in the byte array
+     */
+    fun getBytes(): List<Byte> {
+        return bytes.toList()
+    }
+
+    /**
+     * Returns the byte array as a list of bytes.
+     *
+     * @return the [ByteArray] in the byte array
      */
     fun getByteArray(): ByteArray {
         return bytes.toByteArray()
@@ -84,47 +112,21 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
     }
 
     /**
-     * Returns a slice of the [ComparableByteArray].
+     * Returns a slice of the byte array.
      *
      * @param range the range of indices to include in the slice
-     * @return a new [ComparableByteArray] containing the specified range
+     * @return a new ComparableByteArray containing the specified range
      */
     fun slice(range: IntRange): ComparableByteArray {
         return ComparableByteArray(bytes.slice(range))
     }
 
-    /**
-     * Clears the byte array.
-     */
     fun clear() {
         this.bytes.clear()
     }
 
-    /**
-     * Creates a copy of this `TimestampedByteArray`.
-     *
-     * @return a new `TimestampedByteArray` with the same bytes and timestamp
-     */
-    fun copy(): TimestampedByteArray {
-        return TimestampedByteArray(this.bytes.toList(), timestamp)
-    }
-
-    /**
-     * Returns a copy of the bytes in this `TimestampedByteArray`.
-     *
-     * @return a list of bytes
-     */
-    fun copyBytes(): List<Byte> {
-        return this.bytes.toList()
-    }
-
-    /**
-     * Sets the timestamp for this `TimestampedByteArray`.
-     *
-     * @param timestamp the new timestamp to set
-     */
-    fun setTimestamp(timestamp: Long) {
-        this.timestamp = timestamp
+    fun copy(): ComparableByteArray {
+        return ComparableByteArray(this.bytes.toList())
     }
 
     /**
@@ -133,27 +135,17 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
      * @param other the other byte array to concatenate
      * @return a new ComparableByteArray containing the concatenated result
      */
-    operator fun plus(other: TimestampedByteArray): TimestampedByteArray {
-        return TimestampedByteArray(this.bytes + other.bytes)
+    operator fun plus(other: ComparableByteArray): ComparableByteArray {
+        return ComparableByteArray(this.bytes + other.bytes)
     }
 
     /**
      * Appends another byte array to this byte array.
      *
-     * @param other the other byte array to append
+     * @param bytes the other byte array to append
      */
-    operator fun plusAssign(other: TimestampedByteArray) {
-        this.bytes.addAll(other.bytes)
-    }
-
-    /**
-     * Concatenates this byte array with another byte array.
-     *
-     * @param other the other byte array to concatenate
-     * @return a new ComparableByteArray containing the concatenated result
-     */
-    operator fun plus(other: ComparableByteArray): TimestampedByteArray {
-        return TimestampedByteArray(this.bytes + other.getBytes())
+    operator fun plusAssign(bytes: List<Byte>) {
+        this.bytes.addAll(bytes)
     }
 
     /**
@@ -162,7 +154,7 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
      * @param other the other byte array to append
      */
     operator fun plusAssign(other: ComparableByteArray) {
-        this.bytes.addAll(other.getBytes())
+        this.bytes.addAll(other.bytes)
     }
 
     /**
@@ -192,7 +184,7 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
      * @param other the other byte array to compare with
      * @return a negative integer, zero, or a positive integer as this byte array is less than, equal to, or greater than the specified byte array
      */
-    override fun compareTo(other: TimestampedByteArray): Int {
+    override fun compareTo(other: ComparableByteArray): Int {
         if (this.bytes.size > other.bytes.size) {
             return -other.compareTo(this)
         }
@@ -206,7 +198,7 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is TimestampedByteArray && this.compareTo(other) == 0
+        return other is ComparableByteArray && this.compareTo(other) == 0
     }
 
     override fun hashCode(): Int {
@@ -224,27 +216,27 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
 
 
 /**
- * Converts a string into [TimestampedByteArray].
+ * Converts a string into [ComparableByteArray].
  *
- * @return a new [TimestampedByteArray] containing the bytes of the string
+ * @return a new [ComparableByteArray] containing the bytes of the string
  */
-fun String.toTimestampedByteArray(timestamp: Long = 0L): TimestampedByteArray {
-    return TimestampedByteArray(this.map { it.code.toByte() }, timestamp)
+fun String.toComparableByteArray(): ComparableByteArray {
+    return ComparableByteArray(this.map { it.code.toByte() })
 }
 
 /**
- * Converts a ByteArray into  [TimestampedByteArray].
+ * Converts a ByteArray into [ComparableByteArray].
  *
- * @return a new [TimestampedByteArray] containing the bytes of the string
+ * @return a new [ComparableByteArray] containing the bytes of the string
  */
-fun ByteArray.toTimestampedByteArray(timestamp: Long = 0L): TimestampedByteArray {
-    return TimestampedByteArray(this.toList(), timestamp)
+fun ByteArray.toComparableByteArray(): ComparableByteArray {
+    return ComparableByteArray(this.toList())
 }
 
-fun TimestampedByteArray?.isValid(): Boolean {
+fun ComparableByteArray?.isValid(): Boolean {
     return this != null && !this.isEmpty()
 }
 
-fun TimestampedByteArray?.isDeleted(): Boolean {
+fun ComparableByteArray?.isDeleted(): Boolean {
     return this != null && this.isEmpty()
 }

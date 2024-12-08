@@ -2,10 +2,7 @@ package org.github.seonwkim.lsm
 
 import com.google.common.annotations.VisibleForTesting
 import mu.KotlinLogging
-import org.github.seonwkim.common.Bound
-import org.github.seonwkim.common.TimestampedByteArray
-import org.github.seonwkim.common.WriteBatchRecord
-import org.github.seonwkim.common.toTimestampedByteArray
+import org.github.seonwkim.common.*
 import org.github.seonwkim.lsm.compaction.option.LeveledCompactionOptions
 import org.github.seonwkim.lsm.compaction.option.NoCompaction
 import org.github.seonwkim.lsm.compaction.option.SimpleLeveledCompactionOptions
@@ -48,15 +45,15 @@ class MiniLsm private constructor(
         return inner.get(key.toTimestampedByteArray())?.toString()
     }
 
-    fun get(key: TimestampedByteArray): TimestampedByteArray? {
+    fun get(key: TimestampedByteArray): ComparableByteArray? {
         return inner.get(key)
     }
 
     fun put(key: String, value: String) {
-        inner.put(key.toTimestampedByteArray(), value.toTimestampedByteArray())
+        inner.put(key.toTimestampedByteArray(), value.toComparableByteArray())
     }
 
-    fun put(key: TimestampedByteArray, value: TimestampedByteArray) {
+    fun put(key: TimestampedByteArray, value: ComparableByteArray) {
         inner.put(key, value)
     }
 

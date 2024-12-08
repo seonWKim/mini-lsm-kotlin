@@ -1,9 +1,7 @@
 package org.github.seonwkim.lsm
 
-import mu.KotlinLogging
 import org.github.seonwkim.common.*
 import org.github.seonwkim.common.lock.MutexLock
-
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.file.Files
@@ -14,8 +12,6 @@ import java.util.concurrent.ConcurrentSkipListMap
 class Wal(private val file: MutexLock<File>) {
 
     companion object {
-        private val log = KotlinLogging.logger { }
-
         fun create(path: Path): Wal {
             return Wal(
                 file = Files.newByteChannel(
@@ -30,7 +26,7 @@ class Wal(private val file: MutexLock<File>) {
             )
         }
 
-        fun recover(path: Path, map: ConcurrentSkipListMap<TimestampedByteArray, TimestampedByteArray>): Wal {
+        fun recover(path: Path, map: ConcurrentSkipListMap<TimestampedByteArray, ComparableByteArray>): Wal {
             val file = Files.newByteChannel(
                 path,
                 StandardOpenOption.READ,
@@ -46,25 +42,31 @@ class Wal(private val file: MutexLock<File>) {
             while (bufPrt.hasRemaining()) {
                 val keyLenSlice = ByteArray(SIZE_OF_U16_IN_BYTE)
                 bufPrt.get(keyLenSlice)
-                val keyLen = keyLenSlice.toTimestampedByteArray().toU16Int()
+                val keyLen = keyLenSlice.toComparableByteArray().toU16Int()
 
                 val keySlice = ByteArray(keyLen)
                 bufPrt.get(keySlice)
                 val key = keySlice.toTimestampedByteArray()
 
+                val timestampSlice = ByteArray(SIZE_OF_U64_IN_BYTE)
+                bufPrt.get(timestampSlice)
+                timestampSlice.toTimestampedByteArray().toU64Long().let { timestamp ->
+                    key.setTimestamp(timestamp)
+                }
+
                 val valueLenSlice = ByteArray(SIZE_OF_U16_IN_BYTE)
                 bufPrt.get(valueLenSlice)
-                val valueLen = valueLenSlice.toTimestampedByteArray().toU16Int()
+                val valueLen = valueLenSlice.toComparableByteArray().toU16Int()
 
                 val valueSlice = ByteArray(valueLen)
                 bufPrt.get(valueSlice)
-                val value = valueSlice.toTimestampedByteArray()
+                val value = valueSlice.toComparableByteArray()
 
                 val checksumSlice = ByteArray(SIZE_OF_U32_IN_BYTE)
                 bufPrt.get(checksumSlice)
-                val checksum = checksumSlice.toTimestampedByteArray().toU32Int()
+                val checksum = checksumSlice.toComparableByteArray().toU32Int()
 
-                val combined = keyLenSlice + keySlice + valueLenSlice + valueSlice
+                val combined = keyLenSlice + keySlice + timestampSlice + valueLenSlice + valueSlice
                 val calculatedChecksum = crcHash(combined)
 
                 if (checksum == calculatedChecksum) {
@@ -81,12 +83,14 @@ class Wal(private val file: MutexLock<File>) {
         }
     }
 
-    fun put(key: TimestampedByteArray, value: TimestampedByteArray) {
+    fun put(key: TimestampedByteArray, value: ComparableByteArray) {
         this.file.withWriteLock {
-            val buf = TimestampedByteArray.new()
+            val buf = ComparableByteArray.new()
 
             buf += key.size().toU16ByteArray()
-            buf += key
+            buf += key.copyBytes()
+            // TODO(TIMESTAMP: add support for WAL key timestamp)
+            buf += key.timestamp.toU64ByteArray()
             buf += value.size().toU16ByteArray()
             buf += value
 

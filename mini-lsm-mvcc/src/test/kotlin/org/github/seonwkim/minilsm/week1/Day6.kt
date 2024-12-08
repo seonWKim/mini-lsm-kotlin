@@ -1,10 +1,10 @@
 package org.github.seonwkim.minilsm.week1
 
 import org.github.seonwkim.common.*
-import org.github.seonwkim.lsm.iterator.StorageIterator
 import org.github.seonwkim.lsm.LsmStorageInner
 import org.github.seonwkim.lsm.LsmStorageOptions
 import org.github.seonwkim.lsm.MiniLsm
+import org.github.seonwkim.lsm.iterator.StorageIterator
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -23,22 +23,22 @@ class Day6 {
                 numMemTableLimit = 50
             )
         )
-        storage.put("0".toTimestampedByteArray(), "2333333".toTimestampedByteArray())
-        storage.put("00".toTimestampedByteArray(), "2333333".toTimestampedByteArray())
-        storage.put("4".toTimestampedByteArray(), "23".toTimestampedByteArray())
+        storage.put("0".toTimestampedByteArray(), "2333333".toComparableByteArray())
+        storage.put("00".toTimestampedByteArray(), "2333333".toComparableByteArray())
+        storage.put("4".toTimestampedByteArray(), "23".toComparableByteArray())
         sync(storage)
 
         storage.delete("4".toTimestampedByteArray())
         sync(storage)
 
-        storage.put("1".toTimestampedByteArray(), "233".toTimestampedByteArray())
-        storage.put("2".toTimestampedByteArray(), "2333".toTimestampedByteArray())
+        storage.put("1".toTimestampedByteArray(), "233".toComparableByteArray())
+        storage.put("2".toTimestampedByteArray(), "2333".toComparableByteArray())
         storage.forceFreezeMemTableWithLock()
 
-        storage.put("00".toTimestampedByteArray(), "2333".toTimestampedByteArray())
+        storage.put("00".toTimestampedByteArray(), "2333".toComparableByteArray())
         storage.forceFreezeMemTableWithLock()
 
-        storage.put("3".toTimestampedByteArray(), "23333".toTimestampedByteArray())
+        storage.put("3".toTimestampedByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toTimestampedByteArray())
 
         assertEquals(storage.getL0SstablesSize(), 2)
@@ -47,10 +47,10 @@ class Day6 {
         checkIterator(
             storage.scan(Unbounded, Unbounded),
             listOf(
-                Pair("0".toTimestampedByteArray(), "2333333".toTimestampedByteArray()),
-                Pair("00".toTimestampedByteArray(), "2333".toTimestampedByteArray()),
-                Pair("2".toTimestampedByteArray(), "2333".toTimestampedByteArray()),
-                Pair("3".toTimestampedByteArray(), "23333".toTimestampedByteArray()),
+                Pair("0".toTimestampedByteArray(), "2333333".toComparableByteArray()),
+                Pair("00".toTimestampedByteArray(), "2333".toComparableByteArray()),
+                Pair("2".toTimestampedByteArray(), "2333".toComparableByteArray()),
+                Pair("3".toTimestampedByteArray(), "23333".toComparableByteArray()),
             )
         )
 
@@ -60,7 +60,7 @@ class Day6 {
                 Included("2".toTimestampedByteArray())
             ),
             listOf(
-                Pair("2".toTimestampedByteArray(), "2333".toTimestampedByteArray()),
+                Pair("2".toTimestampedByteArray(), "2333".toComparableByteArray()),
             )
         )
 
@@ -70,7 +70,7 @@ class Day6 {
                 Excluded("3".toTimestampedByteArray())
             ),
             listOf(
-                Pair("2".toTimestampedByteArray(), "2333".toTimestampedByteArray()),
+                Pair("2".toTimestampedByteArray(), "2333".toComparableByteArray()),
             )
         )
     }
@@ -86,31 +86,31 @@ class Day6 {
                 numMemTableLimit = 50
             )
         )
-        storage.put("0".toTimestampedByteArray(), "2333333".toTimestampedByteArray())
-        storage.put("00".toTimestampedByteArray(), "2333333".toTimestampedByteArray())
-        storage.put("4".toTimestampedByteArray(), "23".toTimestampedByteArray())
+        storage.put("0".toTimestampedByteArray(), "2333333".toComparableByteArray())
+        storage.put("00".toTimestampedByteArray(), "2333333".toComparableByteArray())
+        storage.put("4".toTimestampedByteArray(), "23".toComparableByteArray())
         sync(storage)
 
         storage.delete("4".toTimestampedByteArray())
         sync(storage)
 
-        storage.put("1".toTimestampedByteArray(), "233".toTimestampedByteArray())
-        storage.put("2".toTimestampedByteArray(), "2333".toTimestampedByteArray())
+        storage.put("1".toTimestampedByteArray(), "233".toComparableByteArray())
+        storage.put("2".toTimestampedByteArray(), "2333".toComparableByteArray())
         storage.forceFreezeMemTableWithLock()
 
-        storage.put("00".toTimestampedByteArray(), "2333".toTimestampedByteArray())
+        storage.put("00".toTimestampedByteArray(), "2333".toComparableByteArray())
         storage.forceFreezeMemTableWithLock()
 
-        storage.put("3".toTimestampedByteArray(), "23333".toTimestampedByteArray())
+        storage.put("3".toTimestampedByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toTimestampedByteArray())
 
         assertEquals(storage.getL0SstablesSize(), 2)
         assertEquals(storage.getImmutableMemTablesSize(), 2)
 
-        assertEquals(storage.get("0".toTimestampedByteArray()), "2333333".toTimestampedByteArray())
-        assertEquals(storage.get("00".toTimestampedByteArray()), "2333".toTimestampedByteArray())
-        assertEquals(storage.get("2".toTimestampedByteArray()), "2333".toTimestampedByteArray())
-        assertEquals(storage.get("3".toTimestampedByteArray()), "23333".toTimestampedByteArray())
+        assertEquals(storage.get("0".toTimestampedByteArray()), "2333333".toComparableByteArray())
+        assertEquals(storage.get("00".toTimestampedByteArray()), "2333".toComparableByteArray())
+        assertEquals(storage.get("2".toTimestampedByteArray()), "2333".toComparableByteArray())
+        assertEquals(storage.get("3".toTimestampedByteArray()), "23333".toComparableByteArray())
         assertEquals(storage.get("4".toTimestampedByteArray()), null)
         assertEquals(storage.get("--".toTimestampedByteArray()), null)
         assertEquals(storage.get("555".toTimestampedByteArray()), null)
@@ -128,7 +128,7 @@ class Day6 {
             )
         )
 
-        val oneKBData = "1".repeat(1024).toTimestampedByteArray()
+        val oneKBData = "1".repeat(1024).toComparableByteArray()
 
         // approximately 6MB
         repeat(6_000) {
@@ -155,7 +155,7 @@ class Day6 {
             if (i % 1000 == 0) {
                 sync(storage)
             }
-            storage.put("%05d".format(i).toTimestampedByteArray(), "2333333".toTimestampedByteArray())
+            storage.put("%05d".format(i).toTimestampedByteArray(), "2333333".toComparableByteArray())
         }
 
         val iter1 = storage.scan(Unbounded, Unbounded)
@@ -201,7 +201,7 @@ class Day6 {
 
     private fun checkIterator(
         actual: StorageIterator,
-        expected: List<Pair<TimestampedByteArray, TimestampedByteArray>>
+        expected: List<Pair<TimestampedByteArray, ComparableByteArray>>
     ) {
         for (e in expected) {
             assertTrue { actual.isValid() }

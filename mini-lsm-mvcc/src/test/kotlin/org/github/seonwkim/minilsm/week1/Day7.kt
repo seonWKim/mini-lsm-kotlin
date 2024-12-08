@@ -1,8 +1,6 @@
 package org.github.seonwkim.minilsm.week1
 
-import org.github.seonwkim.common.TimestampedByteArray
-import org.github.seonwkim.common.farmHashFingerPrintU32
-import org.github.seonwkim.common.toTimestampedByteArray
+import org.github.seonwkim.common.*
 import org.github.seonwkim.lsm.bloom.Bloom
 import org.github.seonwkim.lsm.bloom.BloomUtil
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
@@ -75,7 +73,7 @@ class Day7 {
         return "key_%010d".format(idx * 5).toTimestampedByteArray()
     }
 
-    private fun createValue(idx: Int): TimestampedByteArray {
-        return "value_%010d".format(idx).toTimestampedByteArray()
+    private fun createValue(idx: Int): ComparableByteArray {
+        return "value_%010d".format(idx).toComparableByteArray()
     }
 }

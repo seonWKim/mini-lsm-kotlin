@@ -8,7 +8,6 @@ import org.github.seonwkim.lsm.block.BlockUtil
 import org.github.seonwkim.lsm.bloom.Bloom
 import org.github.seonwkim.lsm.bloom.BloomUtil
 import java.nio.file.Path
-import kotlin.math.max
 
 class SsTableBuilder(
     private val blockSize: Int,
@@ -34,7 +33,7 @@ class SsTableBuilder(
         this.maxTimestamp = 0L
     }
 
-    fun add(key: TimestampedByteArray, value: TimestampedByteArray) {
+    fun add(key: TimestampedByteArray, value: ComparableByteArray) {
         if (this.firstKey.isEmpty()) {
             firstKey.setFromByteArray(key)
         }

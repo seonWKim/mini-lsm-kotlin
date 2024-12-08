@@ -1,5 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
+import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.lsm.sstable.Sstable
 
@@ -96,7 +97,7 @@ class SstConcatIterator(
         return current!!.key()
     }
 
-    override fun value(): TimestampedByteArray {
+    override fun value(): ComparableByteArray {
         if (current == null) {
             throw Error("Use isValid() function before calling this function")
         }

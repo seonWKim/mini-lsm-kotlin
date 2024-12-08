@@ -1,5 +1,6 @@
 package org.github.seonwkim.minilsm.week1
 
+import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.common.toTimestampedByteArray
 import org.github.seonwkim.lsm.block.*
 import kotlin.test.Test
@@ -12,30 +13,30 @@ class Day3 {
     @Test
     fun `test block build single key`() {
         val builder = BlockBuilder(16)
-        assertTrue { builder.add("233".toTimestampedByteArray(), "233333".toTimestampedByteArray()) }
+        assertTrue { builder.add("233".toTimestampedByteArray(), "233333".toComparableByteArray()) }
         builder.build()
     }
 
     @Test
     fun `test block build full`() {
         val builder = BlockBuilder(16)
-        assertTrue { builder.add("11".toTimestampedByteArray(), "11".toTimestampedByteArray()) }
-        assertFalse { builder.add("22".toTimestampedByteArray(), "22".toTimestampedByteArray()) }
+        assertTrue { builder.add("11".toTimestampedByteArray(), "11".toComparableByteArray()) }
+        assertFalse { builder.add("22".toTimestampedByteArray(), "22".toComparableByteArray()) }
         builder.build()
     }
 
     @Test
     fun `test block build large 1`() {
         val builder = BlockBuilder(16)
-        assertTrue { builder.add("11".toTimestampedByteArray(), "1".repeat(100).toTimestampedByteArray()) }
+        assertTrue { builder.add("11".toTimestampedByteArray(), "1".repeat(100).toComparableByteArray()) }
         builder.build()
     }
 
     @Test
     fun `test block build large 2`() {
         val builder = BlockBuilder(16)
-        assertTrue { builder.add("11".toTimestampedByteArray(), "1".toTimestampedByteArray()) }
-        assertFalse { builder.add("11".toTimestampedByteArray(), "1".repeat(100).toTimestampedByteArray()) }
+        assertTrue { builder.add("11".toTimestampedByteArray(), "1".toComparableByteArray()) }
+        assertFalse { builder.add("11".toTimestampedByteArray(), "1".repeat(100).toComparableByteArray()) }
         builder.build()
     }
 
@@ -72,7 +73,7 @@ class Day3 {
                 }
 
                 val value = iter.value()
-                val expectedValue = createValue(i).toTimestampedByteArray()
+                val expectedValue = createValue(i).toComparableByteArray()
                 assertTrue("expected: $expectedValue, actual: $value") {
                     value.compareTo(expectedValue) == 0
                 }
@@ -95,7 +96,7 @@ class Day3 {
                 }
 
                 val value = iter.value()
-                val expectedValue = createValue(i).toTimestampedByteArray()
+                val expectedValue = createValue(i).toComparableByteArray()
                 assertTrue("expected: $expectedValue, actual: $value") {
                     value.compareTo(expectedValue) == 0
                 }
@@ -109,7 +110,7 @@ class Day3 {
         val builder = BlockBuilder(10000)
         for (idx in 0..<100) {
             val key = createKey(idx).toTimestampedByteArray()
-            val value = createValue(idx).toTimestampedByteArray()
+            val value = createValue(idx).toComparableByteArray()
             assertTrue { builder.add(key, value) }
         }
         return builder.build()

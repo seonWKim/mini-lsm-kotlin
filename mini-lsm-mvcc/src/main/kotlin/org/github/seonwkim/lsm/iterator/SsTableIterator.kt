@@ -1,5 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
+import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.lsm.block.BlockIterator
 import org.github.seonwkim.lsm.sstable.Sstable
@@ -96,7 +97,7 @@ class SsTableIterator(
         return blockIter.key()
     }
 
-    override fun value(): TimestampedByteArray {
+    override fun value(): ComparableByteArray {
         return blockIter.value()
     }
 

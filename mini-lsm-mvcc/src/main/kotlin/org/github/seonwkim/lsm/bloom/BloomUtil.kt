@@ -33,10 +33,10 @@ object BloomUtil {
      */
     fun encode(buf: TimestampedByteArray, bloom: Bloom) {
         val offset = buf.size()
-        buf.append(bloom.filter)
-        buf.append(bloom.hashFunctionsCount.toU8ByteArray())
+        buf += bloom.filter
+        buf += bloom.hashFunctionsCount.toU8ByteArray()
         val checksum = crcHash(buf.slice(offset..<buf.size()))
-        buf.append(checksum.toU32ByteArray())
+        buf += checksum.toU32ByteArray()
     }
 
     /**

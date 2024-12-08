@@ -1,5 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
+import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedByteArray
 
 /**
@@ -24,7 +25,7 @@ class FusedIterator(
         return iter.key()
     }
 
-    override fun value(): TimestampedByteArray {
+    override fun value(): ComparableByteArray {
         if (!isValid()) {
             throw Error("Use isValid() function before calling this function")
         }

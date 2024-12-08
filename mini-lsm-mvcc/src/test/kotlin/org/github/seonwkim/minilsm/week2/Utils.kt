@@ -1,9 +1,7 @@
 package org.github.seonwkim.minilsm.week2
 
 import mu.KotlinLogging
-import org.github.seonwkim.common.TimestampedByteArray
-import org.github.seonwkim.common.Unbounded
-import org.github.seonwkim.common.toTimestampedByteArray
+import org.github.seonwkim.common.*
 import org.github.seonwkim.lsm.Configuration
 import org.github.seonwkim.lsm.LsmStorageInner
 import org.github.seonwkim.lsm.MiniLsm
@@ -20,7 +18,7 @@ import kotlin.test.assertTrue
 object Utils {
     fun checkIterator(
         actual: StorageIterator,
-        expected: List<Pair<TimestampedByteArray, TimestampedByteArray>>
+        expected: List<Pair<TimestampedByteArray, ComparableByteArray>>
     ) {
         for (e in expected) {
             assertTrue { actual.isValid() }
@@ -46,7 +44,7 @@ object Utils {
                 val version = keyMap.getOrDefault(i, 0) + 1
                 val value = genValue(version)
                 keyMap[i] = version
-                storage.put(key.toTimestampedByteArray(), value.toTimestampedByteArray())
+                storage.put(key.toTimestampedByteArray(), value.toComparableByteArray())
                 maxKey = maxOf(maxKey, i)
             }
         }
@@ -58,14 +56,14 @@ object Utils {
         }
 
         waitUntilCompactionEnds(storage)
-        val expectedKeyValuePairs = mutableListOf<Pair<TimestampedByteArray, TimestampedByteArray>>()
+        val expectedKeyValuePairs = mutableListOf<Pair<TimestampedByteArray, ComparableByteArray>>()
         for (i in 0 until (maxKey + 40_000)) {
             val key = genKey(i)
             val actualValue = storage.get(key)
             if (keyMap.containsKey(i)) {
                 val expectedValue = genValue(keyMap[i]!!)
                 assertEquals(expectedValue, actualValue)
-                expectedKeyValuePairs.add(Pair(key.toTimestampedByteArray(), actualValue!!.toTimestampedByteArray()))
+                expectedKeyValuePairs.add(Pair(key.toTimestampedByteArray(), actualValue!!.toComparableByteArray()))
             } else {
                 assertTrue { actualValue == null }
             }

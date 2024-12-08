@@ -80,7 +80,7 @@ class BlockIterator(
      * @return the value at the current iterator position
      * @throws IllegalStateException if the iterator is invalid
      */
-    fun value(): TimestampedByteArray {
+    fun value(): ComparableByteArray {
         if (key.isEmpty()) {
             throw IllegalStateException("Invalid iterator")
         }
@@ -144,8 +144,8 @@ class BlockIterator(
         currentOffset += SIZE_OF_U16_IN_BYTE
         val key = block.data.slice(currentOffset, currentOffset + keyLength)
         this.key.clear()
-        this.key.append(this.firstKey.slice(0..<overlapLength)) // overlapping key
-        this.key.append(key) // non-overlapping key
+        this.key += this.firstKey.slice(0..<overlapLength)// overlapping key
+        this.key += key // non-overlapping key
         currentOffset += keyLength
 
         // TODO(TIMESTAMP: retrieve u64 timestamp from block and set the timestamp to key)

@@ -52,7 +52,7 @@ class LsmIterator(
         return inner.key()
     }
 
-    override fun value(): TimestampedByteArray {
+    override fun value(): ComparableByteArray {
         return inner.value()
     }
 

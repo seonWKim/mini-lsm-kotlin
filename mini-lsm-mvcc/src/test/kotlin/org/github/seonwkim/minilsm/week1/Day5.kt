@@ -19,26 +19,26 @@ class Day5 {
     fun `test task1 merge 1`() {
         val i1 = MockIterator(
             listOf(
-                MockIteratorData("a".toTimestampedByteArray(), "1.1".toTimestampedByteArray()),
-                MockIteratorData("b".toTimestampedByteArray(), "2.1".toTimestampedByteArray()),
-                MockIteratorData("c".toTimestampedByteArray(), "3.1".toTimestampedByteArray()),
+                MockIteratorData("a".toTimestampedByteArray(), "1.1".toComparableByteArray()),
+                MockIteratorData("b".toTimestampedByteArray(), "2.1".toComparableByteArray()),
+                MockIteratorData("c".toTimestampedByteArray(), "3.1".toComparableByteArray()),
             )
         )
         val i2 = MockIterator(
             listOf(
-                MockIteratorData("a".toTimestampedByteArray(), "1.1".toTimestampedByteArray()),
-                MockIteratorData("b".toTimestampedByteArray(), "2.1".toTimestampedByteArray()),
-                MockIteratorData("c".toTimestampedByteArray(), "3.2".toTimestampedByteArray()),
-                MockIteratorData("d".toTimestampedByteArray(), "4.2".toTimestampedByteArray()),
+                MockIteratorData("a".toTimestampedByteArray(), "1.1".toComparableByteArray()),
+                MockIteratorData("b".toTimestampedByteArray(), "2.1".toComparableByteArray()),
+                MockIteratorData("c".toTimestampedByteArray(), "3.2".toComparableByteArray()),
+                MockIteratorData("d".toTimestampedByteArray(), "4.2".toComparableByteArray()),
             )
         )
         val iter = TwoMergeIterator.create(i1, i2)
         checkIterator(
             iter, listOf(
-                Pair("a".toTimestampedByteArray(), "1.1".toTimestampedByteArray()),
-                Pair("b".toTimestampedByteArray(), "2.1".toTimestampedByteArray()),
-                Pair("c".toTimestampedByteArray(), "3.1".toTimestampedByteArray()),
-                Pair("d".toTimestampedByteArray(), "4.2".toTimestampedByteArray()),
+                Pair("a".toTimestampedByteArray(), "1.1".toComparableByteArray()),
+                Pair("b".toTimestampedByteArray(), "2.1".toComparableByteArray()),
+                Pair("c".toTimestampedByteArray(), "3.1".toComparableByteArray()),
+                Pair("d".toTimestampedByteArray(), "4.2".toComparableByteArray()),
             )
         )
     }
@@ -47,26 +47,26 @@ class Day5 {
     fun `test task1 merge 2`() {
         val i2 = MockIterator(
             listOf(
-                MockIteratorData("a".toTimestampedByteArray(), "1.1".toTimestampedByteArray()),
-                MockIteratorData("b".toTimestampedByteArray(), "2.1".toTimestampedByteArray()),
-                MockIteratorData("c".toTimestampedByteArray(), "3.1".toTimestampedByteArray()),
+                MockIteratorData("a".toTimestampedByteArray(), "1.1".toComparableByteArray()),
+                MockIteratorData("b".toTimestampedByteArray(), "2.1".toComparableByteArray()),
+                MockIteratorData("c".toTimestampedByteArray(), "3.1".toComparableByteArray()),
             )
         )
         val i1 = MockIterator(
             listOf(
-                MockIteratorData("a".toTimestampedByteArray(), "1.2".toTimestampedByteArray()),
-                MockIteratorData("b".toTimestampedByteArray(), "2.2".toTimestampedByteArray()),
-                MockIteratorData("c".toTimestampedByteArray(), "3.2".toTimestampedByteArray()),
-                MockIteratorData("d".toTimestampedByteArray(), "4.2".toTimestampedByteArray()),
+                MockIteratorData("a".toTimestampedByteArray(), "1.2".toComparableByteArray()),
+                MockIteratorData("b".toTimestampedByteArray(), "2.2".toComparableByteArray()),
+                MockIteratorData("c".toTimestampedByteArray(), "3.2".toComparableByteArray()),
+                MockIteratorData("d".toTimestampedByteArray(), "4.2".toComparableByteArray()),
             )
         )
         val iter = TwoMergeIterator.create(i1, i2)
         checkIterator(
             iter, listOf(
-                Pair("a".toTimestampedByteArray(), "1.2".toTimestampedByteArray()),
-                Pair("b".toTimestampedByteArray(), "2.2".toTimestampedByteArray()),
-                Pair("c".toTimestampedByteArray(), "3.2".toTimestampedByteArray()),
-                Pair("d".toTimestampedByteArray(), "4.2".toTimestampedByteArray()),
+                Pair("a".toTimestampedByteArray(), "1.2".toComparableByteArray()),
+                Pair("b".toTimestampedByteArray(), "2.2".toComparableByteArray()),
+                Pair("c".toTimestampedByteArray(), "3.2".toComparableByteArray()),
+                Pair("d".toTimestampedByteArray(), "4.2".toComparableByteArray()),
             )
         )
     }
@@ -75,25 +75,25 @@ class Day5 {
     fun `test task1 merge 3`() {
         val i2 = MockIterator(
             listOf(
-                MockIteratorData("a".toTimestampedByteArray(), "1.1".toTimestampedByteArray()),
-                MockIteratorData("b".toTimestampedByteArray(), "2.1".toTimestampedByteArray()),
-                MockIteratorData("c".toTimestampedByteArray(), "3.1".toTimestampedByteArray()),
+                MockIteratorData("a".toTimestampedByteArray(), "1.1".toComparableByteArray()),
+                MockIteratorData("b".toTimestampedByteArray(), "2.1".toComparableByteArray()),
+                MockIteratorData("c".toTimestampedByteArray(), "3.1".toComparableByteArray()),
             )
         )
         val i1 = MockIterator(
             listOf(
-                MockIteratorData("b".toTimestampedByteArray(), "2.2".toTimestampedByteArray()),
-                MockIteratorData("c".toTimestampedByteArray(), "3.2".toTimestampedByteArray()),
-                MockIteratorData("d".toTimestampedByteArray(), "4.2".toTimestampedByteArray()),
+                MockIteratorData("b".toTimestampedByteArray(), "2.2".toComparableByteArray()),
+                MockIteratorData("c".toTimestampedByteArray(), "3.2".toComparableByteArray()),
+                MockIteratorData("d".toTimestampedByteArray(), "4.2".toComparableByteArray()),
             )
         )
         val iter = TwoMergeIterator.create(i1, i2)
         checkIterator(
             iter, listOf(
-                Pair("a".toTimestampedByteArray(), "1.1".toTimestampedByteArray()),
-                Pair("b".toTimestampedByteArray(), "2.2".toTimestampedByteArray()),
-                Pair("c".toTimestampedByteArray(), "3.2".toTimestampedByteArray()),
-                Pair("d".toTimestampedByteArray(), "4.2".toTimestampedByteArray()),
+                Pair("a".toTimestampedByteArray(), "1.1".toComparableByteArray()),
+                Pair("b".toTimestampedByteArray(), "2.2".toComparableByteArray()),
+                Pair("c".toTimestampedByteArray(), "3.2".toComparableByteArray()),
+                Pair("d".toTimestampedByteArray(), "4.2".toComparableByteArray()),
             )
         )
     }
@@ -103,34 +103,34 @@ class Day5 {
         val i2 = MockIterator(emptyList())
         val i1 = MockIterator(
             listOf(
-                MockIteratorData("b".toTimestampedByteArray(), "2.2".toTimestampedByteArray()),
-                MockIteratorData("c".toTimestampedByteArray(), "3.2".toTimestampedByteArray()),
-                MockIteratorData("d".toTimestampedByteArray(), "4.2".toTimestampedByteArray()),
+                MockIteratorData("b".toTimestampedByteArray(), "2.2".toComparableByteArray()),
+                MockIteratorData("c".toTimestampedByteArray(), "3.2".toComparableByteArray()),
+                MockIteratorData("d".toTimestampedByteArray(), "4.2".toComparableByteArray()),
             )
         )
         val iter1 = TwoMergeIterator.create(i1, i2)
         checkIterator(
             iter1, listOf(
-                Pair("b".toTimestampedByteArray(), "2.2".toTimestampedByteArray()),
-                Pair("c".toTimestampedByteArray(), "3.2".toTimestampedByteArray()),
-                Pair("d".toTimestampedByteArray(), "4.2".toTimestampedByteArray()),
+                Pair("b".toTimestampedByteArray(), "2.2".toComparableByteArray()),
+                Pair("c".toTimestampedByteArray(), "3.2".toComparableByteArray()),
+                Pair("d".toTimestampedByteArray(), "4.2".toComparableByteArray()),
             )
         )
 
         val i3 = MockIterator(emptyList())
         val i4 = MockIterator(
             listOf(
-                MockIteratorData("b".toTimestampedByteArray(), "2.2".toTimestampedByteArray()),
-                MockIteratorData("c".toTimestampedByteArray(), "3.2".toTimestampedByteArray()),
-                MockIteratorData("d".toTimestampedByteArray(), "4.2".toTimestampedByteArray()),
+                MockIteratorData("b".toTimestampedByteArray(), "2.2".toComparableByteArray()),
+                MockIteratorData("c".toTimestampedByteArray(), "3.2".toComparableByteArray()),
+                MockIteratorData("d".toTimestampedByteArray(), "4.2".toComparableByteArray()),
             )
         )
         val iter2 = TwoMergeIterator.create(i3, i4)
         checkIterator(
             iter2, listOf(
-                Pair("b".toTimestampedByteArray(), "2.2".toTimestampedByteArray()),
-                Pair("c".toTimestampedByteArray(), "3.2".toTimestampedByteArray()),
-                Pair("d".toTimestampedByteArray(), "4.2".toTimestampedByteArray()),
+                Pair("b".toTimestampedByteArray(), "2.2".toComparableByteArray()),
+                Pair("c".toTimestampedByteArray(), "3.2".toComparableByteArray()),
+                Pair("d".toTimestampedByteArray(), "4.2".toComparableByteArray()),
             )
         )
     }
@@ -147,19 +147,19 @@ class Day5 {
     fun `test task2 storage scan`() {
         val dir = createTempDirectory()
         val storage = LsmStorageInner.open(dir, lsmStorageOptionForTest())
-        storage.put("1".toTimestampedByteArray(), "233".toTimestampedByteArray())
-        storage.put("2".toTimestampedByteArray(), "2333".toTimestampedByteArray())
-        storage.put("00".toTimestampedByteArray(), "2333".toTimestampedByteArray())
+        storage.put("1".toTimestampedByteArray(), "233".toComparableByteArray())
+        storage.put("2".toTimestampedByteArray(), "2333".toComparableByteArray())
+        storage.put("00".toTimestampedByteArray(), "2333".toComparableByteArray())
         storage.forceFreezeMemTableWithLock()
-        storage.put("3".toTimestampedByteArray(), "23333".toTimestampedByteArray())
+        storage.put("3".toTimestampedByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toTimestampedByteArray())
         val sst1 = generateSst(
             id = 10,
             path = dir.resolve("10.sst"),
             data = listOf(
-                Pair("0".toTimestampedByteArray(), "2333333".toTimestampedByteArray()),
-                Pair("00".toTimestampedByteArray(), "2333333".toTimestampedByteArray()),
-                Pair("4".toTimestampedByteArray(), "23".toTimestampedByteArray()),
+                Pair("0".toTimestampedByteArray(), "2333333".toComparableByteArray()),
+                Pair("00".toTimestampedByteArray(), "2333333".toComparableByteArray()),
+                Pair("4".toTimestampedByteArray(), "23".toComparableByteArray()),
             ),
             blockCache = storage.blockCache.copy()
         )
@@ -168,7 +168,7 @@ class Day5 {
             id = 11,
             path = dir.resolve("11.sst"),
             data = listOf(
-                Pair("4".toTimestampedByteArray(), "".toTimestampedByteArray()) // This is treated as deleted
+                Pair("4".toTimestampedByteArray(), "".toComparableByteArray()) // This is treated as deleted
             ),
             blockCache = storage.blockCache.copy()
         )
@@ -181,10 +181,10 @@ class Day5 {
         checkIterator(
             storage.scan(Unbounded, Unbounded),
             listOf(
-                Pair("0".toTimestampedByteArray(), "2333333".toTimestampedByteArray()),
-                Pair("00".toTimestampedByteArray(), "2333".toTimestampedByteArray()),
-                Pair("2".toTimestampedByteArray(), "2333".toTimestampedByteArray()),
-                Pair("3".toTimestampedByteArray(), "23333".toTimestampedByteArray()),
+                Pair("0".toTimestampedByteArray(), "2333333".toComparableByteArray()),
+                Pair("00".toTimestampedByteArray(), "2333".toComparableByteArray()),
+                Pair("2".toTimestampedByteArray(), "2333".toComparableByteArray()),
+                Pair("3".toTimestampedByteArray(), "23333".toComparableByteArray()),
             )
         )
 
@@ -194,7 +194,7 @@ class Day5 {
                 Included("2".toTimestampedByteArray())
             ),
             listOf(
-                Pair("2".toTimestampedByteArray(), "2333".toTimestampedByteArray())
+                Pair("2".toTimestampedByteArray(), "2333".toComparableByteArray())
             )
         )
 
@@ -204,7 +204,7 @@ class Day5 {
                 Excluded("3".toTimestampedByteArray())
             ),
             listOf(
-                Pair("2".toTimestampedByteArray(), "2333".toTimestampedByteArray())
+                Pair("2".toTimestampedByteArray(), "2333".toComparableByteArray())
             )
         )
 
@@ -214,8 +214,8 @@ class Day5 {
                 Included("1".toTimestampedByteArray())
             ),
             listOf(
-                Pair("0".toTimestampedByteArray(), "2333333".toTimestampedByteArray()),
-                Pair("00".toTimestampedByteArray(), "2333".toTimestampedByteArray())
+                Pair("0".toTimestampedByteArray(), "2333333".toComparableByteArray()),
+                Pair("00".toTimestampedByteArray(), "2333".toComparableByteArray())
             )
         )
 
@@ -225,7 +225,7 @@ class Day5 {
                 Included("1".toTimestampedByteArray())
             ),
             listOf(
-                Pair("00".toTimestampedByteArray(), "2333".toTimestampedByteArray())
+                Pair("00".toTimestampedByteArray(), "2333".toComparableByteArray())
             )
         )
     }
@@ -237,20 +237,20 @@ class Day5 {
             path = dir,
             options = lsmStorageOptionForTest()
         )
-        storage.put("1".toTimestampedByteArray(), "233".toTimestampedByteArray())
-        storage.put("2".toTimestampedByteArray(), "2333".toTimestampedByteArray())
-        storage.put("00".toTimestampedByteArray(), "2333".toTimestampedByteArray())
+        storage.put("1".toTimestampedByteArray(), "233".toComparableByteArray())
+        storage.put("2".toTimestampedByteArray(), "2333".toComparableByteArray())
+        storage.put("00".toTimestampedByteArray(), "2333".toComparableByteArray())
         storage.forceFreezeMemTableWithLock()
 
-        storage.put("3".toTimestampedByteArray(), "23333".toTimestampedByteArray())
+        storage.put("3".toTimestampedByteArray(), "23333".toComparableByteArray())
         storage.delete("1".toTimestampedByteArray())
         val sst1 = generateSst(
             id = 10,
             path = dir.resolve("10.sst"),
             data = listOf(
-                Pair("0".toTimestampedByteArray(), "2333333".toTimestampedByteArray()),
-                Pair("00".toTimestampedByteArray(), "2333333".toTimestampedByteArray()),
-                Pair("4".toTimestampedByteArray(), "23".toTimestampedByteArray()),
+                Pair("0".toTimestampedByteArray(), "2333333".toComparableByteArray()),
+                Pair("00".toTimestampedByteArray(), "2333333".toComparableByteArray()),
+                Pair("4".toTimestampedByteArray(), "23".toComparableByteArray()),
             ),
             blockCache = storage.blockCache.copy()
         )
@@ -258,7 +258,7 @@ class Day5 {
             id = 11,
             path = dir.resolve("11.sst"),
             data = listOf(
-                Pair("4".toTimestampedByteArray(), "".toTimestampedByteArray()),
+                Pair("4".toTimestampedByteArray(), "".toComparableByteArray()),
             ),
             blockCache = storage.blockCache.copy()
         )
@@ -268,10 +268,10 @@ class Day5 {
         storage.addSstable(sst1)
         storage.addSstable(sst2)
 
-        assertEquals(storage.get("0".toTimestampedByteArray()), "2333333".toTimestampedByteArray())
-        assertEquals(storage.get("00".toTimestampedByteArray()), "2333".toTimestampedByteArray())
-        assertEquals(storage.get("2".toTimestampedByteArray()), "2333".toTimestampedByteArray())
-        assertEquals(storage.get("3".toTimestampedByteArray()), "23333".toTimestampedByteArray())
+        assertEquals(storage.get("0".toTimestampedByteArray()), "2333333".toComparableByteArray())
+        assertEquals(storage.get("00".toTimestampedByteArray()), "2333".toComparableByteArray())
+        assertEquals(storage.get("2".toTimestampedByteArray()), "2333".toComparableByteArray())
+        assertEquals(storage.get("3".toTimestampedByteArray()), "23333".toComparableByteArray())
         assertEquals(storage.get("4".toTimestampedByteArray()), null)
         assertEquals(storage.get("--".toTimestampedByteArray()), null)
         assertEquals(storage.get("555".toTimestampedByteArray()), null)
@@ -279,7 +279,7 @@ class Day5 {
 
     private fun checkIterator(
         actual: StorageIterator,
-        expected: List<Pair<TimestampedByteArray, TimestampedByteArray>>
+        expected: List<Pair<TimestampedByteArray, ComparableByteArray>>
     ) {
         for (e in expected) {
             assertTrue { actual.isValid() }

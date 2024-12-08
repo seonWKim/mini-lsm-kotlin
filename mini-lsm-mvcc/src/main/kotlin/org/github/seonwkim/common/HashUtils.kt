@@ -8,7 +8,7 @@ import com.google.common.hash.Hashing
  * @param key the [TimestampedByteArray] to hash
  * @return the CRC32 hash as an integer
  */
-fun crcHash(key: TimestampedByteArray): Int {
+fun crcHash(key: ComparableByteArray): Int {
     return crcHash(key.getByteArray())
 }
 

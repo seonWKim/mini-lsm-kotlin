@@ -206,7 +206,7 @@ class LsmStorageInner private constructor(
      * @param key The key to be retrieved.
      * @return The value associated with the key, or `null` if the key is not found or is marked as deleted.
      */
-    fun get(key: TimestampedByteArray): TimestampedByteArray? {
+    fun get(key: TimestampedByteArray): ComparableByteArray? {
         getFromMemTable(key).let {
             when {
                 it.isValid() -> return it!!
@@ -230,11 +230,11 @@ class LsmStorageInner private constructor(
         return getFromSstables(key)
     }
 
-    private fun getFromMemTable(key: TimestampedByteArray): TimestampedByteArray? {
+    private fun getFromMemTable(key: TimestampedByteArray): ComparableByteArray? {
         return state.memTable.withReadLock { it.get(key) }
     }
 
-    private fun getFromImmutableMemTables(key: TimestampedByteArray): TimestampedByteArray? {
+    private fun getFromImmutableMemTables(key: TimestampedByteArray): ComparableByteArray? {
         return state.immutableMemTables.withReadLock {
             for (immMemTable in it) {
                 val result = immMemTable.get(key)
@@ -247,7 +247,7 @@ class LsmStorageInner private constructor(
         }
     }
 
-    private fun getFromSstables(key: TimestampedByteArray): TimestampedByteArray? {
+    private fun getFromSstables(key: TimestampedByteArray): ComparableByteArray? {
         val l0Iter = MergeIterator(getL0SsTableIterators(key))
         val levelIters = MergeIterator(getSstConcatIterator(key))
         val totalMergedIter = TwoMergeIterator.create(
@@ -447,7 +447,7 @@ class LsmStorageInner private constructor(
      * @param key The key to be inserted. It must be a [TimestampedByteArray] to ensure proper ordering.
      * @param value The value to be associated with the key. It must be a [TimestampedByteArray].
      */
-    fun put(key: TimestampedByteArray, value: TimestampedByteArray) {
+    fun put(key: TimestampedByteArray, value: ComparableByteArray) {
         writeBatch(listOf(Put(key, value)))
     }
 
@@ -473,7 +473,7 @@ class LsmStorageInner private constructor(
 
                     var shouldFreezeMemTable = false
                     state.memTable.withReadLock { memTable ->
-                        memTable.put(key, "".toTimestampedByteArray())
+                        memTable.put(key, "".toComparableByteArray())
                         shouldFreezeMemTable = memTable.approximateSize() >= options.targetSstSize
                     }
 

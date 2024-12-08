@@ -2,6 +2,7 @@ package org.github.seonwkim.lsm
 
 import mu.KotlinLogging
 import org.github.seonwkim.common.lock.SimulatedRwLock
+import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.common.toTimestampedByteArray
 import org.github.seonwkim.lsm.memtable.MemTable
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -44,7 +45,7 @@ class LsmStorageInnerTest {
             executors[it % availableProcessors].submit {
                 storage.put(
                     key.toTimestampedByteArray(),
-                    value.toTimestampedByteArray()
+                    value.toComparableByteArray()
                 )
             }
         }
@@ -77,23 +78,23 @@ class LsmStorageInnerTest {
             options = options,
         )
 
-        storage.put("a".toTimestampedByteArray(), "aa".toTimestampedByteArray())
+        storage.put("a".toTimestampedByteArray(), "aa".toComparableByteArray())
         // freeze and then
-        storage.put("b".toTimestampedByteArray(), "bb".toTimestampedByteArray())
+        storage.put("b".toTimestampedByteArray(), "bb".toComparableByteArray())
         // freeze and then
-        storage.put("c".toTimestampedByteArray(), "cc".toTimestampedByteArray())
+        storage.put("c".toTimestampedByteArray(), "cc".toComparableByteArray())
         // freeze and then
-        storage.put("d".toTimestampedByteArray(), "dd".toTimestampedByteArray())
+        storage.put("d".toTimestampedByteArray(), "dd".toComparableByteArray())
         // freeze and then
-        storage.put("e".toTimestampedByteArray(), "ee".toTimestampedByteArray())
+        storage.put("e".toTimestampedByteArray(), "ee".toComparableByteArray())
         // freeze and then
-        storage.put("f".toTimestampedByteArray(), "ff".toTimestampedByteArray())
+        storage.put("f".toTimestampedByteArray(), "ff".toComparableByteArray())
         // freeze and then
-        storage.put("g".toTimestampedByteArray(), "gg".toTimestampedByteArray())
+        storage.put("g".toTimestampedByteArray(), "gg".toComparableByteArray())
         // freeze and then
-        storage.put("h".toTimestampedByteArray(), "hh".toTimestampedByteArray())
+        storage.put("h".toTimestampedByteArray(), "hh".toComparableByteArray())
         // freeze and then
-        storage.put("i".toTimestampedByteArray(), "ii".toTimestampedByteArray())
+        storage.put("i".toTimestampedByteArray(), "ii".toComparableByteArray())
         // freeze and then
 
         assertEquals(9, storage.getImmutableMemTablesSize())
@@ -129,7 +130,7 @@ class LsmStorageInnerTest {
             executors.map { executor ->
                 executor.submit {
                     val char = c + index * 3
-                    storage.put(char.toString().toTimestampedByteArray(), "$char$char".toTimestampedByteArray())
+                    storage.put(char.toString().toTimestampedByteArray(), "$char$char".toComparableByteArray())
                 }
             }
         }
@@ -164,8 +165,8 @@ class LsmStorageInnerTest {
         )
 
         // flush memTable into immutableMemTables
-        storage.put("a".toTimestampedByteArray(), "aa".toTimestampedByteArray())
-        storage.put("b".toTimestampedByteArray(), "bb".toTimestampedByteArray())
+        storage.put("a".toTimestampedByteArray(), "aa".toComparableByteArray())
+        storage.put("b".toTimestampedByteArray(), "bb".toComparableByteArray())
         storage.forceFreezeMemTableWithLock(enableCheck = true)
         assertEquals(2, storage.getImmutableMemTablesSize())
 

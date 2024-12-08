@@ -1,5 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
+import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedByteArray
 
 
@@ -12,16 +13,16 @@ interface StorageIterator {
     /**
      * Gets the current key.
      *
-     * @return the current key as a `ComparableByteArray`
+     * @return the current key as a [TimestampedByteArray]
      */
     fun key(): TimestampedByteArray
 
     /**
      * Gets the current value.
      *
-     * @return the current value as a `ComparableByteArray`
+     * @return the current value as a [ComparableByteArray]
      */
-    fun value(): TimestampedByteArray
+    fun value(): ComparableByteArray
 
     /**
      * Checks if the current iterator is valid.

@@ -1,5 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
+import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedByteArray
 
 /**
@@ -56,7 +57,7 @@ class TwoMergeIterator<A : StorageIterator, B : StorageIterator>(
         }
     }
 
-    override fun value(): TimestampedByteArray {
+    override fun value(): ComparableByteArray {
         return if (chooseFirst) {
             first.value()
         } else {

@@ -1,5 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
+import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedByteArray
 
 /**
@@ -20,7 +21,7 @@ class MockIterator(
         return data[currentIdx].key
     }
 
-    override fun value(): TimestampedByteArray {
+    override fun value(): ComparableByteArray {
         return data[currentIdx].value
     }
 
@@ -42,5 +43,5 @@ class MockIterator(
 
 data class MockIteratorData(
     val key: TimestampedByteArray,
-    val value: TimestampedByteArray
+    val value: ComparableByteArray
 )

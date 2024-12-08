@@ -1,6 +1,7 @@
 package org.github.seonwkim.lsm.iterator
 
 import mu.KotlinLogging
+import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedByteArray
 import java.util.*
 
@@ -50,7 +51,7 @@ class MergeIterator<T : StorageIterator>(
             ?: throw Error("Use isValid() function before calling this function")
     }
 
-    override fun value(): TimestampedByteArray {
+    override fun value(): ComparableByteArray {
         return current()?.iterator?.value()
             ?: throw Error("Use isValid() function before calling this function")
     }

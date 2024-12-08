@@ -70,7 +70,7 @@ object BlockMetaUtil {
 
             val firstKeyLength = buf.slice(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
             currentOffset += SIZE_OF_U16_IN_BYTE
-            val firstKey = buf.slice(currentOffset, currentOffset + firstKeyLength)
+            val firstKey = TimestampedByteArray(buf.slice(currentOffset, currentOffset + firstKeyLength).getBytes())
             currentOffset += firstKeyLength
             // TODO(TIMESTAMP: retrieve firstKey's u64 timestamp from the buffer)
             buf.slice(currentOffset, currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long().let { timestamp ->
@@ -80,7 +80,7 @@ object BlockMetaUtil {
 
             val lastKeyLength = buf.slice(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
             currentOffset += SIZE_OF_U16_IN_BYTE
-            val lastKey = buf.slice(currentOffset, currentOffset + lastKeyLength)
+            val lastKey = TimestampedByteArray(buf.slice(currentOffset, currentOffset + lastKeyLength).getBytes())
             currentOffset += lastKeyLength
             // TODO(TIMESTAMP: retrieve lastKey's u64 timestamp from the buffer)
             buf.slice(currentOffset, currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long().let { timestamp ->

@@ -1,6 +1,6 @@
 package org.github.seonwkim.lsm.bloom
 
-import org.github.seonwkim.common.TimestampedByteArray
+import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.clamp
 import org.github.seonwkim.common.isBitSet
 import org.github.seonwkim.common.setBit
@@ -13,7 +13,7 @@ import org.github.seonwkim.common.setBit
  * @property nbits the number of bits in the filter (8 * filter.size)
  */
 class Bloom private constructor(
-    val filter: TimestampedByteArray,
+    val filter: ComparableByteArray,
     val hashFunctionsCount: Int,
     private val nbits: UInt
 ) {
@@ -21,7 +21,7 @@ class Bloom private constructor(
     companion object {
         private const val ROTATE_BIT_COUNT = 15
 
-        fun create(filter: TimestampedByteArray, hashFunctionsCount: Int): Bloom {
+        fun create(filter: ComparableByteArray, hashFunctionsCount: Int): Bloom {
             return Bloom(
                 filter = filter,
                 hashFunctionsCount = hashFunctionsCount,
@@ -42,7 +42,7 @@ class Bloom private constructor(
             val nbytes = (nbits + 7u) / 8u
             nbits = nbytes * 8u
 
-            val filter = TimestampedByteArray(List(nbytes.toInt()) { 0 })
+            val filter = ComparableByteArray(List(nbytes.toInt()) { 0 })
             for (key in keys) {
                 var hashKey: UInt = key
                 val delta: UInt = hashKey.rotateLeft(ROTATE_BIT_COUNT)

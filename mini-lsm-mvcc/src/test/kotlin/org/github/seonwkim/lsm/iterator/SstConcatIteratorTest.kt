@@ -1,5 +1,6 @@
 package org.github.seonwkim.lsm.iterator
 
+import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.common.toTimestampedByteArray
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
 import org.github.seonwkim.lsm.sstable.Sstable
@@ -71,7 +72,7 @@ class SstConcatIteratorTest {
         val builder = SsTableBuilder(128)
         for (idx in startKey until endKey) {
             val key = "%05d".format(idx)
-            builder.add(key.toTimestampedByteArray(), "test".toTimestampedByteArray())
+            builder.add(key.toTimestampedByteArray(), "test".toComparableByteArray())
         }
         val path = dir.resolve("${id}.sst")
         return builder.buildForTest(path)

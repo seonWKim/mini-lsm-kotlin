@@ -1,5 +1,6 @@
 package org.github.seonwkim.lsm.iterator.util
 
+import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.lsm.sstable.BlockCache
 import org.github.seonwkim.lsm.sstable.SsTableBuilder
@@ -10,7 +11,7 @@ import java.nio.file.Path
 fun generateSst(
     id: Int,
     path: Path,
-    data: List<Pair<TimestampedByteArray, TimestampedByteArray>>,
+    data: List<Pair<TimestampedByteArray, ComparableByteArray>>,
     blockCache: BlockCache?
 ): Sstable {
     val builder = SsTableBuilder(128)
