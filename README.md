@@ -19,7 +19,7 @@ Inspired by [mini-lsm](https://github.com/skyzh/mini-lsm) which is implemented i
 ## Modules
 
 - cli: Provides command-line interface commands to interact with the LSM database. 
-- core: A production-ready implementation of the LSM database. 
+- core: A production-ready implementation of the LSM database. Currently, it's a mirror of mini-lsm-mvcc module.  
 - mini-lsm-starter: A Kotlin rewrite for [week1](https://skyzh.github.io/mini-lsm/week1-overview.html)
   and [week2](https://skyzh.github.io/mini-lsm/week2-overview.html) of MINI-LSM project. 
 - mini-lsm-mvcc: A Kotlin rewrite of the [week3](https://skyzh.github.io/mini-lsm/week1-overview.html) of MINI-LSM project. 
