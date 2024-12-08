@@ -62,7 +62,7 @@ class MergeIterator<T : StorageIterator>(
     override fun next() {
         val currIter = current()?.iterator ?: return
         val currKey = currIter.key()
-        removeSameKeys(currKey)
+        removeSameKeys(currKey.copy())
     }
 
     /**
@@ -73,14 +73,14 @@ class MergeIterator<T : StorageIterator>(
     private fun removeSameKeys(key: ComparableByteArray) {
         while (priorityQueue.isNotEmpty()) {
             if (priorityQueue.first().iterator.key() == key) {
-                val (nextIdx, nextIer) = priorityQueue.poll()
-                runCatching { nextIer.next() }.onFailure { e ->
+                val (nextIdx, nextIter) = priorityQueue.poll()
+                runCatching { nextIter.next() }.onFailure { e ->
                     log.error { "error while calling next(): $e" }
                     throw e
                 }
 
-                if (nextIer.isValid()) {
-                    priorityQueue.add(PriorityQueueKey(nextIdx, nextIer))
+                if (nextIter.isValid()) {
+                    priorityQueue.add(PriorityQueueKey(nextIdx, nextIter))
                 }
             } else {
                 break

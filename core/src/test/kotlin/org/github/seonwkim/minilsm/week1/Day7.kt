@@ -56,7 +56,7 @@ class Day7 {
         for (idx in 0 until NUMBER_OF_KEYS) {
             val key = createKey(idx)
             val value = createValue(idx)
-            builder.add(TimestampedKey(key), value)
+            builder.add(key, value)
         }
 
         val dir = createTempDirectory()

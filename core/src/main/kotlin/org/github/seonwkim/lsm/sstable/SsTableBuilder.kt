@@ -13,8 +13,8 @@ class SsTableBuilder(
     private val blockSize: Int,
 ) {
     private var builder: BlockBuilder
-    private var firstKey: TimestampedKey
-    private var lastKey: TimestampedKey
+    private var firstKey: ComparableByteArray
+    private var lastKey: ComparableByteArray
     private val data: ComparableByteArray
 
     val meta: MutableList<BlockMeta>
@@ -23,26 +23,27 @@ class SsTableBuilder(
 
     init {
         this.builder = BlockBuilder(blockSize)
-        this.firstKey = TimestampedKey.empty()
-        this.lastKey = TimestampedKey.empty()
+        this.firstKey = ComparableByteArray.new()
+        this.lastKey = ComparableByteArray.new()
         this.data = ComparableByteArray.new()
         this.meta = mutableListOf()
         this.keyHashes = mutableListOf()
         this.maxTimestamp = 0L
     }
 
-    fun add(key: TimestampedKey, value: ComparableByteArray) {
+    fun add(key: ComparableByteArray, value: ComparableByteArray) {
         if (this.firstKey.isEmpty()) {
-            firstKey.setFromBlockKey(key)
+            firstKey.setFromByteArray(key)
         }
 
-        if (key.timestamp() > maxTimestamp) {
-            maxTimestamp = key.timestamp()
-        }
-        keyHashes.add(farmHashFingerPrintU32(key.bytes))
+        // if (key.timestamp() > maxTimestamp) {
+        //     maxTimestamp = key.timestamp()
+        // }
+
+        keyHashes.add(farmHashFingerPrintU32(key))
 
         if (builder.add(key, value)) {
-            lastKey.setFromBlockKey(key)
+            lastKey.setFromByteArray(key)
             return
         }
 
@@ -53,8 +54,8 @@ class SsTableBuilder(
         if (!builder.add(key, value)) {
             throw IllegalStateException("Unable to add key($key) and value($value) to builder")
         }
-        firstKey.setFromBlockKey(key)
-        lastKey.setFromBlockKey(key)
+        firstKey.setFromByteArray(key)
+        lastKey.setFromByteArray(key)
     }
 
     private fun finishBlock() {
@@ -71,8 +72,8 @@ class SsTableBuilder(
         data += crcHash(encodedBlock).toU32ByteArray()
 
         // reset
-        firstKey = TimestampedKey.empty()
-        lastKey = TimestampedKey.empty()
+        firstKey = ComparableByteArray.new()
+        lastKey = ComparableByteArray.new()
         this.builder = BlockBuilder(blockSize)
     }
 
@@ -85,7 +86,8 @@ class SsTableBuilder(
         finishBlock()
         val buf = data
         val metaOffset = buf.size()
-        BlockMetaUtil.encodeBlockMeta(meta, maxTimestamp, buf)
+        BlockMetaUtil.encodeBlockMeta(meta, buf)
+        // BlockMetaUtil.encodeBlockMeta(meta, maxTimestamp, buf)
         buf += metaOffset.toU32ByteArray()
 
         val bloom = Bloom.fromKeyHashes(
@@ -106,7 +108,7 @@ class SsTableBuilder(
             firstKey = meta.first().firstKey,
             lastKey = meta.last().lastKey,
             bloom = bloom,
-            maxTs = 0
+            // maxTs = 0
         )
     }
 

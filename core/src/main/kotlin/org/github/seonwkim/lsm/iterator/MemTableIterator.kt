@@ -16,8 +16,8 @@ class MemTableIterator private constructor(
     private val lower: Bound,
     private val upper: Bound,
 ) : StorageIterator {
-    private var current: Map.Entry<TimestampedKey, ComparableByteArray>? = null
-    private val iter: Iterator<Map.Entry<TimestampedKey, ComparableByteArray>>
+    private var current: Map.Entry<ComparableByteArray, ComparableByteArray>? = null
+    private val iter: Iterator<Map.Entry<ComparableByteArray, ComparableByteArray>>
 
     init {
         val iter = memTable.iterator()
@@ -25,8 +25,8 @@ class MemTableIterator private constructor(
             .firstOrNull {
                 when (lower) {
                     is Unbounded -> true
-                    is Included -> it.key.bytes >= lower.key
-                    is Excluded -> it.key.bytes > lower.key
+                    is Included -> it.key >= lower.key
+                    is Excluded -> it.key > lower.key
                 }
             }
         this.iter = iter
@@ -46,7 +46,7 @@ class MemTableIterator private constructor(
         }    }
 
     override fun key(): ComparableByteArray {
-        return current?.key?.bytes
+        return current?.key
             ?: throw Error("Use isValid() function before calling this function")
     }
 
@@ -60,8 +60,8 @@ class MemTableIterator private constructor(
 
         return when (upper) {
             is Unbounded -> true
-            is Included -> current!!.key.bytes <= upper.key
-            is Excluded -> current!!.key.bytes < upper.key
+            is Included -> current!!.key <= upper.key
+            is Excluded -> current!!.key < upper.key
         }
     }
 
@@ -71,11 +71,11 @@ class MemTableIterator private constructor(
         if (current != null) {
             when (upper) {
                 is Included -> {
-                    if (current!!.key.bytes > upper.key) current = null
+                    if (current!!.key > upper.key) current = null
                 }
 
                 is Excluded -> {
-                    if (current!!.key.bytes >= upper.key) current = null
+                    if (current!!.key >= upper.key) current = null
                 }
 
                 Unbounded -> {}

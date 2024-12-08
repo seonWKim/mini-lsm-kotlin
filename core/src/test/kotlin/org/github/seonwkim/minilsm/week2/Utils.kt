@@ -61,13 +61,13 @@ object Utils {
         val expectedKeyValuePairs = mutableListOf<Pair<ComparableByteArray, ComparableByteArray>>()
         for (i in 0 until (maxKey + 40_000)) {
             val key = genKey(i)
-            val value = storage.get(key)
+            val actualValue = storage.get(key)
             if (keyMap.containsKey(i)) {
                 val expectedValue = genValue(keyMap[i]!!)
-                assertEquals(value, expectedValue)
-                expectedKeyValuePairs.add(Pair(key.toComparableByteArray(), value!!.toComparableByteArray()))
+                assertEquals(expectedValue, actualValue)
+                expectedKeyValuePairs.add(Pair(key.toComparableByteArray(), actualValue!!.toComparableByteArray()))
             } else {
-                assertTrue { value == null }
+                assertTrue { actualValue == null }
             }
         }
 

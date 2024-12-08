@@ -8,5 +8,5 @@ package org.github.seonwkim.lsm.block
  */
 data class BlockMetaDecodedResult(
     val blockMeta: List<BlockMeta>,
-    val maxTimestamp: Long
+    // val maxTimestamp: Long
 )

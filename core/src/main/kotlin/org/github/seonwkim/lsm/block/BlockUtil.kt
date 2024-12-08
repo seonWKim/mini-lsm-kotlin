@@ -13,17 +13,19 @@ object BlockUtil {
      * @param block the block to retrieve the first key from
      * @return the first key in the block
      */
-    fun getFirstKey(block: Block): TimestampedKey {
+    fun getFirstKey(block: Block): ComparableByteArray {
         var currentOffset = 0
         currentOffset += SIZE_OF_U16_IN_BYTE
         val keyLength = block.data.slice(currentOffset..<currentOffset + 2).toU16Int()
         currentOffset += SIZE_OF_U16_IN_BYTE
         val keyBytes = block.data.slice(currentOffset..<currentOffset + keyLength)
         currentOffset += keyLength
-        return TimestampedKey(
-            bytes = keyBytes,
-            timestamp = block.data.slice(currentOffset..<currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
-        )
+        return keyBytes
+        // TODO(timestamp)
+        // return TimestampedKey(
+        //     bytes = keyBytes,
+        //     timestamp = block.data.slice(currentOffset..<currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
+        // )
     }
 
     /**

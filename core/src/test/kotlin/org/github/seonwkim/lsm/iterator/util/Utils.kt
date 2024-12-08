@@ -16,7 +16,7 @@ fun generateSst(
 ): Sstable {
     val builder = SsTableBuilder(128)
     data.forEach { (key, value) ->
-        builder.add(TimestampedKey(key), value)
+        builder.add(key, value)
     }
     return builder.build(
         id = id,

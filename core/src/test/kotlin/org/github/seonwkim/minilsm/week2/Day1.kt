@@ -1,6 +1,5 @@
 package org.github.seonwkim.minilsm.week2
 
-import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.common.Unbounded
 import org.github.seonwkim.common.toComparableByteArray
 import org.github.seonwkim.lsm.Configuration
@@ -177,7 +176,7 @@ class Day1 {
         for (key in 0 until 120) {
             val iter = SstConcatIterator.createAndSeekToKey(
                 sstables = sstables,
-                key = TimestampedKey("%05d".format(key).toComparableByteArray())
+                key = "%05d".format(key).toComparableByteArray()
             )
             if (key < 10) {
                 assertTrue { iter.isValid() }
@@ -260,7 +259,7 @@ class Day1 {
         val builder = SsTableBuilder(128)
         for (idx in startKey until endKey) {
             val key = "%05d".format(idx)
-            builder.add(TimestampedKey(key.toComparableByteArray()), "test".toComparableByteArray())
+            builder.add(key.toComparableByteArray(), "test".toComparableByteArray())
         }
         val path = dir.resolve("${id}.sst")
         return builder.buildForTest(path)

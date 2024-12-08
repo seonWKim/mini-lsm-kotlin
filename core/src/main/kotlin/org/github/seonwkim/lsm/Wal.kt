@@ -30,7 +30,7 @@ class Wal(private val file: MutexLock<File>) {
             )
         }
 
-        fun recover(path: Path, map: ConcurrentSkipListMap<TimestampedKey, ComparableByteArray>): Wal {
+        fun recover(path: Path, map: ConcurrentSkipListMap<ComparableByteArray, ComparableByteArray>): Wal {
             val file = Files.newByteChannel(
                 path,
                 StandardOpenOption.READ,
@@ -68,10 +68,11 @@ class Wal(private val file: MutexLock<File>) {
                 val calculatedChecksum = crcHash(combined)
 
                 if (checksum == calculatedChecksum) {
-                    // TODO: for now, set the key's timestamp to 0
-                    val timestampedKey = TimestampedKey(key)
-                    map[timestampedKey] = value
-                    log.debug { "[$timestampedKey, $value] recovered from WAL"}
+                    // val timestampedKey = TimestampedKey(key)
+                    // map[timestampedKey] = value
+                    // log.debug { "[$timestampedKey, $value] recovered from WAL"}
+
+                    map[key] = value
                 } else {
                     throw IllegalStateException("Checksum mismatch")
                 }
@@ -83,12 +84,12 @@ class Wal(private val file: MutexLock<File>) {
         }
     }
 
-    fun put(key: TimestampedKey, value: ComparableByteArray) {
+    fun put(key: ComparableByteArray, value: ComparableByteArray) {
         this.file.withWriteLock {
             val buf = ComparableByteArray.new()
 
             buf += key.size().toU16ByteArray()
-            buf += key.bytes
+            buf += key
             buf += value.size().toU16ByteArray()
             buf += value
 

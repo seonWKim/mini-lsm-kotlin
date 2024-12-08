@@ -3,13 +3,12 @@ package org.github.seonwkim.common
 /**
  * A class representing a byte array that can be compared to other byte arrays.
  *
- * @property array the list of bytes in the array
+ * @property bytes the list of bytes in the array
  */
 class ComparableByteArray(
-    array: List<Byte>
+    bytes: List<Byte>
 ) : Comparable<ComparableByteArray> {
-    var array: MutableList<Byte> = array.toMutableList()
-        private set
+    private var bytes: MutableList<Byte> = bytes.toMutableList()
 
     companion object {
         /**
@@ -28,7 +27,7 @@ class ComparableByteArray(
      * @return the size of the byte array
      */
     fun size(): Int {
-        return array.size
+        return bytes.size
     }
 
     /**
@@ -37,7 +36,7 @@ class ComparableByteArray(
      * @return true if the byte array is empty, false otherwise
      */
     fun isEmpty(): Boolean {
-        return array.isEmpty()
+        return bytes.isEmpty()
     }
 
     /**
@@ -49,11 +48,11 @@ class ComparableByteArray(
     fun computeOverlap(other: ComparableByteArray): Int {
         var i = 0
         while (true) {
-            if (i >= this.array.size || i >= other.array.size) {
+            if (i >= this.bytes.size || i >= other.bytes.size) {
                 break
             }
 
-            if (this.array[i] != other.array[i]) {
+            if (this.bytes[i] != other.bytes[i]) {
                 break
             }
 
@@ -62,13 +61,18 @@ class ComparableByteArray(
         return i
     }
 
+    fun setFromByteArray(bytes: ComparableByteArray) {
+        clear()
+        append(bytes.bytes)
+    }
+
     /**
      * Appends another byte array to this byte array.
      *
      * @param bytes the byte array to append
      */
     fun append(bytes: ComparableByteArray) {
-        array.addAll(bytes.array)
+        this.bytes.addAll(bytes.bytes)
     }
 
     /**
@@ -77,7 +81,7 @@ class ComparableByteArray(
      * @param bytes the list of bytes to append
      */
     fun append(bytes: List<Byte>) {
-        array.addAll(bytes)
+        this.bytes.addAll(bytes)
     }
 
     /**
@@ -86,17 +90,7 @@ class ComparableByteArray(
      * @return the byte array as a ByteArray
      */
     fun getByteArray(): ByteArray {
-        return array.toByteArray()
-    }
-
-    /**
-     * Returns a slice of the byte array.
-     *
-     * @param range the range of indices to include in the slice
-     * @return a new ComparableByteArray containing the specified range
-     */
-    fun slice(range: IntRange): ComparableByteArray {
-        return ComparableByteArray(array.slice(range))
+        return bytes.toByteArray()
     }
 
     /**
@@ -107,13 +101,31 @@ class ComparableByteArray(
     }
 
     /**
+     * Returns a slice of the byte array.
+     *
+     * @param range the range of indices to include in the slice
+     * @return a new ComparableByteArray containing the specified range
+     */
+    fun slice(range: IntRange): ComparableByteArray {
+        return ComparableByteArray(bytes.slice(range))
+    }
+
+    fun clear() {
+        this.bytes.clear()
+    }
+
+    fun copy(): ComparableByteArray {
+        return ComparableByteArray(this.bytes.toList())
+    }
+
+    /**
      * Concatenates this byte array with another byte array.
      *
      * @param other the other byte array to concatenate
      * @return a new ComparableByteArray containing the concatenated result
      */
     operator fun plus(other: ComparableByteArray): ComparableByteArray {
-        return ComparableByteArray(this.array + other.array)
+        return ComparableByteArray(this.bytes + other.bytes)
     }
 
     /**
@@ -122,7 +134,7 @@ class ComparableByteArray(
      * @param other the other byte array to append
      */
     operator fun plusAssign(other: ComparableByteArray) {
-        this.array.addAll(other.array)
+        this.bytes.addAll(other.bytes)
     }
 
     /**
@@ -132,7 +144,7 @@ class ComparableByteArray(
      * @return the byte at the specified index
      */
     operator fun get(idx: Int): Byte {
-        return array[idx]
+        return bytes[idx]
     }
 
     /**
@@ -143,7 +155,7 @@ class ComparableByteArray(
      * @return the previous value of the byte at the specified index
      */
     operator fun set(idx: Int, value: Byte): Byte {
-        return array.set(idx, value)
+        return bytes.set(idx, value)
     }
 
     /**
@@ -153,16 +165,16 @@ class ComparableByteArray(
      * @return a negative integer, zero, or a positive integer as this byte array is less than, equal to, or greater than the specified byte array
      */
     override fun compareTo(other: ComparableByteArray): Int {
-        if (this.array.size > other.array.size) {
+        if (this.bytes.size > other.bytes.size) {
             return -other.compareTo(this)
         }
 
-        for (idx in array.indices) {
-            if (array[idx] == other.array[idx]) continue
-            return array[idx] - other.array[idx]
+        for (idx in bytes.indices) {
+            if (bytes[idx] == other.bytes[idx]) continue
+            return bytes[idx] - other.bytes[idx]
         }
 
-        return if (array.size == other.array.size) 0 else -1
+        return if (bytes.size == other.bytes.size) 0 else -1
     }
 
     override fun equals(other: Any?): Boolean {
@@ -170,12 +182,12 @@ class ComparableByteArray(
     }
 
     override fun hashCode(): Int {
-        return array.hashCode()
+        return bytes.hashCode()
     }
 
     override fun toString(): String {
-        val sb = StringBuilder(array.size)
-        for (byte in array) {
+        val sb = StringBuilder(bytes.size)
+        for (byte in bytes) {
             sb.append(byte.toInt().toChar())
         }
         return sb.toString()
@@ -193,9 +205,9 @@ fun String.toComparableByteArray(): ComparableByteArray {
 }
 
 fun ComparableByteArray?.isValid(): Boolean {
-    return this != null && this.array.isNotEmpty()
+    return this != null && !this.isEmpty()
 }
 
 fun ComparableByteArray?.isDeleted(): Boolean {
-    return this != null && this.array.isEmpty()
+    return this != null && this.isEmpty()
 }

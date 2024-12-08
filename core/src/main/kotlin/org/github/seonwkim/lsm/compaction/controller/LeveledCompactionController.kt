@@ -211,9 +211,3 @@ class LeveledCompactionController(
         return true
     }
 }
-
-
-data class PriorityAndLevel(
-    val priority: Double,
-    val level: Int
-)

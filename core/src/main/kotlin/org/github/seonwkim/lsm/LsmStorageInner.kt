@@ -132,7 +132,7 @@ class LsmStorageInner private constructor(
                         blockCache = blockCache.copy(),
                         file = SsTableFile.open(sstPath(path, sstableId))
                     )
-                    lastCommitTs = maxOf(lastCommitTs, sst.maxTs)
+                    // lastCommitTs = maxOf(lastCommitTs, sst.maxTs)
                     state.sstables[sstableId] = sst
                     sstCount += 1
                 }
@@ -197,20 +197,6 @@ class LsmStorageInner private constructor(
     }
 
     /**
-     * Retrieves the value associated with the specified key from the storage.
-     *
-     * This method first attempts to retrieve the value from the current memTable.
-     * If the key is not found or is marked as deleted, it then checks the immutable memTables.
-     * If the key is still not found, it finally checks the SSTables.
-     *
-     * @param key The key to be retrieved. It must be a [ComparableByteArray].
-     * @return The value associated with the key, or `null` if the key is not found or is marked as deleted.
-     */
-    fun get(key: ComparableByteArray): ComparableByteArray? {
-        return get(TimestampedKey(key))
-    }
-
-    /**
      * Retrieves the value associated with the specified timestamped key from the storage.
      *
      * This method first attempts to retrieve the value from the current memTable.
@@ -220,7 +206,7 @@ class LsmStorageInner private constructor(
      * @param key The timestamped key to be retrieved. It must be a `TimestampedKey`.
      * @return The value associated with the key, or `null` if the key is not found or is marked as deleted.
      */
-    fun get(key: TimestampedKey): ComparableByteArray? {
+    fun get(key: ComparableByteArray): ComparableByteArray? {
         getFromMemTable(key).let {
             when {
                 it.isValid() -> return it!!
@@ -244,11 +230,11 @@ class LsmStorageInner private constructor(
         return getFromSstables(key)
     }
 
-    private fun getFromMemTable(key: TimestampedKey): ComparableByteArray? {
+    private fun getFromMemTable(key: ComparableByteArray): ComparableByteArray? {
         return state.memTable.withReadLock { it.get(key) }
     }
 
-    private fun getFromImmutableMemTables(key: TimestampedKey): ComparableByteArray? {
+    private fun getFromImmutableMemTables(key: ComparableByteArray): ComparableByteArray? {
         return state.immutableMemTables.withReadLock {
             for (immMemTable in it) {
                 val result = immMemTable.get(key)
@@ -261,14 +247,14 @@ class LsmStorageInner private constructor(
         }
     }
 
-    private fun getFromSstables(key: TimestampedKey): ComparableByteArray? {
+    private fun getFromSstables(key: ComparableByteArray): ComparableByteArray? {
         val l0Iter = MergeIterator(getL0SsTableIterators(key))
         val levelIters = MergeIterator(getSstConcatIterator(key))
         val totalMergedIter = TwoMergeIterator.create(
             first = l0Iter, second = levelIters
         )
 
-        if (totalMergedIter.isValid() && totalMergedIter.key() == key.bytes && // TODO: timestamp comparison between keys
+        if (totalMergedIter.isValid() && totalMergedIter.key() == key && // TODO: timestamp comparison between keys
             !totalMergedIter.value().isEmpty()
         ) {
             return totalMergedIter.value()
@@ -277,7 +263,7 @@ class LsmStorageInner private constructor(
         return null
     }
 
-    private fun getL0SsTableIterators(key: TimestampedKey): List<SsTableIterator> {
+    private fun getL0SsTableIterators(key: ComparableByteArray): List<SsTableIterator> {
         return state.l0Sstables.withReadLock {
             it.mapNotNull { l0SstableIdx ->
                 val table = state.sstables[l0SstableIdx] ?: return@mapNotNull null
@@ -334,9 +320,9 @@ class LsmStorageInner private constructor(
                 val table = state.sstables[idx]!!
                 if (rangeOverlap(lower, upper, table.firstKey, table.lastKey)) {
                     when (lower) {
-                        is Included -> SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.key))
+                        is Included -> SsTableIterator.createAndSeekToKey(table, lower.key)
                         is Excluded -> {
-                            val iter = SsTableIterator.createAndSeekToKey(table, TimestampedKey(lower.key))
+                            val iter = SsTableIterator.createAndSeekToKey(table, lower.key)
                             if (iter.isValid() && iter.key() == lower.key) {
                                 iter.next()
                             }
@@ -351,14 +337,17 @@ class LsmStorageInner private constructor(
     }
 
     private fun rangeOverlap(
-        userBegin: Bound, userEnd: Bound, tableBegin: TimestampedKey, tableEnd: TimestampedKey
+        userBegin: Bound,
+        userEnd: Bound,
+        tableBegin: ComparableByteArray,
+        tableEnd: ComparableByteArray
     ): Boolean {
         when (userEnd) {
-            is Excluded -> if (userEnd.key <= tableBegin.bytes) {
+            is Excluded -> if (userEnd.key <= tableBegin) {
                 return false
             }
 
-            is Included -> if (userEnd.key < tableBegin.bytes) {
+            is Included -> if (userEnd.key < tableBegin) {
                 return false
             }
 
@@ -366,11 +355,11 @@ class LsmStorageInner private constructor(
         }
 
         when (userBegin) {
-            is Excluded -> if (userBegin.key >= tableEnd.bytes) {
+            is Excluded -> if (userBegin.key >= tableEnd) {
                 return false
             }
 
-            is Included -> if (userBegin.key > tableEnd.bytes) {
+            is Included -> if (userBegin.key > tableEnd) {
                 return false
             }
 
@@ -400,14 +389,14 @@ class LsmStorageInner private constructor(
                 is Included -> {
                     SstConcatIterator.createAndSeekToKey(
                         sstables = levelSsts,
-                        key = TimestampedKey(lower.key),
+                        key = lower.key,
                     )
                 }
 
                 is Excluded -> {
                     val iter = SstConcatIterator.createAndSeekToKey(
                         sstables = levelSsts,
-                        key = TimestampedKey(lower.key),
+                        key = lower.key,
                     )
                     while (iter.isValid() && iter.key() == lower.key) {
                         iter.next()
@@ -422,7 +411,7 @@ class LsmStorageInner private constructor(
         }
     }
 
-    private fun getSstConcatIterator(key: TimestampedKey): List<SstConcatIterator> {
+    private fun getSstConcatIterator(key: ComparableByteArray): List<SstConcatIterator> {
         return state.levels.readValue().map { level ->
             val validLevelSsts = mutableListOf<Sstable>()
             level.sstIds.forEach { levelSstId ->
@@ -436,14 +425,14 @@ class LsmStorageInner private constructor(
         }
     }
 
-    private fun keepTable(key: TimestampedKey, table: Sstable): Boolean {
+    private fun keepTable(key: ComparableByteArray, table: Sstable): Boolean {
         if (table.firstKey <= key && key <= table.lastKey) {
             if (table.bloom == null) {
                 return true
             }
 
             // we can assure that key doesn't exist when bloom filter doesn't have the key
-            return table.bloom.mayContain(farmHashFingerPrintU32(key.bytes))
+            return table.bloom.mayContain(farmHashFingerPrintU32(key))
         }
 
         return false
@@ -628,7 +617,6 @@ class LsmStorageInner private constructor(
         val newSstables = compact(compactionTask)
         state.l0Sstables.withWriteLock { l0Sstables ->
             state.levels.withWriteLock { levels ->
-                state
                 // Removing the old sstables
                 (l0SstablesSnapshot + l1SstablesSnapshot).forEach { sstId ->
                     state.sstables.remove(sstId)
@@ -779,10 +767,10 @@ class LsmStorageInner private constructor(
 
             if (compactToBottomLevel) {
                 if (!iter.value().isEmpty()) {
-                    builder.add(TimestampedKey(iter.key()), iter.value())
+                    builder.add(iter.key(), iter.value())
                 }
             } else {
-                builder.add(TimestampedKey(iter.key()), iter.value())
+                builder.add(iter.key(), iter.value())
             }
             iter.next()
 
@@ -856,6 +844,7 @@ class LsmStorageInner private constructor(
         newSstables.forEach { newSstable ->
             newSstIds.add(newSstable.id)
             state.sstables[newSstable.id] = newSstable
+            println("SStable(id: $${newSstable.id}) of size(${state.sstables[newSstable.id]?.file?.size}) added.")
         }
 
         // changes are applied to the snapshot
@@ -870,6 +859,7 @@ class LsmStorageInner private constructor(
         log.debug { "Compaction applied snapshot: $compactionAppliedSnapshot" }
         val sstablesToRemove = hashSetOf<Sstable>()
         for (sstId in sstIdsToRemove) {
+            println("SStable(id: $sstId) of size(${state.sstables[sstId]?.file?.size}) remove.")
             val sstable = state.sstables.remove(sstId) ?: throw Error("Sstable(id: $sstId) doesn't exist!!")
             sstablesToRemove.add(sstable)
         }
@@ -898,7 +888,7 @@ class LsmStorageInner private constructor(
         }
 
         manifest?.addRecord(CompactionRecord(task = task, output = newSstIds))
-        log.debug { "Compaction finished: ${sstIdsToRemove.size} files removed, ${newSstIds.size} files added, newSstIds=${newSstIds}, oldSstIDs=${sstIdsToRemove}" }
+        log.debug { "Compaction finished: ${sstIdsToRemove.size} files removed, ${newSstIds.size} files added, newSstIds=${newSstIds}, oldSstIds=${sstIdsToRemove}" }
         sstablesToRemove.forEach { sst ->
             Files.delete(sstPath(path = path, id = sst.id))
         }
@@ -950,18 +940,16 @@ class LsmStorageInner private constructor(
 
     @VisibleForTesting
     fun constructMergeIterator(): MergeIterator<SsTableIterator> {
-        val iters = mutableListOf<SsTableIterator>()
-        state.l0Sstables.readValue().forEach {
-            iters.add(SsTableIterator.createAndSeekToFirst(state.sstables[it]!!))
+        val l0Iterators = state.l0Sstables.readValue().map {
+            SsTableIterator.createAndSeekToFirst(state.sstables[it]!!)
         }
-
-        state.levels.readValue().forEach { level ->
-            level.sstIds.forEach {
-                iters.add(SsTableIterator.createAndSeekToFirst(state.sstables[it]!!))
+        val levelIterators = state.levels.readValue().flatMap { level ->
+            level.sstIds.map {
+                SsTableIterator.createAndSeekToFirst(state.sstables[it]!!)
             }
         }
 
-        return MergeIterator(iters)
+        return MergeIterator(l0Iterators + levelIterators)
     }
 
     @VisibleForTesting
@@ -972,13 +960,5 @@ class LsmStorageInner private constructor(
     @VisibleForTesting
     fun getImmutableMemTableIds(): List<Int> {
         return state.immutableMemTables.readValue().map { it.id() }
-    }
-
-    @VisibleForTesting
-    fun compactionRequired(): Boolean {
-        return compactionController.generateCompactionTask(
-            snapshot = state.diskSnapshot(),
-            sstables = state.sstables
-        ) != null
     }
 }

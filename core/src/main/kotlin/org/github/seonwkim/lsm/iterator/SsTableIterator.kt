@@ -2,7 +2,6 @@ package org.github.seonwkim.lsm.iterator
 
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.lsm.block.BlockIterator
-import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.lsm.sstable.Sstable
 
 /**
@@ -52,7 +51,7 @@ class SsTableIterator(
          * @param key the key to seek to
          * @return a pair containing the block index and block iterator
          */
-        fun seekToKeyInner(table: Sstable, key: TimestampedKey): Pair<Int, BlockIterator> {
+        fun seekToKeyInner(table: Sstable, key: ComparableByteArray): Pair<Int, BlockIterator> {
             var blockIdx = table.findBlockIdx(key)
             var blockIter = BlockIterator.createAndSeekToKey(table.readBlockCached(blockIdx), key)
             if (!blockIter.isValid()) {
@@ -71,7 +70,7 @@ class SsTableIterator(
          * @param key the key to seek to
          * @return a new [SsTableIterator]
          */
-        fun createAndSeekToKey(table: Sstable, key: TimestampedKey): SsTableIterator {
+        fun createAndSeekToKey(table: Sstable, key: ComparableByteArray): SsTableIterator {
             val (blockIdx, blockIter) = seekToKeyInner(table, key)
             return SsTableIterator(
                 table = table,
@@ -87,14 +86,14 @@ class SsTableIterator(
         this.blockIter = blockIter
     }
 
-    fun seekToKey(key: TimestampedKey) {
+    fun seekToKey(key: ComparableByteArray) {
         val (blockIdx, blockIter) = seekToKeyInner(table, key)
         this.blockIdx = blockIdx
         this.blockIter = blockIter
     }
 
     override fun key(): ComparableByteArray {
-        return blockIter.key().bytes
+        return blockIter.key()
     }
 
     override fun value(): ComparableByteArray {

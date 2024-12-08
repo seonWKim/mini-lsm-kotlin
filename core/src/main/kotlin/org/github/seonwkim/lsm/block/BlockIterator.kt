@@ -13,10 +13,10 @@ import org.github.seonwkim.common.*
  */
 class BlockIterator(
     private val block: Block,
-    private val key: TimestampedKey,
+    private val key: ComparableByteArray,
     private var valueRange: IntRange,
     private var idx: Int,
-    private val firstKey: TimestampedKey
+    private val firstKey: ComparableByteArray
 ) {
     companion object {
         /**
@@ -29,7 +29,7 @@ class BlockIterator(
             return BlockIterator(
                 firstKey = BlockUtil.getFirstKey(block),
                 block = block,
-                key = TimestampedKey(ComparableByteArray.new()),
+                key = ComparableByteArray.new(),
                 valueRange = IntRange.EMPTY,
                 idx = 0
             )
@@ -54,7 +54,7 @@ class BlockIterator(
          * @param key the key to seek to
          * @return a new `BlockIterator` positioned at the specified key
          */
-        fun createAndSeekToKey(block: Block, key: TimestampedKey): BlockIterator {
+        fun createAndSeekToKey(block: Block, key: ComparableByteArray): BlockIterator {
             val iter = new(block)
             iter.seekToKey(key)
             return iter
@@ -67,7 +67,7 @@ class BlockIterator(
      * @return the key at the current iterator position
      * @throws IllegalStateException if the iterator is invalid
      */
-    fun key(): TimestampedKey {
+    fun key(): ComparableByteArray {
         if (key.isEmpty()) {
             throw IllegalStateException("Invalid iterator")
         }
@@ -117,6 +117,10 @@ class BlockIterator(
      * @param idx the index to seek to
      */
     private fun seekTo(idx: Int) {
+        if (idx % 2 != 0) {
+            throw IllegalStateException("Should be even number idx($idx)")
+        }
+
         if (idx >= block.offsets.size()) {
             key.clear()
             valueRange = IntRange.EMPTY
@@ -143,16 +147,12 @@ class BlockIterator(
         this.key.append(this.firstKey.slice(0..<overlapLength)) // overlapping key
         this.key.append(key) // non-overlapping key
         currentOffset += keyLength
-        val timestamp = block.data.slice(currentOffset, currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
-        this.key.setTimestamp(timestamp)
-        currentOffset += SIZE_OF_U64_IN_BYTE
+        // val timestamp = block.data.slice(currentOffset, currentOffset + SIZE_OF_U64_IN_BYTE).toU64Long()
+        // this.key.setTimestamp(timestamp)
+        // currentOffset += SIZE_OF_U64_IN_BYTE
         val valueLength = block.data.slice(currentOffset, currentOffset + SIZE_OF_U16_IN_BYTE).toU16Int()
-        val valueOffsetBegin = offset +
-                SIZE_OF_U16_IN_BYTE + // (overlap length)'s length
-                SIZE_OF_U16_IN_BYTE + // (key length)'s length
-                SIZE_OF_U64_IN_BYTE + // timestamp length
-                keyLength +           // key length
-                SIZE_OF_U16_IN_BYTE   // (value length)'s length
+        currentOffset += SIZE_OF_U16_IN_BYTE
+        val valueOffsetBegin = currentOffset
         val valueOffsetEnd = valueOffsetBegin + valueLength
         this.valueRange = valueOffsetBegin..<valueOffsetEnd
     }
@@ -162,7 +162,7 @@ class BlockIterator(
      *
      * @param key the key to seek to
      */
-    fun seekToKey(key: TimestampedKey) {
+    fun seekToKey(key: ComparableByteArray) {
         var low = 0
         var high = block.offsets.size()
         while (low < high) {

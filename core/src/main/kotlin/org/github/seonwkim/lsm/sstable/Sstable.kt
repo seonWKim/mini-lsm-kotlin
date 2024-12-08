@@ -1,10 +1,13 @@
 package org.github.seonwkim.lsm.sstable
 
+import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.SIZE_OF_U32_IN_BYTE
-import org.github.seonwkim.common.TimestampedKey
 import org.github.seonwkim.common.crcHash
 import org.github.seonwkim.common.toU32Int
-import org.github.seonwkim.lsm.block.*
+import org.github.seonwkim.lsm.block.Block
+import org.github.seonwkim.lsm.block.BlockMeta
+import org.github.seonwkim.lsm.block.BlockMetaUtil
+import org.github.seonwkim.lsm.block.BlockUtil
 import org.github.seonwkim.lsm.bloom.Bloom
 import org.github.seonwkim.lsm.bloom.BloomUtil
 
@@ -14,10 +17,10 @@ class Sstable(
     val blockMetaOffset: Int,
     val id: Int,
     val blockCache: BlockCache?,
-    val firstKey: TimestampedKey,
-    val lastKey: TimestampedKey,
+    val firstKey: ComparableByteArray,
+    val lastKey: ComparableByteArray,
     val bloom: Bloom?,
-    val maxTs: Long
+    // val maxTs: Long
 ) {
 
     companion object {
@@ -34,7 +37,8 @@ class Sstable(
             val rawMetaOffset = file.read(bloomOffset - 4, SIZE_OF_U32_IN_BYTE)
             val blockMetaOffset = rawMetaOffset.toU32Int().toLong()
             val rawMeta = file.read(blockMetaOffset, (bloomOffset - 4 - blockMetaOffset).toInt())
-            val (blockMeta, maxTs) = BlockMetaUtil.decodeBlockMeta(rawMeta)
+            val (blockMeta) = BlockMetaUtil.decodeBlockMeta(rawMeta)
+            // val (blockMeta, maxTs) = BlockMetaUtil.decodeBlockMeta(rawMeta)
             return Sstable(
                 file = file,
                 blockMeta = blockMeta,
@@ -44,7 +48,7 @@ class Sstable(
                 firstKey = blockMeta.first().firstKey,
                 lastKey = blockMeta.last().lastKey,
                 bloom = bloom,
-                maxTs = maxTs
+                // maxTs = maxTs
             )
         }
     }
@@ -75,7 +79,7 @@ class Sstable(
     /**
      * Find the block that may contain [key].
      */
-    fun findBlockIdx(key: TimestampedKey): Int {
+    fun findBlockIdx(key: ComparableByteArray): Int {
         return blockMeta.binarySearch { it.firstKey.compareTo(key) }
             .let { idx ->
                 if (idx < 0) maxOf(-idx - 2, 0)

@@ -18,16 +18,16 @@ class WalTest {
 
         // Create WAL and put keys
         val wal = Wal.create(walPath)
-        val key1 = TimestampedKey("key1".toComparableByteArray())
+        val key1 = "key1".toComparableByteArray()
         val value1 = "value1".toComparableByteArray()
         wal.put(key1, value1)
 
-        val key2 = TimestampedKey("key2".toComparableByteArray())
+        val key2 = "key2".toComparableByteArray()
         val value2 = "value2".toComparableByteArray()
         wal.put(key2, value2)
 
         // Retrieve keys from WAL
-        val map = ConcurrentSkipListMap<TimestampedKey, ComparableByteArray>()
+        val map = ConcurrentSkipListMap<ComparableByteArray, ComparableByteArray>()
         Wal.recover(walPath, map)
 
         assertEquals(2, map.size)
