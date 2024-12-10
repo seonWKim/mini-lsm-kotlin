@@ -70,7 +70,7 @@ class Day7 {
     }
 
     private fun createKey(idx: Int): TimestampedByteArray {
-        return "key_%010d".format(idx * 5).toTimestampedByteArray()
+        return "key_%010d".format(idx * 5).toTimestampedByteArrayWithoutTs()
     }
 
     private fun createValue(idx: Int): ComparableByteArray {

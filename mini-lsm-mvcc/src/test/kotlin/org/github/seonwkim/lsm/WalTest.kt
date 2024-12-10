@@ -3,7 +3,7 @@ package org.github.seonwkim.lsm
 import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.common.toComparableByteArray
-import org.github.seonwkim.common.toTimestampedByteArray
+import org.github.seonwkim.common.toTimestampedByteArrayWithoutTs
 
 import org.junit.jupiter.api.Assertions.*
 import java.util.concurrent.ConcurrentSkipListMap
@@ -19,11 +19,11 @@ class WalTest {
 
         // Create WAL and put keys
         val wal = Wal.create(walPath)
-        val key1 = "key1".toTimestampedByteArray(timestamp = 5)
+        val key1 = "key1".toTimestampedByteArrayWithoutTs()
         val value1 = "value1".toComparableByteArray()
         wal.put(key1, value1)
 
-        val key2 = "key2".toTimestampedByteArray(timestamp = 4)
+        val key2 = "key2".toTimestampedByteArrayWithoutTs()
         val value2 = "value2".toComparableByteArray()
         wal.put(key2, value2)
 

@@ -11,9 +11,9 @@ class MemTableIteratorTest {
     @Test
     fun `test UNBOUNDED`() {
         val memTable = MemTable.create(0)
-        memTable.put("a".toTimestampedByteArray(), "a".toComparableByteArray())
-        memTable.put("b".toTimestampedByteArray(), "b".toComparableByteArray())
-        memTable.put("c".toTimestampedByteArray(), "c".toComparableByteArray())
+        memTable.put("a".toTimestampedByteArrayWithoutTs(), "a".toComparableByteArray())
+        memTable.put("b".toTimestampedByteArrayWithoutTs(), "b".toComparableByteArray())
+        memTable.put("c".toTimestampedByteArrayWithoutTs(), "c".toComparableByteArray())
 
         val memTableIterator = MemTableIterator.create(
             memTable = memTable,
@@ -21,11 +21,11 @@ class MemTableIteratorTest {
             upper = Unbounded
         )
 
-        assertEquals(memTableIterator.key(), "a".toTimestampedByteArray())
+        assertByteArrayEquals(memTableIterator.key(), "a".toTimestampedByteArrayWithoutTs())
         memTableIterator.next()
-        assertEquals(memTableIterator.key(), "b".toTimestampedByteArray())
+        assertByteArrayEquals(memTableIterator.key(), "b".toTimestampedByteArrayWithoutTs())
         memTableIterator.next()
-        assertEquals(memTableIterator.key(), "c".toTimestampedByteArray())
+        assertByteArrayEquals(memTableIterator.key(), "c".toTimestampedByteArrayWithoutTs())
         memTableIterator.next()
         assertFalse { memTableIterator.isValid() }
     }
@@ -33,19 +33,19 @@ class MemTableIteratorTest {
     @Test
     fun `configure lower and test 1`() {
         val memTable = MemTable.create(0)
-        memTable.put("a".toTimestampedByteArray(), "a".toComparableByteArray())
-        memTable.put("b".toTimestampedByteArray(), "b".toComparableByteArray())
-        memTable.put("c".toTimestampedByteArray(), "c".toComparableByteArray())
+        memTable.put("a".toTimestampedByteArrayWithoutTs(), "a".toComparableByteArray())
+        memTable.put("b".toTimestampedByteArrayWithoutTs(), "b".toComparableByteArray())
+        memTable.put("c".toTimestampedByteArrayWithoutTs(), "c".toComparableByteArray())
 
         val memTableIterator = MemTableIterator.create(
             memTable = memTable,
-            lower = Included("b".toTimestampedByteArray()),
+            lower = Included("b".toTimestampedByteArrayWithoutTs()),
             upper = Unbounded
         )
 
-        assertEquals(memTableIterator.key(), "b".toTimestampedByteArray())
+        assertByteArrayEquals(memTableIterator.key(), "b".toTimestampedByteArrayWithoutTs())
         memTableIterator.next()
-        assertEquals(memTableIterator.key(), "c".toTimestampedByteArray())
+        assertByteArrayEquals(memTableIterator.key(), "c".toTimestampedByteArrayWithoutTs())
         memTableIterator.next()
         assertFalse { memTableIterator.isValid() }
     }
@@ -53,17 +53,17 @@ class MemTableIteratorTest {
     @Test
     fun `configure lower and test 2`() {
         val memTable = MemTable.create(0)
-        memTable.put("a".toTimestampedByteArray(), "a".toComparableByteArray())
-        memTable.put("b".toTimestampedByteArray(), "b".toComparableByteArray())
-        memTable.put("c".toTimestampedByteArray(), "c".toComparableByteArray())
+        memTable.put("a".toTimestampedByteArrayWithoutTs(), "a".toComparableByteArray())
+        memTable.put("b".toTimestampedByteArrayWithoutTs(), "b".toComparableByteArray())
+        memTable.put("c".toTimestampedByteArrayWithoutTs(), "c".toComparableByteArray())
 
         val memTableIterator = MemTableIterator.create(
             memTable = memTable,
-            lower = Excluded("b".toTimestampedByteArray()),
+            lower = Excluded("b".toTimestampedByteArrayWithoutTs()),
             upper = Unbounded
         )
 
-        assertEquals(memTableIterator.key(), "c".toTimestampedByteArray())
+        assertByteArrayEquals(memTableIterator.key(), "c".toTimestampedByteArrayWithoutTs())
         memTableIterator.next()
         assertFalse { memTableIterator.isValid() }
     }
@@ -71,13 +71,13 @@ class MemTableIteratorTest {
     @Test
     fun `configure lower and test 3`() {
         val memTable = MemTable.create(0)
-        memTable.put("a".toTimestampedByteArray(), "a".toComparableByteArray())
-        memTable.put("b".toTimestampedByteArray(), "b".toComparableByteArray())
-        memTable.put("c".toTimestampedByteArray(), "c".toComparableByteArray())
+        memTable.put("a".toTimestampedByteArrayWithoutTs(), "a".toComparableByteArray())
+        memTable.put("b".toTimestampedByteArrayWithoutTs(), "b".toComparableByteArray())
+        memTable.put("c".toTimestampedByteArrayWithoutTs(), "c".toComparableByteArray())
 
         val memTableIterator = MemTableIterator.create(
             memTable = memTable,
-            lower = Excluded("d".toTimestampedByteArray()),
+            lower = Excluded("d".toTimestampedByteArrayWithoutTs()),
             upper = Unbounded
         )
 
@@ -87,19 +87,19 @@ class MemTableIteratorTest {
     @Test
     fun `configure upper and test 1`() {
         val memTable = MemTable.create(0)
-        memTable.put("a".toTimestampedByteArray(), "a".toComparableByteArray())
-        memTable.put("b".toTimestampedByteArray(), "b".toComparableByteArray())
-        memTable.put("c".toTimestampedByteArray(), "c".toComparableByteArray())
+        memTable.put("a".toTimestampedByteArrayWithoutTs(), "a".toComparableByteArray())
+        memTable.put("b".toTimestampedByteArrayWithoutTs(), "b".toComparableByteArray())
+        memTable.put("c".toTimestampedByteArrayWithoutTs(), "c".toComparableByteArray())
 
         val memTableIterator = MemTableIterator.create(
             memTable = memTable,
             lower = Unbounded,
-            upper = Included("b".toTimestampedByteArray())
+            upper = Included("b".toTimestampedByteArrayWithoutTs())
         )
 
-        assertEquals(memTableIterator.key(), "a".toTimestampedByteArray())
+        assertByteArrayEquals(memTableIterator.key(), "a".toTimestampedByteArrayWithoutTs())
         memTableIterator.next()
-        assertEquals(memTableIterator.key(), "b".toTimestampedByteArray())
+        assertByteArrayEquals(memTableIterator.key(), "b".toTimestampedByteArrayWithoutTs())
         memTableIterator.next()
         assertFalse { memTableIterator.isValid() }
     }
@@ -107,17 +107,17 @@ class MemTableIteratorTest {
     @Test
     fun `configure upper and test 2`() {
         val memTable = MemTable.create(0)
-        memTable.put("a".toTimestampedByteArray(), "a".toComparableByteArray())
-        memTable.put("b".toTimestampedByteArray(), "b".toComparableByteArray())
-        memTable.put("c".toTimestampedByteArray(), "c".toComparableByteArray())
+        memTable.put("a".toTimestampedByteArrayWithoutTs(), "a".toComparableByteArray())
+        memTable.put("b".toTimestampedByteArrayWithoutTs(), "b".toComparableByteArray())
+        memTable.put("c".toTimestampedByteArrayWithoutTs(), "c".toComparableByteArray())
 
         val memTableIterator = MemTableIterator.create(
             memTable = memTable,
             lower = Unbounded,
-            upper = Excluded("b".toTimestampedByteArray())
+            upper = Excluded("b".toTimestampedByteArrayWithoutTs())
         )
 
-        assertEquals(memTableIterator.key(), "a".toTimestampedByteArray())
+        assertByteArrayEquals(memTableIterator.key(), "a".toTimestampedByteArrayWithoutTs())
         memTableIterator.next()
         assertFalse { memTableIterator.isValid() }
     }
