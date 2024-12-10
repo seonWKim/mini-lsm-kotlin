@@ -2,6 +2,7 @@ package org.github.seonwkim.lsm.memtable
 
 import org.github.seonwkim.common.Bound
 import org.github.seonwkim.common.ComparableByteArray
+import org.github.seonwkim.common.MIN_TIMESTAMP
 import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.lsm.Wal
 import org.github.seonwkim.lsm.iterator.MemTableIterator
@@ -59,7 +60,10 @@ class MemTable(
     }
 
     fun get(key: TimestampedByteArray): ComparableByteArray? {
-        return map[key]
+        return map.subMap(
+            key,
+            TimestampedByteArray(key.copyBytes(), MIN_TIMESTAMP)
+        ).firstEntry()?.value
     }
 
     fun put(key: TimestampedByteArray, value: ComparableByteArray) {
@@ -121,5 +125,9 @@ class MemTable(
 
     fun iterator(): MutableIterator<MutableMap.MutableEntry<TimestampedByteArray, ComparableByteArray>> {
         return this.map.iterator()
+    }
+
+    fun maxTimestamp(): Long? {
+        return this.map.maxByOrNull { it.key.timestamp }?.key?.timestamp
     }
 }

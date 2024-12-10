@@ -44,7 +44,7 @@ object Utils {
                 val version = keyMap.getOrDefault(i, 0) + 1
                 val value = genValue(version)
                 keyMap[i] = version
-                storage.put(key.toTimestampedByteArray(), value.toComparableByteArray())
+                storage.put(key.toTimestampedByteArrayWithoutTs(), value.toComparableByteArray())
                 maxKey = maxOf(maxKey, i)
             }
         }
@@ -63,7 +63,7 @@ object Utils {
             if (keyMap.containsKey(i)) {
                 val expectedValue = genValue(keyMap[i]!!)
                 assertEquals(expectedValue, actualValue)
-                expectedKeyValuePairs.add(Pair(key.toTimestampedByteArray(), actualValue!!.toComparableByteArray()))
+                expectedKeyValuePairs.add(Pair(key.toTimestampedByteArrayWithoutTs(), actualValue!!.toComparableByteArray()))
             } else {
                 assertTrue { actualValue == null }
             }

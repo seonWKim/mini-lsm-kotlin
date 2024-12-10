@@ -1,5 +1,6 @@
 package org.github.seonwkim.lsm.sstable
 
+import org.github.seonwkim.common.ComparableByteArray
 import org.github.seonwkim.common.TimestampedByteArray
 import java.io.File
 import java.nio.ByteBuffer
@@ -20,7 +21,7 @@ class SsTableFile( // original file name was FileObject
             return SsTableFile(file, file.length())
         }
 
-        fun create(path: Path, data: TimestampedByteArray): SsTableFile {
+        fun create(path: Path, data: ComparableByteArray): SsTableFile {
             val file = path.toFile()
             Files.write(path, data.getByteArray())
             val size = Files.size(path)
@@ -28,7 +29,7 @@ class SsTableFile( // original file name was FileObject
         }
     }
 
-    fun read(offset: Long, length: Int): TimestampedByteArray {
+    fun read(offset: Long, length: Int): ComparableByteArray {
         val fileChannel = file!!.inputStream().channel
         val buffer = ByteBuffer.allocate(length)
         fileChannel.use {
@@ -38,7 +39,7 @@ class SsTableFile( // original file name was FileObject
         buffer.flip()
         val byteArray = ByteArray(buffer.remaining())
         buffer.get(byteArray)
-        return TimestampedByteArray(byteArray.toList())
+        return ComparableByteArray(byteArray.toList())
     }
 }
 

@@ -1,7 +1,7 @@
 package org.github.seonwkim.lsm.sstable
 
-import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.common.SIZE_OF_U32_IN_BYTE
+import org.github.seonwkim.common.TimestampedByteArray
 import org.github.seonwkim.common.crcHash
 import org.github.seonwkim.common.toU32Int
 import org.github.seonwkim.lsm.block.Block
@@ -20,7 +20,7 @@ class Sstable(
     val firstKey: TimestampedByteArray,
     val lastKey: TimestampedByteArray,
     val bloom: Bloom?,
-    // val maxTs: Long
+    val maxTs: Long
 ) {
 
     companion object {
@@ -37,8 +37,7 @@ class Sstable(
             val rawMetaOffset = file.read(bloomOffset - 4, SIZE_OF_U32_IN_BYTE)
             val blockMetaOffset = rawMetaOffset.toU32Int().toLong()
             val rawMeta = file.read(blockMetaOffset, (bloomOffset - 4 - blockMetaOffset).toInt())
-            val (blockMeta) = BlockMetaUtil.decodeBlockMeta(rawMeta)
-            // val (blockMeta, maxTs) = BlockMetaUtil.decodeBlockMeta(rawMeta)
+            val (blockMeta, maxTs) = BlockMetaUtil.decodeBlockMeta(rawMeta)
             return Sstable(
                 file = file,
                 blockMeta = blockMeta,
@@ -48,7 +47,7 @@ class Sstable(
                 firstKey = blockMeta.first().firstKey,
                 lastKey = blockMeta.last().lastKey,
                 bloom = bloom,
-                // maxTs = maxTs
+                maxTs = maxTs
             )
         }
     }

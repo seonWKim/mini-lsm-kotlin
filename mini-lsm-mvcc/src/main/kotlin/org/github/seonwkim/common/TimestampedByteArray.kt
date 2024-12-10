@@ -1,11 +1,18 @@
 package org.github.seonwkim.common
 
+const val DEFAULT_TIMESTAMP = 0L
+const val MIN_TIMESTAMP = Long.MIN_VALUE
+const val MAX_TIMESTAMP = Long.MAX_VALUE
+
 /**
  * A class representing a byte array with a timestamp.
  *
  * @property bytes the list of bytes in the array
  */
-class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable<TimestampedByteArray> {
+class TimestampedByteArray(
+    bytes: List<Byte>,
+    timestamp: Long
+) : Comparable<TimestampedByteArray> {
     private var bytes: MutableList<Byte> = bytes.toMutableList()
     var timestamp: Long = timestamp
         private set
@@ -17,8 +24,8 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
          *
          * @return a new instance of ComparableByteArray
          */
-        fun new(): TimestampedByteArray {
-            return TimestampedByteArray(ArrayList())
+        fun new(timestamp: Long): TimestampedByteArray {
+            return TimestampedByteArray(ArrayList(), timestamp)
         }
     }
 
@@ -77,13 +84,6 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
     }
 
     /**
-     * Return a slice including [startIdx] and excluding [endIdx]
-     */
-    fun slice(startIdx: Int, endIdx: Int): ComparableByteArray {
-        return slice(startIdx..<endIdx)
-    }
-
-    /**
      * Returns a slice of the [ComparableByteArray].
      *
      * @param range the range of indices to include in the slice
@@ -130,39 +130,29 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
     /**
      * Concatenates this byte array with another byte array.
      *
-     * @param other the other byte array to concatenate
+     * @param bytes the other byte array to concatenate
      * @return a new ComparableByteArray containing the concatenated result
      */
-    operator fun plus(other: TimestampedByteArray): TimestampedByteArray {
-        return TimestampedByteArray(this.bytes + other.bytes)
+    operator fun plus(bytes: List<Byte>): TimestampedByteArray {
+        return TimestampedByteArray(this.bytes + bytes, this.timestamp)
     }
 
     /**
      * Appends another byte array to this byte array.
      *
-     * @param other the other byte array to append
+     * @param bytes the other byte array to append
      */
-    operator fun plusAssign(other: TimestampedByteArray) {
-        this.bytes.addAll(other.bytes)
-    }
-
-    /**
-     * Concatenates this byte array with another byte array.
-     *
-     * @param other the other byte array to concatenate
-     * @return a new ComparableByteArray containing the concatenated result
-     */
-    operator fun plus(other: ComparableByteArray): TimestampedByteArray {
-        return TimestampedByteArray(this.bytes + other.getBytes())
+    operator fun plusAssign(bytes: List<Byte>) {
+        this.bytes.addAll(bytes)
     }
 
     /**
      * Appends another byte array to this byte array.
      *
-     * @param other the other byte array to append
+     * @param bytes the other byte array to append
      */
-    operator fun plusAssign(other: ComparableByteArray) {
-        this.bytes.addAll(other.getBytes())
+    operator fun plusAssign(bytes: ComparableByteArray) {
+        this.bytes.addAll(bytes.getBytes())
     }
 
     /**
@@ -193,16 +183,22 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
      * @return a negative integer, zero, or a positive integer as this byte array is less than, equal to, or greater than the specified byte array
      */
     override fun compareTo(other: TimestampedByteArray): Int {
-        if (this.bytes.size > other.bytes.size) {
-            return -other.compareTo(this)
+        val byteComparison = this.bytes.compareTo(other.bytes)
+        return if (byteComparison != 0) {
+            byteComparison
+        } else {
+            other.timestamp.compareTo(this.timestamp) // Reverse the timestamp comparison
         }
+    }
 
-        for (idx in bytes.indices) {
-            if (bytes[idx] == other.bytes[idx]) continue
-            return bytes[idx] - other.bytes[idx]
+    private fun List<Byte>.compareTo(other: List<Byte>): Int {
+        val minLength = minOf(this.size, other.size)
+        for (idx in 0 until minLength) {
+            if (this[idx] != other[idx]) {
+                return this[idx] - other[idx]
+            }
         }
-
-        return if (bytes.size == other.bytes.size) 0 else -1
+        return this.size - other.size
     }
 
     override fun equals(other: Any?): Boolean {
@@ -228,8 +224,12 @@ class TimestampedByteArray(bytes: List<Byte>, timestamp: Long = 0L) : Comparable
  *
  * @return a new [TimestampedByteArray] containing the bytes of the string
  */
-fun String.toTimestampedByteArray(timestamp: Long = 0L): TimestampedByteArray {
+fun String.toTimestampedByteArray(timestamp: Long = System.currentTimeMillis()): TimestampedByteArray {
     return TimestampedByteArray(this.map { it.code.toByte() }, timestamp)
+}
+
+fun String.toTimestampedByteArrayWithoutTs(): TimestampedByteArray {
+    return TimestampedByteArray(this.map { it.code.toByte() }, 0)
 }
 
 /**
@@ -237,8 +237,12 @@ fun String.toTimestampedByteArray(timestamp: Long = 0L): TimestampedByteArray {
  *
  * @return a new [TimestampedByteArray] containing the bytes of the string
  */
-fun ByteArray.toTimestampedByteArray(timestamp: Long = 0L): TimestampedByteArray {
+fun ByteArray.toTimestampedByteArray(timestamp: Long = System.currentTimeMillis()): TimestampedByteArray {
     return TimestampedByteArray(this.toList(), timestamp)
+}
+
+fun ByteArray.toTimestampedByteArrayWithoutTs(): TimestampedByteArray {
+    return TimestampedByteArray(this.toList(), 0)
 }
 
 fun TimestampedByteArray?.isValid(): Boolean {

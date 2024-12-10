@@ -132,7 +132,7 @@ class LsmStorageInner private constructor(
                         blockCache = blockCache.copy(),
                         file = SsTableFile.open(sstPath(path, sstableId))
                     )
-                    // lastCommitTs = maxOf(lastCommitTs, sst.maxTs)
+                    lastCommitTs = maxOf(lastCommitTs, sst.maxTs)
                     state.sstables[sstableId] = sst
                     sstCount += 1
                 }
@@ -154,6 +154,7 @@ class LsmStorageInner private constructor(
                     var walCount = 0
                     for (id in memTables) {
                         val memTable = MemTable.recoverFromWal(id, walPath(path, id))
+                        memTable.maxTimestamp()?.let { lastCommitTs = maxOf(lastCommitTs, it) }
                         if (!memTable.isEmpty()) {
                             state.immutableMemTables.readValue().addFirst(memTable)
                             walCount++
@@ -178,7 +179,8 @@ class LsmStorageInner private constructor(
                 blockCache = blockCache,
                 compactionController = compactionController,
                 manifest = manifest,
-                compactionFilters = MutexLock(Prefix(TimestampedByteArray.new()))
+                // mvcc = TODO(),
+                compactionFilters = MutexLock(Prefix(ComparableByteArray.new()))
             )
         }
 

@@ -31,7 +31,7 @@ object BloomUtil {
      * @param buf the buffer to encode the Bloom filter into
      * @param bloom the Bloom filter to encode
      */
-    fun encode(buf: TimestampedByteArray, bloom: Bloom) {
+    fun encode(buf: ComparableByteArray, bloom: Bloom) {
         val offset = buf.size()
         buf += bloom.filter
         buf += bloom.hashFunctionsCount.toU8ByteArray()
@@ -46,7 +46,7 @@ object BloomUtil {
      * @return the decoded Bloom filter
      * @throws Error if the checksum does not match
      */
-    fun decode(buf: TimestampedByteArray): Bloom {
+    fun decode(buf: ComparableByteArray): Bloom {
         val bufSize = buf.size()
         val checksum = buf.slice(bufSize - 4..<bufSize).toU32Int()
         if (checksum != crcHash(buf.slice(0..<bufSize - 4))) {

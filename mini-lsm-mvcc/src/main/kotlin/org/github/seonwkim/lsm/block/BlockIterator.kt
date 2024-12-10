@@ -29,7 +29,7 @@ class BlockIterator(
             return BlockIterator(
                 firstKey = BlockUtil.getFirstKey(block),
                 block = block,
-                key = TimestampedByteArray.new(),
+                key = TimestampedByteArray.new(DEFAULT_TIMESTAMP),
                 valueRange = IntRange.EMPTY,
                 idx = 0
             )
